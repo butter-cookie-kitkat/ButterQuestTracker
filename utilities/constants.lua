@@ -2,24 +2,35 @@ local _, ns = ...
 
 local CONSTANTS = {
     DEFAULT_CONFIG = {
-        VERSION = 0.2,
-        Position = {
-            "TOPRIGHT", 
-            "MinimapCluster", 
-            "BOTTOMRIGHT", 
-            0, 
-            0
-        },
+        VERSION = "1.0.0",
+        PositionX = 0,
+        PositionY = -240,
+        Width = 250,
+        MaxHeight = 600,
         CurrentZoneOnly = true,
+        QuestLimit = 10,
         DeveloperMode = false,
-        QuestLimit = 10
+        DebugLevel = 3
     },
     LOGGER = {
         PREFIX = "|r[|c00FF9696ButterQuestTracker|r]: |r",
-        COLORS = {
-            ERROR = "|c00FF0000",
-            WARN = "|c00FF7F00",
-            INFO = "|r"
+        TYPES = {
+            ERROR = {
+                COLOR = "|c00FF0000",
+                LEVEL = 1
+            },
+            WARN = {
+                COLOR = "|c00FF7F00",
+                LEVEL = 2
+            },
+            INFO = {
+                COLOR = "|r",
+                LEVEL = 3
+            },
+            TRACE = {
+                COLOR = "|c00ADD8E6",
+                LEVEL = 4
+            }
         }
     }
 }

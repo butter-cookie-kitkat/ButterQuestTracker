@@ -1,87 +1,287 @@
-local _, ns = ...
+local NAME, ns = ...
 
-local frame = CreateFrame("Frame", nil, InterfaceOptionsFramePanelContainer)
-frame.name = "ButterQuestTracker"
-frame:Hide()
+local BQT = ButterQuestTracker
 
-frame:SetScript("OnShow", function(self)
-	self:CreateOptions()
-	self:SetScript("OnShow", nil)
-end)
+local function Spacer(o, size)
+	size = size or "small";
 
-local function createCheckBox(parent, anchor, number, property, label, tooltip)
-	local checkbox = CreateFrame("CheckButton", "ButterQuestTrackerCheckBox" .. number, parent, "ChatConfigCheckButtonTemplate")
-	checkbox:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 16, number * -26)
-
-	local checkboxLabel = _G[checkbox:GetName() .. "Text"]
-	checkboxLabel:SetText(label)
-	checkboxLabel:SetPoint("TOPLEFT", checkbox, "RIGHT", 5, 7)
-
-	checkbox.tooltip = tooltip
-	checkbox:SetChecked(property)
-
-	return checkbox
+    return {
+        type = "description",
+        order = o,
+        name = " ",
+        fontSize = size
+    };
 end
 
-local function createSlider(parent, anchor, number, property, label, tooltip, min, max, step, overrideLabels)
-	min = min or 0
-	max = max or 100
-	step = step or 1
-	overrideLabels = overrideLabels or {}
-
-	local slider = CreateFrame("Slider", "ButterQuestTrackerSlider" .. number, parent, "OptionsSliderTemplate")
-	slider:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 16, number * -26 - 13)
-	slider:SetWidth(300)
-
-	getglobal(slider:GetName() .. "Low"):SetText(property == min and overrideLabels.min or min)
-	getglobal(slider:GetName() .. "High"):SetText(property == max and overrideLabels.max or property)
-	getglobal(slider:GetName() .. "Text"):SetText(label)
-
-	slider.tooltipText = tooltip
-	slider:SetMinMaxValues(min, max)
-	slider:SetValueStep(step)
-	slider:SetStepsPerPage(step)
-	slider:SetObeyStepOnDrag(true)
-	slider:SetValue(property)
-
-	slider:SetScript("OnValueChanged", function(self, value)
-		getglobal(slider:GetName() .. "High"):SetText(value == max and overrideLabels.max or value)
-	end)
-
-	return slider
+local function GetFromDB(info)
+	return ButterQuestTrackerConfig[info.arg];
 end
 
-function frame:CreateOptions()
-	local title = self:CreateFontString(nil, nil, "GameFontNormalLarge")
-	title:SetPoint("TOPLEFT", 16, -16)
-	title:SetText("ButterQuestTracker v" .. ns.CONSTANTS.DEFAULT_CONFIG.VERSION)
-
-	local currentZoneOnly = createCheckBox(self, title, 1, ButterQuestTrackerConfig.CurrentZoneOnly, "Current Zone Only", "Only displays quests relevant to the current zone.")
-	currentZoneOnly:SetScript("PostClick", function(self, button, down)
-		ButterQuestTrackerConfig.CurrentZoneOnly = self:GetChecked()
-        ns.BQT:LoadQuests()
-    end)
-
-	local questLimit = createSlider(self, title, 2, ButterQuestTrackerConfig.QuestLimit, "Quest Limit", "Limits the number of visible Quests.", 1, 20)
-	questLimit:HookScript("OnValueChanged", function(self, value)
-		ButterQuestTrackerConfig.QuestLimit = value
-		ns.BQT:LoadQuests()
-	end)
-
-	local developerMode = createCheckBox(self, title, 4, ButterQuestTrackerConfig.DeveloperMode, "Developer Mode", "Enables logging and visual changes to make Development easier.")
-	developerMode:SetScript("PostClick", function(self, button, down)
-        ButterQuestTrackerConfig.DeveloperMode = self:GetChecked()
-        ns.BQT:RefreshFrame()
-	end)
-
-	self:refresh()
+local function SetInDB(info, value)
+	ButterQuestTrackerConfig[info.arg] = value;
 end
 
-InterfaceOptions_AddCategory(frame)
+local function SetAndReloadQuests(info, value)
+	SetInDB(info, value);
+	BQT:LoadQuests();
+end
+
+local options = {
+	name = "Butter Quest Tracker " .. ns.CONSTANTS.DEFAULT_CONFIG.VERSION,
+	type = "group",
+	childGroups = "tab",
+
+	get = GetFromDB,
+	set = SetInDB,
+	
+	args = {
+		filters = {
+			name = "General",
+			desc = "General Options",
+			type = "group",
+			order = 1,
+
+			args = {
+				filtersHeader = {
+					name = "Filters",
+					type = "header",
+					order = 1
+				},
+
+				spacer1 = Spacer(2),
+
+				currentZoneOnly = {
+					name = "Current Zone Only",
+					desc = "Displays quests relevant to the current zone / subzone.",
+					arg = "CurrentZoneOnly",
+					type = "toggle",
+					width = "full",
+					order = 3,
+			
+					set = SetAndReloadQuests
+				},
+
+				spacer2 = Spacer(4),
+
+				questLimit = {
+					name = "Quest Limit",
+					desc = "Limits the number of quests visible on the screen at a given time.",
+					arg = "QuestLimit",
+					type = "range",
+					width = 2.0,
+					min = 1,
+					max = 20,
+					step = 1,
+					order = 5,
+			
+					set = SetAndReloadQuests
+				},
+
+				frameOptionsHeader = {
+					name = "Frame Options",
+					type = "header",
+					order = 6
+				},
+
+				spacer3 = Spacer(7),
+
+				positionX = {
+					name = "Position X",
+					arg = "PositionX",
+					type = "range",
+					width = 1.7,
+					min = 0,
+					max = math.ceil(GetScreenWidth() * UIParent:GetEffectiveScale());
+					step = 0.01,
+					bigStep = 10,
+					order = 8,
+					
+					get = function(info)
+						return -ButterQuestTrackerConfig[info.arg]
+					end,
+					
+					set = function(info, value)
+						ButterQuestTrackerConfig[info.arg] = -value;
+						BQT:RefreshPosition();
+					end
+				},
+
+				positionY = {
+					name = "Position Y",
+					arg = "PositionY",
+					type = "range",
+					width = 1.7,
+					min = 0,
+					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
+					step = 0.01,
+					bigStep = 10,
+					order = 11,
+					
+					get = function(info)
+						return -ButterQuestTrackerConfig[info.arg]
+					end,
+					
+					set = function(info, value)
+						ButterQuestTrackerConfig[info.arg] = -value;
+						BQT:RefreshPosition();
+					end
+				},
+
+				spacer4 = Spacer(10),
+
+				width = {
+					name = "Width",
+					arg = "Width",
+					type = "range",
+					width = 1.7,
+					min = 100,
+					max = 400,
+					step = 1,
+					bigStep = 10,
+					order = 9,
+			
+					set = SetAndReloadQuests
+				},
+
+				maxHeight = {
+					name = "Max Height",
+					arg = "MaxHeight",
+					type = "range",
+					width = 1.7,
+					min = 100,
+					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
+					step = 1,
+					bigStep = 10,
+					order = 12,
+			
+					set = SetAndReloadQuests
+				},
+
+				spacer5 = Spacer(13),
+
+				resetPosition = {
+					name = "Reset Position",
+					type = "execute",
+					width = 0.8,
+					order = 14,
+
+					func = function()
+						ButterQuestTrackerConfig.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
+						ButterQuestTrackerConfig.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
+						BQT:RefreshPosition();
+					end
+				},
+
+				resetSize = {
+					name = "Reset Size",
+					type = "execute",
+					width = 0.7,
+					order = 15,
+
+					func = function()
+						ButterQuestTrackerConfig.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
+						ButterQuestTrackerConfig.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
+						BQT:LoadQuests();
+					end
+				}
+			}
+		},
+
+		advanced = {
+			name = "Advanced",
+			desc = "Advanced Options",
+			type = "group",
+			order = 2,
+			
+			args = {
+				developerOptionsHeader = {
+					name = "Developer Options",
+					type = "header",
+					order = 1,
+				},
+
+				spacer1 = Spacer(2),
+
+				developerMode = {
+					name = "Developer Mode",
+					arg = "DeveloperMode",
+					type = "toggle",
+					width = "full",
+					order = 3,
+					
+					set = function(info, value)
+						SetInDB(info, value);
+						BQT:RefreshFrame();
+					end
+				},
+
+				spacer2 = Spacer(4),
+
+				debugLevel = {
+					name = "Debug Level",
+					desc = "ERROR = 1\nWARN = 2\nINFO = 3\nTRACE = 4",
+					arg = "DebugLevel",
+					type = "range",
+					min = 1,
+					max = 4,
+					step = 1,
+					order = 5,
+
+					disabled = function()
+						return not ButterQuestTrackerConfig.DeveloperMode;
+					end
+				},
+
+				resetHeader = {
+					name = "Reset Butter Quest Tracker",
+					type = "header",
+					order = 6,
+				},
+
+				spacer3 = Spacer(7),
+
+				resetDescription = {
+					name = "Hitting this button will reset all Butter Quest Tracker configuration settings back to their default values.",
+					type = "description",
+					fontSize = "medium",
+					order = 8,
+				},
+
+				spacer4 = Spacer(9),
+
+				reset = {
+					name = "Reset Butter Quest Tracker",
+					desc = "Reset Butter Quest Tracker to the default values for all settings.",
+					type = "execute",
+					width = 1.3,
+					order = 10,
+
+					func = function()
+						ButterQuestTrackerConfig = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
+						BQT:RefreshPosition();
+						BQT:LoadQuests();
+					end
+				},
+
+				spacer5 = Spacer(11),
+
+				resetDescription = {
+					name = "|c00FF9696Butter Quest Tracker is under active development for World of Warcraft: Classic. Please check out our GitHub for the alpha builds or to report issues. \n\nhttps://github.com/butter-cookie-kitkat/ButterQuestTracker",
+					type = "description",
+					fontSize = "medium",
+					order = 12,
+				},
+			}
+		},
+	},
+}
+
+LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", options);
+LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ButterQuestTracker");
 
 -- Handling ButterQuestTracker's options.
-SLASH_BQT_COMMAND1 = '/bqt'
-SlashCmdList['BQT_COMMAND'] = function(command)
+SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
+SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
 	InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
 	InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
 end

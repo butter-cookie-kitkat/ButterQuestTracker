@@ -19,17 +19,17 @@ local function BQT__wait(delay, func, ...)
 			local count = #waitTable
 			local i = 1
 			while i <= count do
-			local waitRecord = tremove(waitTable,i)
-			local d = tremove(waitRecord,1)
-			local f = tremove(waitRecord,1)
-			local p = tremove(waitRecord,1)
-			if d > elapse then
-				tinsert(waitTable,i,{d-elapse,f,p})
-				i = i + 1
-			else
-				count = count - 1
-				f(unpack(p))
-			end
+				local waitRecord = tremove(waitTable,i)
+				local d = tremove(waitRecord,1)
+				local f = tremove(waitRecord,1)
+				local p = tremove(waitRecord,1)
+				if d > elapse then
+					tinsert(waitTable,i,{d-elapse,f,p})
+					i = i + 1
+				else
+					count = count - 1
+					f(unpack(p))
+				end
 			end
 		end)
 	end
@@ -94,14 +94,18 @@ function BQT:GetQuests(criteria)
 	local currentZone = GetRealZoneText()
 	local minimapZone = GetMinimapZoneText()
 
+	local class = UnitClass("player")
 	local zone
 	local quests = {}
 	for index = 1, numberOfEntries, 1 do
 		local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
+		local isCurrentMinimapZone = zone == minimapZone
+		local isCurrentZone = zone == currentZone or isCurrentMinimapZone
+		local isClassQuest = zone == class
 
 		if isHeader then
 			zone = title
-		elseif criteria.currentZoneOnly == false or zone == currentZone or zone == minimapZone then
+		elseif criteria.currentZoneOnly == false or isCurrentZone or isClassQuest then
 			local objectives = C_QuestLog.GetQuestObjectives(questID)
 		
 			-- Utilize the Quest Description if it doesn't have any objectives
@@ -124,7 +128,10 @@ function BQT:GetQuests(criteria)
 				isComplete = isComplete,
 				questID = questID,
 				zone = zone,
-				objectives = objectives
+				objectives = objectives,
+				isCurrentZone = isCurrentZone,
+				isCurrentMinimapZone = isCurrentMinimapZone,
+				isClassQuest = isClassQuest
 			})
 		end
 	end
@@ -137,9 +144,14 @@ function BQT:Clear()
 		QuestWatchFrame:Hide()
 	end
 
-	for i = 1, table.getn(self.fontStrings), 1 do
-		self.fontStrings[i]:Hide()
+	for i, fontString in ipairs(self.fontStrings) do
+		fontString:Hide();
 		self.fontStrings[i] = nil;
+	end
+
+	for i, clickFrame in ipairs(ClickFrames) do
+		clickFrame:Hide();
+		ClickFrames[i] = nil;
 	end
 end
 
@@ -172,7 +184,7 @@ function BQT:LoadQuests()
 				self.fontStrings[currentLineNumber] = self:CreateQuestObjective(self, self.fontStrings[currentLineNumber - 1], objective)
 			end
 	
-			self:SetClickFrame(quest.questID, self.fontStrings[currentLineNumber - table.getn(quest.objectives)], quest.objectives, isComplete)
+			self:SetClickFrame(quest.index, self.fontStrings[currentLineNumber - table.getn(quest.objectives)], quest.objectives, isComplete)
 		end
 	end
 
@@ -212,43 +224,21 @@ function BQT:CreateHeader(self, anchor, label)
 end
 
 function BQT:CreateQuestHeader(self, anchor, questInfo, fontString, previousFontString)
-	local header = self:CreateHeader(self, anchor, "[" .. questInfo.level .. "] " .. questInfo.title)
+	local headerText = "[" .. questInfo.level .. "] "
+	
+	if questInfo.isClassQuest then
+		headerText = headerText .. "[C] "
+	end
+
+	headerText = headerText .. questInfo.title
+
+	local header = self:CreateHeader(self, anchor, headerText)
 
 	if not questInfo.isComplete then
 		header:SetTextColor(.75, .61, 0)
 	end
 	
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10)
-
-	-- local button = CreateFrame("Button", nil, self)
-	-- button:SetPoint("RIGHT", fontString, "LEFT", -2, 0)
-	-- button:SetWidth(20)
-	-- button:SetHeight(20)
-
-	-- button:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
-	-- if ButterQuestTrackerConfig.DeveloperMode then
-	-- 	button:SetBackdropColor(0.1, 0.1, 0.1, .5)
-	-- else
-	-- 	button:SetBackdropColor(0, 0, 0, 0)
-	-- end
-	
-	-- local ntex = button:CreateTexture()
-	-- ntex:SetTexture("Interface/QUESTFRAME/AutoQuest-Parts")
-	-- ntex:SetTexCoord(0.3085, 0.41796875, 0.0468, 0.9375)
-	-- ntex:SetAllPoints()	
-	-- button:SetNormalTexture(ntex)
-	
-	-- local htex = button:CreateTexture()
-	-- htex:SetTexture("Interface/QUESTFRAME/AutoQuest-Parts")
-	-- htex:SetTexCoord(0.3085, 0.41796875, 0.0468, 0.9375)
-	-- htex:SetAllPoints()
-	-- button:SetHighlightTexture(htex)
-	
-	-- local ptex = button:CreateTexture()
-	-- ptex:SetTexture("Interface/QUESTFRAME/AutoQuest-Parts")
-	-- ptex:SetTexCoord(0.3085, 0.41796875, 0.0468, 0.9375)
-	-- ptex:SetAllPoints()
-	-- button:SetPushedTexture(ptex)
 
 	return header
 end

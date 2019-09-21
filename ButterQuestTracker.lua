@@ -107,7 +107,7 @@ function BQT:GetQuests(criteria)
 			zone = title
 		elseif criteria.currentZoneOnly == false or isCurrentZone or isClassQuest then
 			local objectives = C_QuestLog.GetQuestObjectives(questID)
-		
+
 			-- Utilize the Quest Description if it doesn't have any objectives
 			if table.getn(objectives) == 0 then
 				-- TODO: Not a big fan of this since we're mucking with the users selected quest in the quest log.
@@ -117,7 +117,7 @@ function BQT:GetQuests(criteria)
 	
 				tinsert(objectives, {
 					text = desc,
-					finished = true
+					finished = false
 				})
 			end
 			
@@ -131,7 +131,8 @@ function BQT:GetQuests(criteria)
 				objectives = objectives,
 				isCurrentZone = isCurrentZone,
 				isCurrentMinimapZone = isCurrentMinimapZone,
-				isClassQuest = isClassQuest
+				isClassQuest = isClassQuest,
+				gui = {}
 			})
 		end
 	end
@@ -176,15 +177,24 @@ function BQT:LoadQuests()
 			visibleQuestCount = visibleQuestCount + 1
 
 			self.fontStrings[currentLineNumber] = self:CreateQuestHeader(self, self.fontStrings[currentLineNumber - 1], quest)
+			quest.gui.header = self.fontStrings[currentLineNumber]
 	
-			for _, objective in ipairs(quest.objectives) do
+			if quest.isComplete == 1 then
 				currentLineNumber = currentLineNumber + 1
 				visibleObjectiveCount = visibleObjectiveCount + 1
 	
-				self.fontStrings[currentLineNumber] = self:CreateQuestObjective(self, self.fontStrings[currentLineNumber - 1], objective)
+				self.fontStrings[currentLineNumber] = self:CreateReadyToTurnIn(self, self.fontStrings[currentLineNumber - 1])
+				quest.gui.readyToTurnIn = self.fontStrings[currentLineNumber]
+			else
+				for _, objective in ipairs(quest.objectives) do
+					currentLineNumber = currentLineNumber + 1
+					visibleObjectiveCount = visibleObjectiveCount + 1
+		
+					self.fontStrings[currentLineNumber] = self:CreateQuestObjective(self, self.fontStrings[currentLineNumber - 1], objective)
+				end
 			end
 	
-			self:SetClickFrame(quest.index, self.fontStrings[currentLineNumber - table.getn(quest.objectives)], quest.objectives, isComplete)
+			self:SetClickFrame(quest)
 		end
 	end
 
@@ -233,14 +243,18 @@ function BQT:CreateQuestHeader(self, anchor, questInfo, fontString, previousFont
 	headerText = headerText .. questInfo.title
 
 	local header = self:CreateHeader(self, anchor, headerText)
-
-	if not questInfo.isComplete then
-		header:SetTextColor(.75, .61, 0)
-	end
 	
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10)
 
 	return header
+end
+
+function BQT:CreateReadyToTurnIn(self, anchor)
+	local turnInFont = self:CreateFont(self, anchor, " - Ready to turn in")
+	turnInFont:SetTextColor(0.0, 0.7, 0.0)
+	turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+
+	return turnInFont
 end
 
 function BQT:CreateQuestObjective(self, anchor, objective)
@@ -259,54 +273,46 @@ end
 
 local function OnMouseUp(self)
 	if IsShiftKeyDown() then
-		local questID = GetQuestIDFromLogIndex(self.questIndex)
+		local questID = GetQuestIDFromLogIndex(self.quest.index)
 		for index, value in ipairs(QUEST_WATCH_LIST) do
 			if value.id == questID then
 				tremove(QUEST_WATCH_LIST, index)
 			end
 		end
-		RemoveQuestWatch(self.questIndex)
+		RemoveQuestWatch(self.quest.index)
 		QuestWatch_Update()
 	else
 		if QuestLogEx then
 			ShowUIPanel(QuestLogExFrame)
-			QuestLogEx:QuestLog_SetSelection(self.questIndex)
+			QuestLogEx:QuestLog_SetSelection(self.quest.index)
 			QuestLogEx:Maximize()
 		elseif ClassicQuestLog then
 			ShowUIPanel(ClassicQuestLog)
-			QuestLog_SetSelection(self.questIndex)
+			QuestLog_SetSelection(self.quest.index)
 		else
 			ShowUIPanel(QuestLogFrame)
-			QuestLog_SetSelection(self.questIndex)
+			QuestLog_SetSelection(self.quest.index)
 			local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep()
-			QuestLogListScrollFrame.ScrollBar:SetValue(self.questIndex*valueStep/2)
+			QuestLogListScrollFrame.ScrollBar:SetValue(self.quest.index * valueStep / 2)
 		end
 	end
 end
 
 local function OnEnter(self)
-	if self.completed then
-		self.headerText:SetTextColor(.75, .61, 0)
-		for _, objective in ipairs(self.objectives) do
-			objective.gui:SetTextColor(.8, .8, .8)
-		end
-	else
-		self.headerText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-		for _, objective in ipairs(self.objectives) do
+	self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+	
+	for _, objective in ipairs(self.quest.objectives) do
+		if objective.gui ~= nil then
 			objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 		end
 	end
 end
 
 local function OnLeave(self)
-	if self.completed then
-		self.headerText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-		for _, objective in ipairs(self.objectives) do
-			objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
-		end
-	else
-		self.headerText:SetTextColor(.75, .61, 0)
-		for _, objective in ipairs(self.objectives) do
+	self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+	
+	for _, objective in ipairs(self.quest.objectives) do
+		if objective.gui ~= nil then
 			if objective.done then
 				objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 			else
@@ -316,19 +322,16 @@ local function OnLeave(self)
 	end
 end
 
-function BQT:SetClickFrame(questIndex, headerText, objectives, completed)
-	if not ClickFrames[questIndex] then
-		ClickFrames[questIndex] = CreateFrame("Frame")
-		ClickFrames[questIndex]:SetScript("OnMouseUp", OnMouseUp)
-		ClickFrames[questIndex]:SetScript("OnEnter", OnEnter)
-		ClickFrames[questIndex]:SetScript("OnLeave", OnLeave)
+function BQT:SetClickFrame(quest)
+	if not ClickFrames[quest.index] then
+		ClickFrames[quest.index] = CreateFrame("Frame")
+		ClickFrames[quest.index]:SetScript("OnMouseUp", OnMouseUp)
+		ClickFrames[quest.index]:SetScript("OnEnter", OnEnter)
+		ClickFrames[quest.index]:SetScript("OnLeave", OnLeave)
 	end
-	local f = ClickFrames[questIndex]
-	f:SetAllPoints(headerText)
-	f.questIndex = questIndex
-	f.headerText = headerText
-	f.objectives = objectives
-	f.completed = completed
+	local f = ClickFrames[quest.index]
+	f:SetAllPoints(quest.gui.header)
+	f.quest = quest
 end
 
 function BQT:SetPosition(point, relativeTo, relativePoint, x, y)

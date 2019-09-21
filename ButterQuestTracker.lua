@@ -3,7 +3,6 @@ local NAME, ns = ...
 local BQT = CreateFrame("Frame", nil, UIParent)
 
 local AnchorFrame = CreateFrame("Frame")
-local ClickFrames = {}
 local frameWidth = 250
 
 local waitTable = {};
@@ -68,6 +67,7 @@ function BQT:Initialize()
 	end
 		
 	self.fontStrings = {};
+	self.clickFrames = {};
 
 	self:RefreshFrame()
 end
@@ -85,6 +85,8 @@ function BQT:RefreshFrame()
 			self:SetBackdropColor(0, 0, 0, 0)
 		end
 	end
+
+	self:LoadQuests();
 end
 
 function BQT:GetQuests(criteria)
@@ -147,12 +149,11 @@ function BQT:Clear()
 
 	for i, fontString in ipairs(self.fontStrings) do
 		fontString:Hide();
-		self.fontStrings[i] = nil;
 	end
 
-	for i, clickFrame in ipairs(ClickFrames) do
+	-- Frames can't be destroyed, therefore they have to be reused!
+	for i, clickFrame in ipairs(self.clickFrames) do
 		clickFrame:Hide();
-		ClickFrames[i] = nil;
 	end
 end
 
@@ -194,7 +195,7 @@ function BQT:LoadQuests()
 				end
 			end
 	
-			self:SetClickFrame(quest)
+			self:SetClickFrame(i, quest)
 		end
 	end
 
@@ -283,13 +284,16 @@ local function OnMouseUp(self)
 		QuestWatch_Update()
 	else
 		if QuestLogEx then
+			ns.Log.Info('Clicked Quest with QuestLogEx enabled.')
 			ShowUIPanel(QuestLogExFrame)
 			QuestLogEx:QuestLog_SetSelection(self.quest.index)
 			QuestLogEx:Maximize()
 		elseif ClassicQuestLog then
+			ns.Log.Info('Clicked Quest with ClassicQuestLog enabled.')
 			ShowUIPanel(ClassicQuestLog)
 			QuestLog_SetSelection(self.quest.index)
 		else
+			ns.Log.Info('Clicked Quest with Default enabled.')
 			ShowUIPanel(QuestLogFrame)
 			QuestLog_SetSelection(self.quest.index)
 			local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep()
@@ -299,39 +303,51 @@ local function OnMouseUp(self)
 end
 
 local function OnEnter(self)
-	self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+	self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 	
 	for _, objective in ipairs(self.quest.objectives) do
 		if objective.gui ~= nil then
-			objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+			objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 		end
 	end
 end
 
 local function OnLeave(self)
-	self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+	self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
 	
 	for _, objective in ipairs(self.quest.objectives) do
 		if objective.gui ~= nil then
 			if objective.done then
-				objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+				objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 			else
-				objective.gui:SetTextColor(.8, .8, .8)
+				objective.gui:SetTextColor(.8, .8, .8);
 			end
 		end
 	end
 end
 
-function BQT:SetClickFrame(quest)
-	if not ClickFrames[quest.index] then
-		ClickFrames[quest.index] = CreateFrame("Frame")
-		ClickFrames[quest.index]:SetScript("OnMouseUp", OnMouseUp)
-		ClickFrames[quest.index]:SetScript("OnEnter", OnEnter)
-		ClickFrames[quest.index]:SetScript("OnLeave", OnLeave)
+function BQT:SetClickFrame(i, quest)
+	print(i)
+	local clickFrame = self.clickFrames[i];
+	if not clickFrame then
+		self.clickFrames[i] = CreateFrame("Frame");
+		clickFrame = self.clickFrames[i];
+		clickFrame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" });
+		clickFrame:SetScript("OnMouseUp", OnMouseUp);
+		clickFrame:SetScript("OnEnter", OnEnter);
+		clickFrame:SetScript("OnLeave", OnLeave);
 	end
-	local f = ClickFrames[quest.index]
-	f:SetAllPoints(quest.gui.header)
-	f.quest = quest
+
+	clickFrame:Show();
+
+	if ButterQuestTrackerConfig.DeveloperMode then
+		clickFrame:SetBackdropColor(0, 1, 0, 0.5);
+	else
+		clickFrame:SetBackdropColor(0, 0, 0, 0);
+	end
+
+	clickFrame:SetAllPoints(quest.gui.header)
+	clickFrame.quest = quest
 end
 
 function BQT:SetPosition(point, relativeTo, relativePoint, x, y)

@@ -448,6 +448,8 @@ function BQT:SetClickFrame(i, quest)
 		clickFrame:SetScript("OnMouseUp", function(self)
 			if GetMouseButtonClicked() == "RightButton" then
 				BQT:ToggleContextMenu(self.quest);
+			elseif IsShiftKeyDown() then
+				ChatEdit_InsertLink("[" .. self.quest.title .. "] ");
 			else
 				CloseDropDownMenus();
 				BQT:ViewQuest(self.quest);

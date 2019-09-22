@@ -183,6 +183,25 @@ local options = {
 						ButterQuestTrackerConfig.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
 						BQT:LoadQuests();
 					end
+				},
+				
+				visualsHeaders = {
+					name = "Visuals",
+					type = "header",
+					order = 16
+				},
+
+				spacer6 = Spacer(17),
+
+				colorHeadersByDifficultyLevel = {
+					name = "Color Headers By Difficulty Level",
+					desc = "Color codes the quests by their difficulty level.",
+					arg = "ColorHeadersByDifficultyLevel",
+					type = "toggle",
+					width = "full",
+					order = 18,
+			
+					set = SetAndReloadQuests
 				}
 			}
 		},

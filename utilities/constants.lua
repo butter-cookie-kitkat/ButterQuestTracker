@@ -8,6 +8,7 @@ local CONSTANTS = {
         Width = 250,
         MaxHeight = 600,
         CurrentZoneOnly = true,
+        ColorHeadersByDifficultyLevel = false,
         QuestLimit = 10,
         DeveloperMode = false,
         DebugLevel = 3

@@ -137,6 +137,7 @@ function BQT:GetQuests(criteria)
 				index = index,
 				title = title,
 				level = level,
+				difficulty = self:GetDifficultyOfQuest(level),
 				isComplete = isComplete,
 				questID = questID,
 				zone = zone,
@@ -247,6 +248,48 @@ function BQT:LoadQuests()
 	self:RefreshFrame();
 end
 
+function BQT:GetTextColorByDifficultyLevel(difficulty)
+	local playerLevel = UnitLevel("player");
+	
+    if (difficulty == 4) then
+		return 1, 0.1, 0.1; -- Red
+	elseif (difficulty == 3) then
+		return 1, 0.5, 0.25; -- Orange
+    elseif (difficulty == 2) then
+        return 1, 1, 0; -- Yellow
+    elseif (difficulty == 1) then
+        return 0.25, 0.75, 0.25; -- Green
+	end
+	
+	return 0.75, 0.75, 0.75; -- Grey
+end
+
+function BQT:GetDifficultyOfQuest(level)
+	local playerLevel = UnitLevel("player");
+	
+	if (level > (playerLevel + 4)) then
+		return 4;
+	elseif (level > (playerLevel + 2)) then
+		return 3;
+    elseif (level <= (playerLevel + 2)) and (level >= (playerLevel - 2)) then
+        return 2;
+    elseif (level > BQT:GetQuestGreyLevel(playerLevel)) then
+        return 1;
+	end
+	
+    return 0;
+end
+
+function BQT:GetQuestGreyLevel(level)
+    if (level <= 5) then
+        return 0;
+    elseif (level <= 39) then
+        return (level - math.floor(level / 10) - 5);
+    else
+        return (level - math.floor(level / 5) - 1);
+    end
+end
+
 function BQT:CreateFont(anchor, label)
 	local font = self:CreateFontString(nil, nil, "GameFontNormal")
 
@@ -289,6 +332,11 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 	headerText = headerText .. questInfo.title;
 
 	local header = self:CreateHeader(anchor, headerText);
+	if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
+		header:SetTextColor(self:GetTextColorByDifficultyLevel(questInfo.difficulty));
+	else
+		header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)	
+	end
 	
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10);
 
@@ -467,7 +515,11 @@ function BQT:SetClickFrame(i, quest)
 		end);
 
 		clickFrame:SetScript("OnLeave", function(self)
-			self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+			if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
+				self.quest.gui.header:SetTextColor(BQT:GetTextColorByDifficultyLevel(self.quest.difficulty));
+			else
+				self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)	
+			end
 			
 			for _, objective in ipairs(self.quest.objectives) do
 				if objective.gui ~= nil then

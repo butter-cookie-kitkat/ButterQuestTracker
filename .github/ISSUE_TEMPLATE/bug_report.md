@@ -14,4 +14,4 @@ labels: "bug"
 
 ## Butter Quest Tracker Version
 
-<!-- Which version of Questie are you using? -->
+<!-- Which version of Butter Quest Tracker are you using? -->

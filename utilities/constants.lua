@@ -7,6 +7,7 @@ local CONSTANTS = {
         PositionY = -240,
         Width = 250,
         MaxHeight = 600,
+        Sorting = "Disabled",
         CurrentZoneOnly = false,
         ColorHeadersByDifficultyLevel = false,
         QuestLimit = 10,

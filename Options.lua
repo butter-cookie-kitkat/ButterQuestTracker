@@ -39,22 +39,24 @@ local options = {
 
 	get = GetFromDB,
 	set = SetInDB,
-	
+
 	args = {
-		general = {
-			name = "General",
-			desc = "General Options",
-			type = "group",
-			order = order(),
+        filtersAndSorting = {
+            name = "Filters & Sorting",
+            type = "group",
+            order = order(),
 
-			args = {
-				filtersHeader = {
-					name = "Filters and Sorting",
-					type = "header",
-					order = order()
-				},
+            args = {
+				currentZoneOnly = {
+					name = "Current Zone Only",
+					desc = "Displays quests relevant to the current zone / subzone.",
+					arg = "CurrentZoneOnly",
+					type = "toggle",
+					width = 2.4,
+					order = order(),
 
-				spacer1 = Spacer(),
+					set = SetAndReloadQuests
+                },
 
 				sorting = {
 					name = "Sorting",
@@ -76,47 +78,45 @@ local options = {
 						"ByLevelReversed",
 						"ByPercentCompleted"
 					},
-			
+
 					set = SetAndReloadQuests
-				},
+                },
 
-				spacer2 = Spacer(),
-
-				currentZoneOnly = {
-					name = "Current Zone Only",
-					desc = "Displays quests relevant to the current zone / subzone.",
-					arg = "CurrentZoneOnly",
+				showCompletedQuests = {
+					name = "Show Completed Quests",
+					desc = "Displays quests that have been completed.",
+					arg = "ShowCompletedQuests",
 					type = "toggle",
-					width = "full",
+					width = 2.4,
 					order = order(),
-			
-					set = SetAndReloadQuests
-				},
 
-				spacer3 = Spacer(),
+					set = SetAndReloadQuests
+                },
 
 				questLimit = {
 					name = "Quest Limit",
 					desc = "Limits the number of quests visible on the screen at a given time.",
 					arg = "QuestLimit",
 					type = "range",
-					width = 2.0,
+					width = 1.0,
 					min = 1,
 					max = 20,
 					step = 1,
 					order = order(),
-			
+
 					set = SetAndReloadQuests
 				},
 
-				frameOptionsHeader = {
-					name = "Frame Options",
-					type = "header",
-					order = order()
-				},
+				spacerEnd = Spacer("large"),
+            }
+        },
 
-				spacer4 = Spacer(),
+        frameSettings = {
+			name = "Frame Settings",
+			type = "group",
+			order = order(),
 
+			args = {
 				positionX = {
 					name = "Position X",
 					arg = "PositionX",
@@ -127,11 +127,11 @@ local options = {
 					step = 0.01,
 					bigStep = 10,
 					order = order(),
-					
+
 					get = function(info)
 						return -ButterQuestTrackerConfig[info.arg]
 					end,
-					
+
 					set = function(info, value)
 						ButterQuestTrackerConfig[info.arg] = -value;
 						BQT:RefreshPosition();
@@ -148,18 +148,18 @@ local options = {
 					step = 0.01,
 					bigStep = 10,
 					order = order(),
-					
+
 					get = function(info)
 						return -ButterQuestTrackerConfig[info.arg]
 					end,
-					
+
 					set = function(info, value)
 						ButterQuestTrackerConfig[info.arg] = -value;
 						BQT:RefreshPosition();
 					end
 				},
 
-				spacer5 = Spacer(),
+				spacer1 = Spacer(),
 
 				width = {
 					name = "Width",
@@ -171,7 +171,7 @@ local options = {
 					step = 1,
 					bigStep = 10,
 					order = order(),
-			
+
 					set = SetAndReloadQuests
 				},
 
@@ -185,11 +185,11 @@ local options = {
 					step = 1,
 					bigStep = 10,
 					order = order(),
-			
+
 					set = SetAndReloadQuests
 				},
 
-				spacer6 = Spacer(),
+				spacer2 = Spacer(),
 
 				resetPosition = {
 					name = "Reset Position",
@@ -216,14 +216,27 @@ local options = {
 						BQT:LoadQuests();
 					end
 				},
-				
-				visualsHeaders = {
-					name = "Visuals",
-					type = "header",
-					order = order()
-				},
 
-				spacer7 = Spacer(),
+				spacerEnd = Spacer("large"),
+            }
+        },
+
+		visuals = {
+			name = "Visual Settings",
+			type = "group",
+			order = order(),
+
+			args = {
+				colorHeadersByDifficultyLevel = {
+					name = "Color Headers By Difficulty Level",
+					desc = "Color codes the quests by their difficulty level.",
+					arg = "ColorHeadersByDifficultyLevel",
+					type = "toggle",
+					width = 2.4,
+					order = order(),
+
+					set = SetAndReloadQuests
+                },
 
 				trackerHeaderFormat = {
 					name = "Tracker Header Format",
@@ -243,20 +256,7 @@ local options = {
 						"Quests",
 						"QuestsNumberVisible"
 					},
-			
-					set = SetAndReloadQuests
-				},
 
-				spacer8 = Spacer(),
-
-				colorHeadersByDifficultyLevel = {
-					name = "Color Headers By Difficulty Level",
-					desc = "Color codes the quests by their difficulty level.",
-					arg = "ColorHeadersByDifficultyLevel",
-					type = "toggle",
-					width = "full",
-					order = order(),
-			
 					set = SetAndReloadQuests
 				},
 
@@ -269,7 +269,7 @@ local options = {
 			desc = "Advanced Options",
 			type = "group",
 			order = order(),
-			
+
 			args = {
 				developerOptionsHeader = {
 					name = "Developer Options",
@@ -280,12 +280,12 @@ local options = {
 				spacer1 = Spacer(),
 
 				developerMode = {
-					name = "Developer Mode",
+                    name = "Developer Mode",
+                    desc = "Enables logging and other visual helpers.",
 					arg = "DeveloperMode",
 					type = "toggle",
-					width = "full",
 					order = order(),
-					
+
 					set = function(info, value)
 						SetInDB(info, value);
 						BQT:RefreshFrame();
@@ -342,7 +342,7 @@ local options = {
 
 				spacer5 = Spacer(),
 
-				resetDescription = {
+				advert = {
 					name = "|c00FF9696Butter Quest Tracker is under active development for World of Warcraft: Classic. Please check out our GitHub for the alpha builds or to report issues. \n\nhttps://github.com/butter-cookie-kitkat/ButterQuestTracker",
 					type = "description",
 					fontSize = "medium",

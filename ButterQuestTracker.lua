@@ -139,7 +139,7 @@ function BQT:GetQuests(criteria)
 
 		if isHeader then
 			zone = title
-		elseif criteria.currentZoneOnly == false or isCurrentZone or isClassQuest or isProfessionQuest then
+		elseif (criteria.showCompletedQuests or not isComplete) and (criteria.currentZoneOnly == false or isCurrentZone or isClassQuest or isProfessionQuest) then
 			local objectives = C_QuestLog.GetQuestObjectives(questID);
 
 			-- Utilize the Quest Description if it doesn't have any objectives
@@ -217,7 +217,8 @@ function BQT:LoadQuests()
 	local currentLineNumber = 1;
 
 	local quests, questCount = self:GetQuests({
-		currentZoneOnly = ButterQuestTrackerConfig.CurrentZoneOnly;
+		currentZoneOnly = ButterQuestTrackerConfig.CurrentZoneOnly,
+		showCompletedQuests = ButterQuestTrackerConfig.ShowCompletedQuests
 	});
 
     local visibleQuestCount = 0;

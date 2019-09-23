@@ -38,6 +38,16 @@ local function BQT__wait(delay, func, ...)
 	return true
 end
 
+local function has_value (tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
 function BQT:Initialize()
 	self:SetSize(1, 1)
 	self:SetFrameStrata("BACKGROUND")
@@ -105,19 +115,21 @@ function BQT:GetQuests(criteria)
 	local currentZone = GetRealZoneText()
 	local minimapZone = GetMinimapZoneText()
 
-	local class = UnitClass("player")
+	local class = UnitClass("player");
+	local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
 	local zone
 	local quests = {}
 	for index = 1, numberOfEntries, 1 do
 		local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
-		local isCurrentMinimapZone = zone == minimapZone
-		local isCurrentZone = zone == currentZone or isCurrentMinimapZone
-		local isClassQuest = zone == class
+		local isCurrentMinimapZone = zone == minimapZone;
+		local isCurrentZone = zone == currentZone or isCurrentMinimapZone;
+		local isClassQuest = zone == class;
+		local isProfessionQuest = has_value(professions, zone);
 
 		if isHeader then
 			zone = title
-		elseif criteria.currentZoneOnly == false or isCurrentZone or isClassQuest then
-			local objectives = C_QuestLog.GetQuestObjectives(questID)
+		elseif criteria.currentZoneOnly == false or isCurrentZone or isClassQuest or isProfessionQuest then
+			local objectives = C_QuestLog.GetQuestObjectives(questID);
 
 			-- Utilize the Quest Description if it doesn't have any objectives
 			if table.getn(objectives) == 0 then
@@ -145,6 +157,7 @@ function BQT:GetQuests(criteria)
 				isCurrentZone = isCurrentZone,
 				isCurrentMinimapZone = isCurrentMinimapZone,
 				isClassQuest = isClassQuest,
+				isProfessionQuest = isProfessionQuest,
 				gui = {}
 			})
 		end
@@ -327,6 +340,8 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 	
 	if questInfo.isClassQuest then
 		headerText = headerText .. "[C] ";
+	elseif questInfo.isProfessionQuest then
+		headerText = headerText .. "[P] ";
 	end
 
 	headerText = headerText .. questInfo.title;

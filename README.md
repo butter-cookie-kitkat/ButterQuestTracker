@@ -9,8 +9,11 @@
 
 - Change tracker position
 - Filter quests by your current zone / subzone
+- Sort your quests by level or by the completion percentage
 - Change the quest limit or remove it entirely
 - Context menus to enable you to quickly share or abandon quests
+- Colored quest names based on their difficulty
+- Link quests in chat by shift clicking their name
 
 ## Supported Addons
 

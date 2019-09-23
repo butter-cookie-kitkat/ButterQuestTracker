@@ -92,7 +92,7 @@ function BQT:RefreshPosition()
 end
 
 function BQT:RefreshSize(height)
-	height = height or self:GetHeight();
+    height = height or self:GetHeight();
 	self:SetSize(ButterQuestTrackerConfig.Width, math.min(height, ButterQuestTrackerConfig.MaxHeight));
 end
 
@@ -151,7 +151,7 @@ function BQT:GetQuests(criteria)
 
 					tinsert(objectives, {
 						text = desc,
-						finished = false
+						finished = true
 					});
 				end);
 			end
@@ -159,10 +159,15 @@ function BQT:GetQuests(criteria)
 			local percentCompleted = 0;
 			if isComplete then
 				percentCompleted = 1;
-			else
-				for i, objective in pairs(objectives) do
-					percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);
-				end
+            else
+                for i, objective in pairs(objectives) do
+                    if objective.finished then
+                        percentCompleted = percentCompleted + 1;
+                    else
+                        percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);
+                    end
+                end
+
 				percentCompleted = percentCompleted / table.getn(objectives);
 			end
 

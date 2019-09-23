@@ -2,12 +2,18 @@ local NAME, ns = ...
 
 local BQT = ButterQuestTracker
 
-local function Spacer(o, size)
+local _order = 0;
+local function order()
+	_order = _order + 1;
+	return _order;
+end
+
+local function Spacer(size)
 	size = size or "small";
 
     return {
         type = "description",
-        order = o,
+        order = order(),
         name = " ",
         fontSize = size
     };
@@ -35,20 +41,20 @@ local options = {
 	set = SetInDB,
 	
 	args = {
-		filters = {
+		general = {
 			name = "General",
 			desc = "General Options",
 			type = "group",
-			order = 1,
+			order = order(),
 
 			args = {
 				filtersHeader = {
 					name = "Filters",
 					type = "header",
-					order = 1
+					order = order()
 				},
 
-				spacer1 = Spacer(2),
+				spacer1 = Spacer(),
 
 				currentZoneOnly = {
 					name = "Current Zone Only",
@@ -56,12 +62,12 @@ local options = {
 					arg = "CurrentZoneOnly",
 					type = "toggle",
 					width = "full",
-					order = 3,
+					order = order(),
 			
 					set = SetAndReloadQuests
 				},
 
-				spacer2 = Spacer(4),
+				spacer2 = Spacer(),
 
 				questLimit = {
 					name = "Quest Limit",
@@ -72,7 +78,7 @@ local options = {
 					min = 1,
 					max = 20,
 					step = 1,
-					order = 5,
+					order = order(),
 			
 					set = SetAndReloadQuests
 				},
@@ -80,10 +86,10 @@ local options = {
 				frameOptionsHeader = {
 					name = "Frame Options",
 					type = "header",
-					order = 6
+					order = order()
 				},
 
-				spacer3 = Spacer(7),
+				spacer3 = Spacer(),
 
 				positionX = {
 					name = "Position X",
@@ -94,7 +100,7 @@ local options = {
 					max = math.ceil(GetScreenWidth() * UIParent:GetEffectiveScale());
 					step = 0.01,
 					bigStep = 10,
-					order = 8,
+					order = order(),
 					
 					get = function(info)
 						return -ButterQuestTrackerConfig[info.arg]
@@ -115,7 +121,7 @@ local options = {
 					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
 					step = 0.01,
 					bigStep = 10,
-					order = 11,
+					order = order(),
 					
 					get = function(info)
 						return -ButterQuestTrackerConfig[info.arg]
@@ -127,7 +133,7 @@ local options = {
 					end
 				},
 
-				spacer4 = Spacer(10),
+				spacer4 = Spacer(),
 
 				width = {
 					name = "Width",
@@ -138,7 +144,7 @@ local options = {
 					max = 400,
 					step = 1,
 					bigStep = 10,
-					order = 9,
+					order = order(),
 			
 					set = SetAndReloadQuests
 				},
@@ -152,18 +158,18 @@ local options = {
 					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
 					step = 1,
 					bigStep = 10,
-					order = 12,
+					order = order(),
 			
 					set = SetAndReloadQuests
 				},
 
-				spacer5 = Spacer(13),
+				spacer5 = Spacer(),
 
 				resetPosition = {
 					name = "Reset Position",
 					type = "execute",
 					width = 0.8,
-					order = 14,
+					order = order(),
 
 					func = function()
 						ButterQuestTrackerConfig.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
@@ -176,7 +182,7 @@ local options = {
 					name = "Reset Size",
 					type = "execute",
 					width = 0.7,
-					order = 15,
+					order = order(),
 
 					func = function()
 						ButterQuestTrackerConfig.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
@@ -188,10 +194,10 @@ local options = {
 				visualsHeaders = {
 					name = "Visuals",
 					type = "header",
-					order = 16
+					order = order()
 				},
 
-				spacer6 = Spacer(17),
+				spacer6 = Spacer(),
 
 				colorHeadersByDifficultyLevel = {
 					name = "Color Headers By Difficulty Level",
@@ -199,7 +205,7 @@ local options = {
 					arg = "ColorHeadersByDifficultyLevel",
 					type = "toggle",
 					width = "full",
-					order = 18,
+					order = order(),
 			
 					set = SetAndReloadQuests
 				}
@@ -210,23 +216,23 @@ local options = {
 			name = "Advanced",
 			desc = "Advanced Options",
 			type = "group",
-			order = 2,
+			order = order(),
 			
 			args = {
 				developerOptionsHeader = {
 					name = "Developer Options",
 					type = "header",
-					order = 1,
+					order = order(),
 				},
 
-				spacer1 = Spacer(2),
+				spacer1 = Spacer(),
 
 				developerMode = {
 					name = "Developer Mode",
 					arg = "DeveloperMode",
 					type = "toggle",
 					width = "full",
-					order = 3,
+					order = order(),
 					
 					set = function(info, value)
 						SetInDB(info, value);
@@ -234,7 +240,7 @@ local options = {
 					end
 				},
 
-				spacer2 = Spacer(4),
+				spacer2 = Spacer(),
 
 				debugLevel = {
 					name = "Debug Level",
@@ -244,7 +250,7 @@ local options = {
 					min = 1,
 					max = 4,
 					step = 1,
-					order = 5,
+					order = order(),
 
 					disabled = function()
 						return not ButterQuestTrackerConfig.DeveloperMode;
@@ -254,26 +260,26 @@ local options = {
 				resetHeader = {
 					name = "Reset Butter Quest Tracker",
 					type = "header",
-					order = 6,
+					order = order(),
 				},
 
-				spacer3 = Spacer(7),
+				spacer3 = Spacer(),
 
 				resetDescription = {
 					name = "Hitting this button will reset all Butter Quest Tracker configuration settings back to their default values.",
 					type = "description",
 					fontSize = "medium",
-					order = 8,
+					order = order(),
 				},
 
-				spacer4 = Spacer(9),
+				spacer4 = Spacer(),
 
 				reset = {
 					name = "Reset Butter Quest Tracker",
 					desc = "Reset Butter Quest Tracker to the default values for all settings.",
 					type = "execute",
 					width = 1.3,
-					order = 10,
+					order = order(),
 
 					func = function()
 						ButterQuestTrackerConfig = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
@@ -282,13 +288,13 @@ local options = {
 					end
 				},
 
-				spacer5 = Spacer(11),
+				spacer5 = Spacer(),
 
 				resetDescription = {
 					name = "|c00FF9696Butter Quest Tracker is under active development for World of Warcraft: Classic. Please check out our GitHub for the alpha builds or to report issues. \n\nhttps://github.com/butter-cookie-kitkat/ButterQuestTracker",
 					type = "description",
 					fontSize = "medium",
-					order = 12,
+					order = order(),
 				},
 			}
 		},

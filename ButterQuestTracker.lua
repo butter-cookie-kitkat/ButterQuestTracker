@@ -3,41 +3,6 @@ local NAME, ns = ...
 ButterQuestTracker = CreateFrame("Frame", nil, UIParent);
 local BQT = ButterQuestTracker;
 
-local waitTable = {};
-local waitFrame = nil;
-local function BQT__wait(delay, func, ...)
-	if type(delay) ~= "number" or type(func) ~= "function" then
-	  return false;
-	end
-
-	if waitFrame == nil then
-		waitFrame = CreateFrame("Frame","WaitFrame", UIParent)
-		waitFrame:SetScript("onUpdate", function (self, elapse)
-			local count = #waitTable
-			local i = 1
-			while i <= count do
-				local waitRecord = tremove(waitTable,i)
-				local d = tremove(waitRecord,1)
-				local f = tremove(waitRecord,1)
-				local p = tremove(waitRecord,1)
-				if d > elapse then
-					tinsert(waitTable,i,{d-elapse,f,p})
-					i = i + 1
-				else
-					count = count - 1
-					f(unpack(p))
-				end
-			end
-		end)
-	end
-	tinsert(waitTable, {
-		delay,
-		func,
-		{...}
-	});
-	return true
-end
-
 local function has_value (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
@@ -600,11 +565,11 @@ end
 function BQT:QUEST_WATCH_LIST_CHANGED()
 	ns.Log.Trace("QUEST_WATCH_LIST_CHANGED")
 	-- The watch quest hasn't been made visible yet so we need to wait...
-	BQT__wait(0.0001, function ()
+	C_Timer.NewTimer(0.0001, function()
 		if QuestWatchFrame:IsVisible() then
 			QuestWatchFrame:Hide()
 		end
-	end)
+	end);
 end
 
 function BQT:OnEvent(event, ...)

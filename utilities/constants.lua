@@ -1,8 +1,9 @@
 local _, ns = ...
 
 local CONSTANTS = {
+    VERSION = "1.2.1",
+
     DEFAULT_CONFIG = {
-        VERSION = "1.2.1",
         PositionX = 0,
         PositionY = -240,
         Width = 250,
@@ -16,6 +17,7 @@ local CONSTANTS = {
         DeveloperMode = false,
         DebugLevel = 3
     },
+
     LOGGER = {
         PREFIX = "|r[|c00FF9696ButterQuestTracker|r]: |r",
         TYPES = {

@@ -33,7 +33,7 @@ local function SetAndReloadQuests(info, value)
 end
 
 local options = {
-	name = "Butter Quest Tracker " .. ns.CONSTANTS.DEFAULT_CONFIG.VERSION,
+	name = "Butter Quest Tracker " .. ns.CONSTANTS.VERSION,
 	type = "group",
 	childGroups = "tab",
 

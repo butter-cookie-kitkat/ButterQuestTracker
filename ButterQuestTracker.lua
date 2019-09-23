@@ -19,7 +19,7 @@ local function spairs(t, order)
     for k in pairs(t) do keys[#keys+1] = k end
 
     -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys 
+    -- otherwise just sort the keys
     if order then
         table.sort(keys, function(a, b) return order(t[a], t[b]) end)
     else
@@ -41,8 +41,8 @@ end
 
 local function sortQuests(quest, otherQuest)
 	local sorting = ButterQuestTrackerConfig.Sorting or "nil";
-	if sorting == "Disabled" then 
-		return false; 
+	if sorting == "Disabled" then
+		return false;
 	end
 
 	if sorting == "ByLevel" then
@@ -54,7 +54,7 @@ local function sortQuests(quest, otherQuest)
 	else
 		ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
 	end
-	
+
 	return false;
 end
 
@@ -64,7 +64,7 @@ function BQT:Initialize()
 	self:SetMovable(true)
 	self:SetClampedToScreen(true)
 	self:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" })
-	
+
 	self:RegisterForDrag("LeftButton")
 	self:SetScript("OnDragStart", self.StartMoving)
 	self:SetScript("OnDragStop", function(frame)
@@ -78,7 +78,7 @@ function BQT:Initialize()
 		LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
 		ns.Log.Info("Moved to (" .. x .. ", " .. y .. ").")
 	end);
-		
+
 	self.fontStrings = {};
 	self.clickFrames = {};
 
@@ -87,11 +87,11 @@ function BQT:Initialize()
 	self.initialized = true;
 end
 
-function BQT:RefreshPosition() 
+function BQT:RefreshPosition()
 	self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", ButterQuestTrackerConfig.PositionX, ButterQuestTrackerConfig.PositionY);
 end
 
-function BQT:RefreshSize(height) 
+function BQT:RefreshSize(height)
 	height = height or self:GetHeight();
 	self:SetSize(ButterQuestTrackerConfig.Width, math.min(height, ButterQuestTrackerConfig.MaxHeight));
 end
@@ -101,7 +101,7 @@ function BQT:RefreshFrame()
 		self:EnableMouse(true)
 		self:SetBackdropColor(0, 1, 0, .5)
 	else
-		self:EnableMouse(false) 
+		self:EnableMouse(false)
 		self:StopMovingOrSizing()
 		if ButterQuestTrackerConfig.DeveloperMode then
 			self:SetBackdropColor(1, 1, 1, 0.5)
@@ -148,7 +148,7 @@ function BQT:GetQuests(criteria)
 				-- Is there an alternative way to get the quest text.. ?
 				self:SelectQuestLogEntry(index, function()
 					local _, desc = GetQuestLogQuestText()
-		
+
 					tinsert(objectives, {
 						text = desc,
 						finished = false
@@ -161,7 +161,7 @@ function BQT:GetQuests(criteria)
 				percentCompleted = 1;
 			else
 				for i, objective in pairs(objectives) do
-					percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);					
+					percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);
 				end
 				percentCompleted = percentCompleted / table.getn(objectives);
 			end
@@ -208,18 +208,18 @@ end
 function BQT:LoadQuests()
 	ns.Log.Info("Load Quests");
 	self:Clear();
-	
+
 	local currentLineNumber = 1;
 
 	local quests, questCount = self:GetQuests({
 		currentZoneOnly = ButterQuestTrackerConfig.CurrentZoneOnly;
 	});
 
-	local visibleQuestCount = 0;
-	local visibleObjectiveCount = 0;
-	
-	local header = self:CreateHeader(self, "Quests");
-	self.fontStrings[currentLineNumber] = header;
+    local visibleQuestCount = 0;
+    local visibleObjectiveCount = 0;
+
+    local header = self:CreateHeader(self, "");
+    self.fontStrings[currentLineNumber] = header;
 
 	for i, quest in spairs(quests, sortQuests) do
 		if not self.truncated and visibleQuestCount < ButterQuestTrackerConfig.QuestLimit then
@@ -230,18 +230,18 @@ function BQT:LoadQuests()
 
 			self.fontStrings[currentLineNumber] = self:CreateQuestHeader(self.fontStrings[currentLineNumber - 1], quest);
 			quest.gui.header = self.fontStrings[currentLineNumber];
-	
+
 			if quest.isComplete == 1 then
 				currentLineNumber = currentLineNumber + 1;
 				objectiveCount = objectiveCount + 1;
-	
+
 				self.fontStrings[currentLineNumber] = self:CreateReadyToTurnIn(self.fontStrings[currentLineNumber - 1]);
 				quest.gui.readyToTurnIn = self.fontStrings[currentLineNumber];
 			else
 				for _, objective in ipairs(quest.objectives) do
 					currentLineNumber = currentLineNumber + 1;
 					objectiveCount = objectiveCount + 1;
-		
+
 					self.fontStrings[currentLineNumber] = self:CreateQuestObjective(self.fontStrings[currentLineNumber - 1], objective);
 				end
 			end
@@ -263,29 +263,31 @@ function BQT:LoadQuests()
 		end
 	end
 
-	if visibleQuestCount < questCount then
-		header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
-	end
-	
-	local frameHeight = 10 + visibleQuestCount * 10 + visibleObjectiveCount * 2;
+    local frameHeight = 10 + visibleQuestCount * 10 + visibleObjectiveCount * 2;
+
+    if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
+        header:SetText("Quests");
+    elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" and visibleQuestCount < questCount then
+        header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
+    end
 
 	if self.truncated then
 		frameHeight = frameHeight - 10;
 	end
-	
+
 	for _, text in pairs(self.fontStrings) do
 		if text:IsVisible() then
 			frameHeight = frameHeight + text:GetHeight();
 		end
 	end
-	
+
 	self:RefreshSize(frameHeight);
 	self:RefreshFrame();
 end
 
 function BQT:GetTextColorByDifficultyLevel(difficulty)
 	local playerLevel = UnitLevel("player");
-	
+
     if (difficulty == 4) then
 		return 1, 0.1, 0.1; -- Red
 	elseif (difficulty == 3) then
@@ -295,13 +297,13 @@ function BQT:GetTextColorByDifficultyLevel(difficulty)
     elseif (difficulty == 1) then
         return 0.25, 0.75, 0.25; -- Green
 	end
-	
+
 	return 0.75, 0.75, 0.75; -- Grey
 end
 
 function BQT:GetDifficultyOfQuest(level)
 	local playerLevel = UnitLevel("player");
-	
+
 	if (level > (playerLevel + 4)) then
 		return 4;
 	elseif (level > (playerLevel + 2)) then
@@ -311,7 +313,7 @@ function BQT:GetDifficultyOfQuest(level)
     elseif (level > BQT:GetQuestGreyLevel(playerLevel)) then
         return 1;
 	end
-	
+
     return 0;
 end
 
@@ -341,7 +343,7 @@ end
 function BQT:CreateHeader(anchor, label)
 	local header = self:CreateFont(anchor, label)
 
-	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)	
+	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5)
 
 	return header
@@ -359,7 +361,7 @@ end
 
 function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString)
 	local headerText = "[" .. questInfo.level .. "] ";
-	
+
 	if questInfo.isClassQuest then
 		headerText = headerText .. "[C] ";
 	elseif questInfo.isProfessionQuest then
@@ -372,9 +374,9 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 	if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
 		header:SetTextColor(self:GetTextColorByDifficultyLevel(questInfo.difficulty));
 	else
-		header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)	
+		header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 	end
-	
+
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10);
 
 	return header;
@@ -390,11 +392,11 @@ end
 
 function BQT:CreateQuestObjective(anchor, objective)
 	local objectiveFont = self:CreateFont(anchor, " - " .. objective.text)
-	
+
 	if objective.finished then
 		objectiveFont:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 	end
-	
+
 	objectiveFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
 
 	objective.gui = objectiveFont
@@ -447,7 +449,7 @@ end
 
 function BQT:SelectQuestLogEntry(index, func)
 	local currentSelection = GetQuestLogSelection();
-	
+
 	SelectQuestLogEntry(index);
 	func();
 
@@ -471,7 +473,7 @@ function BQT:ToggleContextMenu(quest)
 				notCheckable = true,
 				isTitle = true
 			});
-	
+
 			UIDropDownMenu_AddButton({
 				text = "View Quest",
 				notCheckable = true,
@@ -479,7 +481,7 @@ function BQT:ToggleContextMenu(quest)
 					self:ViewQuest(quest);
 				end
 			});
-	
+
 			UIDropDownMenu_AddButton({
 				text = "Share Quest",
 				notCheckable = true,
@@ -490,19 +492,19 @@ function BQT:ToggleContextMenu(quest)
 					end);
 				end
 			});
-	
+
 			UIDropDownMenu_AddButton({
 				text = "Cancel",
 				notCheckable = true,
-				func = function() 
+				func = function()
 					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
 				end
 			});
-	
+
 			UIDropDownMenu_AddButton({
 				isTitle = true
 			});
-	
+
 			UIDropDownMenu_AddButton({
 				text = "Abandon Quest",
 				notCheckable = true,
@@ -543,7 +545,7 @@ function BQT:SetClickFrame(i, quest)
 
 		clickFrame:SetScript("OnEnter", function(self)
 			self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-			
+
 			for _, objective in ipairs(self.quest.objectives) do
 				if objective.gui ~= nil then
 					objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
@@ -555,9 +557,9 @@ function BQT:SetClickFrame(i, quest)
 			if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
 				self.quest.gui.header:SetTextColor(BQT:GetTextColorByDifficultyLevel(self.quest.difficulty));
 			else
-				self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)	
+				self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 			end
-			
+
 			for _, objective in ipairs(self.quest.objectives) do
 				if objective.gui ~= nil then
 					if objective.done then
@@ -577,7 +579,7 @@ function BQT:SetClickFrame(i, quest)
 	if quest.gui.readyToTurnIn then
 		height = height + quest.gui.readyToTurnIn:GetHeight();
 	end
-	
+
 	for i, objective in ipairs(quest.objectives) do
 		if objective.gui then
 			height = height + objective.gui:GetHeight();

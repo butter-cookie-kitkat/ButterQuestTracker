@@ -9,6 +9,7 @@ local CONSTANTS = {
         MaxHeight = 600,
         Sorting = "Disabled",
         CurrentZoneOnly = false,
+        TrackerHeaderFormat = "QuestsNumberVisible",
         ColorHeadersByDifficultyLevel = false,
         QuestLimit = 10,
         DeveloperMode = false,

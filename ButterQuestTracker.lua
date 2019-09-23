@@ -39,6 +39,7 @@ function BQT:Initialize()
 
 	self:RefreshFrame();
 	self:RefreshPosition();
+	self.initialized = true;
 end
 
 function BQT:RefreshPosition() 
@@ -535,8 +536,14 @@ end
 
 function BQT:ADDON_LOADED(addon)
 	if addon == NAME then
-		if not ButterQuestTrackerConfig or not ButterQuestTrackerConfig.VERSION or ButterQuestTrackerConfig.VERSION < ns.CONSTANTS.DEFAULT_CONFIG.VERSION then
-			ButterQuestTrackerConfig = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG)
+		if not ButterQuestTrackerConfig then
+			ButterQuestTrackerConfig = {};
+		end
+
+		for key, value in pairs(ns.CONSTANTS.DEFAULT_CONFIG) do
+			if ButterQuestTrackerConfig[key] == nil then
+				ButterQuestTrackerConfig[key] = value;
+			end
 		end
 
 		ns.Log.Info("ADDON_LOADED");

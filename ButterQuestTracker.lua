@@ -13,6 +13,51 @@ local function has_value (tab, val)
     return false
 end
 
+local function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a, b) return order(t[a], t[b]) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            -- i = fake index
+            -- t[keys[i]] = value
+            -- keys[i] = real index
+            return i, t[keys[i]], keys[i]
+        end
+    end
+end
+
+local function sortQuests(quest, otherQuest)
+	local sorting = ButterQuestTrackerConfig.Sorting or "nil";
+	if sorting == "Disabled" then 
+		return false; 
+	end
+
+	if sorting == "ByLevel" then
+		return quest.level < otherQuest.level;
+	elseif sorting == "ByLevelReversed" then
+		return quest.level > otherQuest.level;
+	elseif sorting == "ByPercentCompleted" then
+		return quest.percentCompleted > otherQuest.percentCompleted;
+	else
+		ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
+	end
+	
+	return false;
+end
+
 function BQT:Initialize()
 	self:SetSize(1, 1)
 	self:SetFrameStrata("BACKGROUND")
@@ -110,13 +155,24 @@ function BQT:GetQuests(criteria)
 					});
 				end);
 			end
-			
+
+			local percentCompleted = 0;
+			if isComplete then
+				percentCompleted = 1;
+			else
+				for i, objective in pairs(objectives) do
+					percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);					
+				end
+				percentCompleted = percentCompleted / table.getn(objectives);
+			end
+
 			tinsert(quests, {
 				index = index,
 				title = title,
 				level = level,
 				difficulty = self:GetDifficultyOfQuest(level),
 				isComplete = isComplete,
+				percentCompleted = percentCompleted,
 				questID = questID,
 				zone = zone,
 				objectives = objectives,
@@ -125,7 +181,7 @@ function BQT:GetQuests(criteria)
 				isClassQuest = isClassQuest,
 				isProfessionQuest = isProfessionQuest,
 				gui = {}
-			})
+			});
 		end
 	end
 
@@ -165,7 +221,7 @@ function BQT:LoadQuests()
 	local header = self:CreateHeader(self, "Quests");
 	self.fontStrings[currentLineNumber] = header;
 
-	for i, quest in ipairs(quests) do
+	for i, quest in spairs(quests, sortQuests) do
 		if not self.truncated and visibleQuestCount < ButterQuestTrackerConfig.QuestLimit then
 			currentLineNumber = currentLineNumber + 1;
 

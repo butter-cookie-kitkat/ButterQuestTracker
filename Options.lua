@@ -49,12 +49,38 @@ local options = {
 
 			args = {
 				filtersHeader = {
-					name = "Filters",
+					name = "Filters and Sorting",
 					type = "header",
 					order = order()
 				},
 
 				spacer1 = Spacer(),
+
+				sorting = {
+					name = "Sorting",
+					desc = "How the quests are sorted in the tracker.",
+					arg = "Sorting",
+					type = "select",
+					order = order(),
+
+					values = {
+						Disabled = "Don't Sort",
+						ByLevel = "By Level",
+						ByLevelReversed = "By Level (Reversed)",
+						ByPercentCompleted = "By % Completed"
+					},
+
+					sorting = {
+						"Disabled",
+						"ByLevel",
+						"ByLevelReversed",
+						"ByPercentCompleted"
+					},
+			
+					set = SetAndReloadQuests
+				},
+
+				spacer2 = Spacer(),
 
 				currentZoneOnly = {
 					name = "Current Zone Only",
@@ -67,7 +93,7 @@ local options = {
 					set = SetAndReloadQuests
 				},
 
-				spacer2 = Spacer(),
+				spacer3 = Spacer(),
 
 				questLimit = {
 					name = "Quest Limit",
@@ -89,13 +115,13 @@ local options = {
 					order = order()
 				},
 
-				spacer3 = Spacer(),
+				spacer4 = Spacer(),
 
 				positionX = {
 					name = "Position X",
 					arg = "PositionX",
 					type = "range",
-					width = 1.7,
+					width = 1.6,
 					min = 0,
 					max = math.ceil(GetScreenWidth() * UIParent:GetEffectiveScale());
 					step = 0.01,
@@ -116,7 +142,7 @@ local options = {
 					name = "Position Y",
 					arg = "PositionY",
 					type = "range",
-					width = 1.7,
+					width = 1.6,
 					min = 0,
 					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
 					step = 0.01,
@@ -133,13 +159,13 @@ local options = {
 					end
 				},
 
-				spacer4 = Spacer(),
+				spacer5 = Spacer(),
 
 				width = {
 					name = "Width",
 					arg = "Width",
 					type = "range",
-					width = 1.7,
+					width = 1.6,
 					min = 100,
 					max = 400,
 					step = 1,
@@ -153,7 +179,7 @@ local options = {
 					name = "Max Height",
 					arg = "MaxHeight",
 					type = "range",
-					width = 1.7,
+					width = 1.6,
 					min = 100,
 					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
 					step = 1,
@@ -163,7 +189,7 @@ local options = {
 					set = SetAndReloadQuests
 				},
 
-				spacer5 = Spacer(),
+				spacer6 = Spacer(),
 
 				resetPosition = {
 					name = "Reset Position",
@@ -197,7 +223,7 @@ local options = {
 					order = order()
 				},
 
-				spacer6 = Spacer(),
+				spacer7 = Spacer(),
 
 				colorHeadersByDifficultyLevel = {
 					name = "Color Headers By Difficulty Level",

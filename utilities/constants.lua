@@ -2,7 +2,7 @@ local _, ns = ...
 
 local CONSTANTS = {
     DEFAULT_CONFIG = {
-        VERSION = "1.1.1",
+        VERSION = "1.2.0",
         PositionX = 0,
         PositionY = -240,
         Width = 250,

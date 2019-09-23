@@ -225,6 +225,30 @@ local options = {
 
 				spacer7 = Spacer(),
 
+				trackerHeaderFormat = {
+					name = "Tracker Header Format",
+					desc = "How should we format the tracker header?",
+					arg = "TrackerHeaderFormat",
+					type = "select",
+					order = order(),
+
+					values = {
+						Classic = "Classic (Disabled)",
+						Quests = "Quests",
+						QuestsNumberVisible = "Quests (10/20)"
+					},
+
+					sorting = {
+						"Classic",
+						"Quests",
+						"QuestsNumberVisible"
+					},
+			
+					set = SetAndReloadQuests
+				},
+
+				spacer8 = Spacer(),
+
 				colorHeadersByDifficultyLevel = {
 					name = "Color Headers By Difficulty Level",
 					desc = "Color codes the quests by their difficulty level.",
@@ -234,7 +258,9 @@ local options = {
 					order = order(),
 			
 					set = SetAndReloadQuests
-				}
+				},
+
+				spacerEnd = Spacer("large"),
 			}
 		},
 
@@ -322,6 +348,8 @@ local options = {
 					fontSize = "medium",
 					order = order(),
 				},
+
+				spacerEnd = Spacer("large"),
 			}
 		},
 	},

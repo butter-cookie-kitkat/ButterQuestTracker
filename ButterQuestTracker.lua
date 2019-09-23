@@ -389,11 +389,11 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 end
 
 function BQT:CreateReadyToTurnIn(anchor)
-	local turnInFont = self:CreateFont(anchor, " - Ready to turn in")
-	turnInFont:SetTextColor(0.0, 0.7, 0.0)
-	turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+	local turnInFont = self:CreateFont(anchor, " - Ready to turn in");
+	turnInFont:SetTextColor(0.0, 0.7, 0.0);
+	turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
 
-	return turnInFont
+	return turnInFont;
 end
 
 function BQT:CreateQuestObjective(anchor, objective)
@@ -552,6 +552,10 @@ function BQT:SetClickFrame(i, quest)
 		clickFrame:SetScript("OnEnter", function(self)
 			self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 
+			if self.quest.gui.readyToTurnIn then
+				self.quest.gui.readyToTurnIn:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+			end
+
 			for _, objective in ipairs(self.quest.objectives) do
 				if objective.gui ~= nil then
 					objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
@@ -564,6 +568,10 @@ function BQT:SetClickFrame(i, quest)
 				self.quest.gui.header:SetTextColor(BQT:GetTextColorByDifficultyLevel(self.quest.difficulty));
 			else
 				self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+			end
+
+			if self.quest.gui.readyToTurnIn then
+				self.quest.gui.readyToTurnIn:SetTextColor(0.0, 0.7, 0.0);
 			end
 
 			for _, objective in ipairs(self.quest.objectives) do

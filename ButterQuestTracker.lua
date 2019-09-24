@@ -629,7 +629,12 @@ function BQT:ADDON_LOADED(addon)
 		end
 
 		ns.Log.Info("ADDON_LOADED");
-		self:Initialize();
+        self:Initialize();
+
+        -- totally prevent the blizzard tracker frame from showing (BAD CODE, shouldn't be needed but some have had trouble)
+        QuestWatchFrame:HookScript("OnShow", function(self) if QuestieTracker._disableHooks then return end self:Hide() end);
+        QuestWatchFrame:Hide();
+
 		self:UnregisterEvent("ADDON_LOADED");
 	end
 end
@@ -651,16 +656,6 @@ function BQT:MODIFIER_STATE_CHANGED()
 	end
 end
 
-function BQT:QUEST_WATCH_LIST_CHANGED()
-	ns.Log.Trace("QUEST_WATCH_LIST_CHANGED")
-	-- The watch quest hasn't been made visible yet so we need to wait...
-	C_Timer.NewTimer(0.0001, function()
-		if QuestWatchFrame:IsVisible() then
-			QuestWatchFrame:Hide()
-		end
-	end);
-end
-
 function BQT:OnEvent(event, ...)
 	self[event](self, ...)
 end
@@ -669,5 +664,4 @@ BQT:RegisterEvent("ADDON_LOADED")
 BQT:RegisterEvent("QUEST_LOG_UPDATE")
 BQT:RegisterEvent("MODIFIER_STATE_CHANGED")
 BQT:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-BQT:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
 BQT:SetScript("OnEvent", BQT.OnEvent)

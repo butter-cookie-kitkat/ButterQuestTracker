@@ -69,14 +69,20 @@ function BQT:Initialize()
 	self:SetScript("OnDragStart", self.StartMoving)
 	self:SetScript("OnDragStop", function(frame)
 		frame:StopMovingOrSizing();
-		frame:SetUserPlaced(false);
-		local x = (frame:GetRight() - GetScreenWidth()) * UIParent:GetEffectiveScale();
-		local y = (frame:GetTop() - GetScreenHeight()) * UIParent:GetEffectiveScale();
-		ButterQuestTrackerConfig.PositionX = x;
-		ButterQuestTrackerConfig.PositionY = y;
+        frame:SetUserPlaced(false);
+        local x = frame:GetRight();
+        local y = frame:GetTop();
+        -- TODO: Look into UIParent:GetEffectiveScale to see how it works...
+		-- local inversedX = (x - GetScreenWidth()) * UIParent:GetEffectiveScale();
+		-- local inversedY = (y - GetScreenHeight()) * UIParent:GetEffectiveScale();
+		local inversedX = x - GetScreenWidth();
+		local inversedY = y - GetScreenHeight();
+		ButterQuestTrackerConfig.PositionX = inversedX;
+		ButterQuestTrackerConfig.PositionY = inversedY;
 
 		LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
-		ns.Log.Info("Moved to (" .. x .. ", " .. y .. ").")
+		ns.Log.Info("Moved to ( x: " .. x .. ", y: " .. y .. ").");
+		ns.Log.Info("Moved to ( inversedX: " .. inversedX .. ", inversedY: " .. inversedY .. ").");
 	end);
 
 	self.fontStrings = {};

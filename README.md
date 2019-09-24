@@ -14,6 +14,8 @@
 - Context menus to enable you to quickly share or abandon quests
 - Colored quest names based on their difficulty
 - Link quests in chat by shift clicking their name
+- Adjust the font-size of the tracker to your liking
+- Type **/bqt** to quickly open the settings menu
 
 ## Supported Addons
 

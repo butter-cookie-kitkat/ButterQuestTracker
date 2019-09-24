@@ -411,10 +411,12 @@ function BQT:CreateQuestObjective(anchor, objective)
 end
 
 function BQT:IsQuestLogPanelVisible()
-	if QuestLogEx then
+	if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
 		return QuestLogExFrame:IsVisible();
-	elseif ClassicQuestLog then
+	elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
 		return ClassicQuestLog:IsVisible();
+	elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
+		return QuestGuru:IsVisible();
 	else
 		return QuestLogFrame:IsVisible();
 	end
@@ -423,7 +425,7 @@ end
 function BQT:ViewQuest(quest)
 	local isQuestAlreadyOpen = GetQuestLogSelection() == quest.index and self:IsQuestLogPanelVisible();
 
-	if QuestLogEx then
+	if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
 		ns.Log.Trace('Clicked Quest with QuestLogEx enabled.');
 		if isQuestAlreadyOpen then
 			HideUIPanel(QuestLogExFrame);
@@ -432,13 +434,21 @@ function BQT:ViewQuest(quest)
 			QuestLogEx:QuestLog_SetSelection(quest.index);
 			QuestLogEx:Maximize();
 		end
-	elseif ClassicQuestLog then
+	elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
 		ns.Log.Trace('Clicked Quest with ClassicQuestLog enabled.');
 		if isQuestAlreadyOpen then
 			HideUIPanel(ClassicQuestLog);
 		else
 			ShowUIPanel(ClassicQuestLog);
 			QuestLog_SetSelection(quest.index);
+		end
+	elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
+		ns.Log.Trace('Clicked Quest with QuestGuru enabled.');
+		if isQuestAlreadyOpen then
+			HideUIPanel(QuestGuru);
+		else
+			ShowUIPanel(QuestGuru);
+			QuestGuru:SelectQuestIndex(quest.index);
 		end
 	else
 		ns.Log.Trace('Clicked Quest with Default enabled.');

@@ -1,7 +1,7 @@
 local _, ns = ...
 
 local CONSTANTS = {
-    VERSION = "1.4.0",
+    VERSION = "1.4.1",
 
     DEFAULT_CONFIG = {
         PositionX = 0,

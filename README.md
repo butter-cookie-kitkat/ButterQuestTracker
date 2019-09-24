@@ -19,6 +19,7 @@
 
 - [Classic Quest Log](https://www.curseforge.com/wow/addons/classic-quest-log)
 - [QuestLogEx](https://www.wowinterface.com/downloads/info24980-QuestLogEx.html)
+- [QuestGuru](https://www.curseforge.com/wow/addons/questguru_classic)
 
 ## Known Issues
 

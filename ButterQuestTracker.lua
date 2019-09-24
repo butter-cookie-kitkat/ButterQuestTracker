@@ -336,12 +336,11 @@ end
 function BQT:CreateFont(anchor, label)
 	local font = self:CreateFontString(nil, nil, "GameFontNormal")
 
-	font:SetShadowOffset(1, -2)
-	font:SetText(label)
-	font:SetJustifyH("LEFT")
-	font:SetTextColor(0.8, 0.8, 0.8)
-	font:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
-	font:SetPoint("RIGHT", self, "RIGHT", -5, 0) -- This is for word-wrapping
+	font:SetText(label);
+	font:SetJustifyH("LEFT");
+	font:SetTextColor(0.8, 0.8, 0.8);
+	font:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0);
+	font:SetPoint("RIGHT", self, "RIGHT", -5, 0); -- This is for word-wrapping
 
 	return font
 end
@@ -349,8 +348,9 @@ end
 function BQT:CreateHeader(anchor, label)
 	local header = self:CreateFont(anchor, label)
 
-	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
-	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5)
+    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.TrackerHeaderFontSize);
+	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5);
 
 	return header
 end
@@ -358,6 +358,7 @@ end
 function BQT:CreateTruncatedHeader(anchor)
 	local header = self:CreateHeader(anchor, "...");
 
+    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.QuestHeaderFontSize);
 	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.75);
 	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5);
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10);
@@ -377,6 +378,7 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 	headerText = headerText .. questInfo.title;
 
 	local header = self:CreateHeader(anchor, headerText);
+    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.QuestHeaderFontSize);
 	if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
 		header:SetTextColor(self:GetTextColorByDifficultyLevel(questInfo.difficulty));
 	else
@@ -390,6 +392,7 @@ end
 
 function BQT:CreateReadyToTurnIn(anchor)
 	local turnInFont = self:CreateFont(anchor, " - Ready to turn in");
+    turnInFont:SetFont(turnInFont:GetFont(), ButterQuestTrackerConfig.ObjectiveFontSize);
 	turnInFont:SetTextColor(0.0, 0.7, 0.0);
 	turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
 
@@ -399,6 +402,7 @@ end
 function BQT:CreateQuestObjective(anchor, objective)
 	local objectiveFont = self:CreateFont(anchor, " - " .. objective.text)
 
+    objectiveFont:SetFont(objectiveFont:GetFont(), ButterQuestTrackerConfig.ObjectiveFontSize);
 	if objective.finished then
 		objectiveFont:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
 	end

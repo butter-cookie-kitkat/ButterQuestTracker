@@ -4,16 +4,30 @@ local CONSTANTS = {
     VERSION = "1.4.1",
 
     DEFAULT_CONFIG = {
+        -- Filters & Sorting
+
+        Sorting = "Disabled",
+        CurrentZoneOnly = false,
+        ShowCompletedQuests = true,
+        QuestLimit = 10,
+
+        -- Frame Settings
+
         PositionX = 0,
         PositionY = -240,
         Width = 250,
         MaxHeight = 600,
-        Sorting = "Disabled",
-        CurrentZoneOnly = false,
-        ShowCompletedQuests = true,
+
+        -- Visuals
+
         TrackerHeaderFormat = "QuestsNumberVisible",
         ColorHeadersByDifficultyLevel = false,
-        QuestLimit = 10,
+        TrackerHeaderFontSize = 12,
+        QuestHeaderFontSize = 12,
+        ObjectiveFontSize = 12,
+
+        -- Advanced
+
         DeveloperMode = false,
         DebugLevel = 3
     },

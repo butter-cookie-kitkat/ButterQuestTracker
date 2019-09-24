@@ -258,6 +258,44 @@ local options = {
 					},
 
 					set = SetAndReloadQuests
+                },
+
+				trackerHeaderFontSize = {
+					name = "Tracker Header Font Size",
+					arg = "TrackerHeaderFontSize",
+					type = "range",
+					min = 10,
+					max = 20,
+					step = 1,
+                    order = order(),
+
+					set = SetAndReloadQuests
+				},
+
+				questHeaderFontSize = {
+					name = "Quest Header Font Size",
+					arg = "QuestHeaderFontSize",
+					type = "range",
+					min = 10,
+					max = 20,
+					step = 1,
+					order = order(),
+
+					set = SetAndReloadQuests
+				},
+
+				spacer1 = Spacer(),
+
+				objectiveFontSize = {
+					name = "Objective Font Size",
+					arg = "ObjectiveFontSize",
+					type = "range",
+					min = 10,
+					max = 20,
+					step = 1,
+					order = order(),
+
+					set = SetAndReloadQuests
 				},
 
 				spacerEnd = Spacer("large"),

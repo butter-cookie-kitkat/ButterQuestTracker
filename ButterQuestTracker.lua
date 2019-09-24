@@ -273,8 +273,12 @@ function BQT:LoadQuests()
 
     if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
         header:SetText("Quests");
-    elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" and visibleQuestCount < questCount then
-        header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
+    elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" then
+        if visibleQuestCount < questCount then
+            header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
+        else
+            header:SetText("Quests");
+        end
     end
 
 	if self.truncated then

@@ -72,9 +72,6 @@ function BQT:Initialize()
         frame:SetUserPlaced(false);
         local x = frame:GetRight();
         local y = frame:GetTop();
-        -- TODO: Look into UIParent:GetEffectiveScale to see how it works...
-		-- local inversedX = (x - GetScreenWidth()) * UIParent:GetEffectiveScale();
-		-- local inversedY = (y - GetScreenHeight()) * UIParent:GetEffectiveScale();
 		local inversedX = x - GetScreenWidth();
 		local inversedY = y - GetScreenHeight();
 		ButterQuestTrackerConfig.PositionX = inversedX;
@@ -612,21 +609,17 @@ function BQT:SetClickFrame(i, quest)
 
 	clickFrame:Show();
 
-	local height = quest.gui.header:GetHeight();
-
-	if quest.gui.readyToTurnIn then
-		height = height + quest.gui.readyToTurnIn:GetHeight();
-	end
-
-	for i, objective in ipairs(quest.objectives) do
-		if objective.gui then
-			height = height + objective.gui:GetHeight();
-		end
-	end
+    local lastObjective;
+    if quest.gui.readyToTurnIn then
+        lastObjective = quest.gui.readyToTurnIn;
+    else
+		lastObjective = quest.objectives[table.getn(quest.objectives)].gui;
+    end
 
 	clickFrame:SetPoint("TOPLEFT", quest.gui.header, "TOPLEFT", 0, 0);
 	clickFrame:SetPoint("TOPRIGHT", quest.gui.header, "TOPRIGHT", 0, 0);
-	clickFrame:SetHeight(height);
+	clickFrame:SetPoint("BOTTOMLEFT", lastObjective, "BOTTOMLEFT", 0, 0);
+	clickFrame:SetPoint("BOTTOMRIGHT", lastObjective, "BOTTOMRIGHT", 0, 0);
 	clickFrame.quest = quest
 end
 
@@ -674,8 +667,8 @@ function BQT:OnEvent(event, ...)
 	self[event](self, ...)
 end
 
-BQT:RegisterEvent("ADDON_LOADED")
-BQT:RegisterEvent("QUEST_LOG_UPDATE")
-BQT:RegisterEvent("MODIFIER_STATE_CHANGED")
-BQT:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+BQT:RegisterEvent("ADDON_LOADED");
+BQT:RegisterEvent("QUEST_LOG_UPDATE");
+BQT:RegisterEvent("MODIFIER_STATE_CHANGED");
+BQT:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 BQT:SetScript("OnEvent", BQT.OnEvent)

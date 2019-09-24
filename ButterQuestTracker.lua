@@ -639,7 +639,7 @@ function BQT:ADDON_LOADED(addon)
         self:Initialize();
 
         -- totally prevent the blizzard tracker frame from showing (BAD CODE, shouldn't be needed but some have had trouble)
-        QuestWatchFrame:HookScript("OnShow", function(self) if QuestieTracker._disableHooks then return end self:Hide() end);
+        QuestWatchFrame:HookScript("OnShow", function(self) return self:Hide() end);
         QuestWatchFrame:Hide();
 
 		self:UnregisterEvent("ADDON_LOADED");

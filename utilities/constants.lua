@@ -8,7 +8,7 @@ local CONSTANTS = {
 
         Sorting = "Disabled",
         CurrentZoneOnly = false,
-        ShowCompletedQuests = true,
+        HideCompletedQuests = false,
         QuestLimit = 10,
 
         -- Frame Settings
@@ -30,6 +30,12 @@ local CONSTANTS = {
 
         DeveloperMode = false,
         DebugLevel = 3
+    },
+
+    DEFAULT_CHARACTER_CONFIG = {
+        -- Backend
+
+        MANUALLY_TRACKED_QUESTS = {}
     },
 
     LOGGER = {

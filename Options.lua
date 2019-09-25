@@ -1,5 +1,7 @@
 local NAME, ns = ...
 
+local QLH = LibStub("QuestLogHelper-1.0");
+
 local BQT = ButterQuestTracker
 
 local _order = 0;
@@ -20,16 +22,16 @@ local function Spacer(size)
 end
 
 local function GetFromDB(info)
-	return ButterQuestTrackerConfig[info.arg];
+    return BQT.DB.Global[info.arg];
 end
 
 local function SetInDB(info, value)
-	ButterQuestTrackerConfig[info.arg] = value;
+    BQT.DB.Global[info.arg] = value;
 end
 
-local function SetAndReloadQuests(info, value)
+local function SetAndRefreshTracker(info, value)
 	SetInDB(info, value);
-	BQT:LoadQuests();
+	BQT:Refresh();
 end
 
 local options = {
@@ -55,7 +57,7 @@ local options = {
 					width = 2.4,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
                 },
 
 				sorting = {
@@ -79,18 +81,18 @@ local options = {
 						"ByPercentCompleted"
 					},
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
                 },
 
-				showCompletedQuests = {
-					name = "Show Completed Quests",
+				hideCompletedQuests = {
+					name = "Hide Completed Quests",
 					desc = "Displays quests that have been completed.",
-					arg = "ShowCompletedQuests",
+					arg = "HideCompletedQuests",
 					type = "toggle",
 					width = 2.4,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
                 },
 
 				questLimit = {
@@ -104,7 +106,27 @@ local options = {
 					step = 1,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
+				},
+
+				reset = {
+					name = "Reset Tracking Overrides",
+					desc = "Reset's all manual quest watch overrides.",
+					type = "execute",
+					width = 1.3,
+					order = order(),
+
+                    func = function()
+                        for questID, tracked in pairs(BQT.DB.Char.MANUALLY_TRACKED_QUESTS) do
+                            local index = QLH:GetIndexFromQuestID(questID);
+                            if index then
+                                RemoveQuestWatch()
+                            end
+                        end
+
+                        BQT.DB.Char.MANUALLY_TRACKED_QUESTS = {};
+						BQT:Refresh();
+					end
 				},
 
 				spacerEnd = Spacer("large"),
@@ -128,12 +150,12 @@ local options = {
 					bigStep = 10,
 					order = order(),
 
-					get = function(info)
-						return -ButterQuestTrackerConfig[info.arg]
+                    get = function(info)
+                        return -GetFromDB(info);
 					end,
 
-					set = function(info, value)
-						ButterQuestTrackerConfig[info.arg] = -value;
+                    set = function(info, value)
+                        SetInDB(info, -value);
 						BQT:RefreshPosition();
 					end
 				},
@@ -150,11 +172,11 @@ local options = {
 					order = order(),
 
 					get = function(info)
-						return -ButterQuestTrackerConfig[info.arg]
+                        return -GetFromDB(info);
 					end,
 
 					set = function(info, value)
-						ButterQuestTrackerConfig[info.arg] = -value;
+                        SetInDB(info, -value);
 						BQT:RefreshPosition();
 					end
 				},
@@ -172,7 +194,7 @@ local options = {
 					bigStep = 10,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
 				},
 
 				maxHeight = {
@@ -186,7 +208,7 @@ local options = {
 					bigStep = 10,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
 				},
 
 				spacer2 = Spacer(),
@@ -197,9 +219,9 @@ local options = {
 					width = 0.8,
 					order = order(),
 
-					func = function()
-						ButterQuestTrackerConfig.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
-						ButterQuestTrackerConfig.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
+                    func = function()
+                        BQT.DB.Global.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
+                        BQT.DB.Global.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
 						BQT:RefreshPosition();
 					end
 				},
@@ -211,9 +233,9 @@ local options = {
 					order = order(),
 
 					func = function()
-						ButterQuestTrackerConfig.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
-						ButterQuestTrackerConfig.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
-						BQT:LoadQuests();
+                        BQT.DB.Global.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
+                        BQT.DB.Global.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
+						BQT:Refresh();
 					end
 				},
 
@@ -235,7 +257,7 @@ local options = {
 					width = 2.4,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
                 },
 
 				trackerHeaderFormat = {
@@ -257,7 +279,7 @@ local options = {
 						"QuestsNumberVisible"
 					},
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
                 },
 
 				trackerHeaderFontSize = {
@@ -269,7 +291,7 @@ local options = {
 					step = 1,
                     order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
 				},
 
 				questHeaderFontSize = {
@@ -281,7 +303,7 @@ local options = {
 					step = 1,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
 				},
 
 				spacer1 = Spacer(),
@@ -295,7 +317,7 @@ local options = {
 					step = 1,
 					order = order(),
 
-					set = SetAndReloadQuests
+					set = SetAndRefreshTracker
 				},
 
 				spacerEnd = Spacer("large"),
@@ -343,7 +365,7 @@ local options = {
 					order = order(),
 
 					disabled = function()
-						return not ButterQuestTrackerConfig.DeveloperMode;
+                        return not BQT.DB.Global.DeveloperMode;
 					end
 				},
 
@@ -371,10 +393,11 @@ local options = {
 					width = 1.3,
 					order = order(),
 
-					func = function()
-						ButterQuestTrackerConfig = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
+                    func = function()
+                        BQT.DB.Global = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
+                        BQT.DB.Char = CopyTable(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG);
 						BQT:RefreshPosition();
-						BQT:LoadQuests();
+						BQT:Refresh();
 					end
 				},
 

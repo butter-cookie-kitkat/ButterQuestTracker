@@ -6,12 +6,9 @@
 ## RequiredDeps:
 ## OptionalDeps: Ace3
 ## SavedVariables: ButterQuestTrackerConfig
+## SavedVariablesPerCharacter: ButterQuestTrackerCharacterConfig
 
-Libs\LibStub\LibStub.lua
-Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
-Libs\AceGUI-3.0\AceGUI-3.0.xml
-Libs\AceConfig-3.0\AceConfig-3.0.xml
-Libs\AceTab-3.0\AceTab-3.0.xml
+embeds.xml
 
 utilities\constants.lua
 utilities\logger.lua

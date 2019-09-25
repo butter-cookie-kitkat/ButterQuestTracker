@@ -6,6 +6,46 @@ local QLH = LibStub("QuestLogHelper-1.0");
 ButterQuestTracker = CreateFrame("Frame", nil, UIParent);
 local BQT = ButterQuestTracker;
 
+StaticPopupDialogs[NAME .. "_WowheadURL"] = {
+    text = ns.CONSTANTS.PATHS.LOGO .. ns.CONSTANTS.BRAND_COLOR .. " Butter Quest Tracker" .. "|r - Wowhead URL " .. ns.CONSTANTS.PATHS.LOGO,
+    button2 = CLOSE,
+    hasEditBox = 1,
+    editBoxWidth = 300,
+
+    EditBoxOnEnterPressed = function(self)
+        self:GetParent():Hide()
+    end,
+
+    EditBoxOnEscapePressed = function(self)
+        self:GetParent():Hide()
+    end,
+
+    OnShow = function(self)
+        local type = self.text.text_arg1;
+        local id = self.text.text_arg2;
+        local name = "...";
+
+        if type == "quest" then
+            local quest = QLH:GetQuest(id);
+
+            name = quest.title;
+        end
+
+        self.text:SetText(self.text:GetText() .. "\n\n|cffff7f00" .. name .. "|r");
+        self.editBox:SetText("https://classic.wowhead.com/" .. type .. "=" .. id);
+        self.editBox:SetFocus();
+        self.editBox:HighlightText();
+    end,
+
+    timeout = 0,
+    whileDead = 1,
+    hideOnEscape = 1
+}
+
+function BQT:ShowWowheadPopup(type, id)
+    StaticPopup_Show(NAME .. "_WowheadURL", type, id)
+end
+
 local function spairs(t, order)
     -- collect the keys
     local keys = {};
@@ -383,6 +423,14 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
+            text = "|cff33ff99Wowhead|r URL",
+            notCheckable = true,
+            func = function()
+                BQT:ShowWowheadPopup("quest", self.quest.questID);
+            end
+        });
+
+        UIDropDownMenu_AddButton({
             text = "Share Quest",
             notCheckable = true,
             disabled = not UnitInParty("player") or not self.quest.sharable,
@@ -439,6 +487,8 @@ function BQT:SetClickFrame(i, quest, gui)
                 PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
             elseif IsControlKeyDown() then
                 ChatEdit_InsertLink("[" .. self.quest.title .. "]");
+            elseif IsAltKeyDown() then
+                BQT:ShowWowheadPopup("quest", self.quest.questID);
             else
                 CloseDropDownMenus();
                 QLH:ToggleQuest(self.quest.index);

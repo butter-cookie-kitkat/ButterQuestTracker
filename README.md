@@ -8,6 +8,7 @@
 ## Features
 
 - Change tracker position
+- Manually track / untrack quests (see caveats below)
 - Filter quests by your current zone / subzone
 - Sort your quests by level or by the completion percentage
 - Change the quest watch limit or remove it entirely
@@ -22,6 +23,12 @@
 - [Classic Quest Log](https://www.curseforge.com/wow/addons/classic-quest-log)
 - [QuestLogEx](https://www.wowinterface.com/downloads/info24980-QuestLogEx.html)
 - [QuestGuru](https://www.curseforge.com/wow/addons/questguru_classic)
+
+## Manually Tracking / Untracking Quests
+
+If you manually track / untrack a quest and which to reset it so that filtering will impact it again you need to do the following.
+
+Open the BQT Settings menu (`/bqt`) > Filters & Sorting (Tab) > Reset Tracking Overrides
 
 ## Known Issues
 

@@ -1,29 +1,22 @@
 local NAME, ns = ...
 
+local QWH = LibStub("QuestWatchHelper-1.0");
+local QLH = LibStub("QuestLogHelper-1.0");
+
 ButterQuestTracker = CreateFrame("Frame", nil, UIParent);
 local BQT = ButterQuestTracker;
 
-local function has_value (tab, val)
-    for index, value in ipairs(tab) do
-        if value == val then
-            return true
-        end
-    end
-
-    return false
-end
-
 local function spairs(t, order)
     -- collect the keys
-    local keys = {}
+    local keys = {};
     for k in pairs(t) do keys[#keys+1] = k end
 
     -- if order function given, sort by it by passing the table and keys a, b,
     -- otherwise just sort the keys
     if order then
-        table.sort(keys, function(a, b) return order(t[a], t[b]) end)
+        table.sort(keys, function(a, b) return order(t[a], t[b]) end);
     else
-        table.sort(keys)
+        table.sort(keys);
     end
 
     -- return the iterator function
@@ -34,13 +27,13 @@ local function spairs(t, order)
             -- i = fake index
             -- t[keys[i]] = value
             -- keys[i] = real index
-            return i, t[keys[i]], keys[i]
+            return i, t[keys[i]], keys[i];
         end
     end
 end
 
 local function sortQuests(quest, otherQuest)
-	local sorting = ButterQuestTrackerConfig.Sorting or "nil";
+	local sorting = BQT.DB.Global.Sorting or "nil";
 	if sorting == "Disabled" then
 		return false;
 	end
@@ -50,7 +43,7 @@ local function sortQuests(quest, otherQuest)
 	elseif sorting == "ByLevelReversed" then
 		return quest.level > otherQuest.level;
 	elseif sorting == "ByPercentCompleted" then
-		return quest.percentCompleted > otherQuest.percentCompleted;
+		return quest.completionPercent > otherQuest.completionPercent;
 	else
 		ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
 	end
@@ -74,16 +67,23 @@ function BQT:Initialize()
         local y = frame:GetTop();
 		local inversedX = x - GetScreenWidth();
 		local inversedY = y - GetScreenHeight();
-		ButterQuestTrackerConfig.PositionX = inversedX;
-		ButterQuestTrackerConfig.PositionY = inversedY;
+		self.DB.Global.PositionX = inversedX;
+		self.DB.Global.PositionY = inversedY;
 
 		LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
 		ns.Log.Info("Moved to ( x: " .. x .. ", y: " .. y .. ").");
 		ns.Log.Info("Moved to ( inversedX: " .. inversedX .. ", inversedY: " .. inversedY .. ").");
 	end);
 
-	self.fontStrings = {};
-	self.clickFrames = {};
+    self.clickFrames = {};
+
+    self.forciblyTrackedQuests = {}; -- These are quests that can't be untracked unless a filter is disabled
+
+     -- These are all the gui elements
+    self.gui = {
+        quests = {},
+        lines = {}
+    };
 
 	self:RefreshFrame();
 	self:RefreshPosition();
@@ -91,30 +91,30 @@ function BQT:Initialize()
 end
 
 function BQT:RefreshPosition()
-	self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", ButterQuestTrackerConfig.PositionX, ButterQuestTrackerConfig.PositionY);
+	self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", self.DB.Global.PositionX, self.DB.Global.PositionY);
 end
 
 function BQT:RefreshSize(height)
     height = height or self:GetHeight();
-	self:SetSize(ButterQuestTrackerConfig.Width, math.min(height, ButterQuestTrackerConfig.MaxHeight));
+	self:SetSize(self.DB.Global.Width, math.min(height, self.DB.Global.MaxHeight));
 end
 
 function BQT:RefreshFrame()
 	if IsAltKeyDown() then
-		self:EnableMouse(true)
-		self:SetBackdropColor(0, 1, 0, .5)
+		self:EnableMouse(true);
+		self:SetBackdropColor(0, 1, 0, .5);
 	else
-		self:EnableMouse(false)
-		self:StopMovingOrSizing()
-		if ButterQuestTrackerConfig.DeveloperMode then
-			self:SetBackdropColor(1, 1, 1, 0.5)
+		self:EnableMouse(false);
+		self:StopMovingOrSizing();
+		if self.DB.Global.DeveloperMode then
+			self:SetBackdropColor(1, 1, 1, 0.5);
 		else
-			self:SetBackdropColor(0, 0, 0, 0)
+			self:SetBackdropColor(0, 0, 0, 0);
 		end
 	end
 
 	for i, clickFrame in ipairs(self.clickFrames) do
-		if ButterQuestTrackerConfig.DeveloperMode then
+		if self.DB.Global.DeveloperMode then
 			clickFrame:SetBackdropColor(0, 1, 0, 0.5);
 		else
 			clickFrame:SetBackdropColor(0, 0, 0, 0);
@@ -122,88 +122,50 @@ function BQT:RefreshFrame()
 	end
 end
 
-function BQT:GetQuests(criteria)
-	criteria = criteria or {}
-	local numberOfEntries, questCount = GetNumQuestLogEntries()
+function BQT:RefreshQuestWatch(criteria)
+    criteria = criteria or {};
+    self.forciblyTrackedQuests = {};
 
-	local currentZone = GetRealZoneText()
-	local minimapZone = GetMinimapZoneText()
+    local quests = QLH:GetQuests();
 
-	local class = UnitClass("player");
-	local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
-	local zone
-	local quests = {}
-	for index = 1, numberOfEntries, 1 do
-		local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
-		local isCurrentMinimapZone = zone == minimapZone;
-		local isCurrentZone = zone == currentZone or isCurrentMinimapZone;
-		local isClassQuest = zone == class;
-		local isProfessionQuest = has_value(professions, zone);
+	local currentZone = GetRealZoneText();
+    local minimapZone = GetMinimapZoneText();
 
-		if isHeader then
-			zone = title
-		elseif (criteria.showCompletedQuests or not isComplete) and (criteria.currentZoneOnly == false or isCurrentZone or isClassQuest or isProfessionQuest) then
-			local objectives = C_QuestLog.GetQuestObjectives(questID);
-
-			-- Utilize the Quest Description if it doesn't have any objectives
-			if table.getn(objectives) == 0 then
-				-- TODO: Not a big fan of this since we're mucking with the users selected quest in the quest log.
-				-- Is there an alternative way to get the quest text.. ?
-				self:SelectQuestLogEntry(index, function()
-					local _, desc = GetQuestLogQuestText()
-
-					tinsert(objectives, {
-						text = desc,
-						finished = true
-					});
-				end);
-			end
-
-			local percentCompleted = 0;
-			if isComplete then
-				percentCompleted = 1;
-            else
-                for i, objective in pairs(objectives) do
-                    if objective.finished then
-                        percentCompleted = percentCompleted + 1;
-                    else
-                        percentCompleted = percentCompleted + (objective.numFulfilled / objective.numRequired);
-                    end
-                end
-
-				percentCompleted = percentCompleted / table.getn(objectives);
-			end
-
-			tinsert(quests, {
-				index = index,
-				title = title,
-				level = level,
-				difficulty = self:GetDifficultyOfQuest(level),
-				isComplete = isComplete,
-				percentCompleted = percentCompleted,
-				questID = questID,
-				zone = zone,
-				objectives = objectives,
-				isCurrentZone = isCurrentZone,
-				isCurrentMinimapZone = isCurrentMinimapZone,
-				isClassQuest = isClassQuest,
-				isProfessionQuest = isProfessionQuest,
-				gui = {}
-			});
-		end
+    for questID, quest in pairs(quests) do
+        -- RemoveQuestWatch(quest.index);
+        self:UpdateQuestWatch(criteria, currentZone, minimapZone, quest);
 	end
+end
 
-	return quests, questCount
+function BQT:UpdateQuestWatch(criteria, currentZone, minimapZone, quest)
+    local isCurrentZone = quest.zone == currentZone or quest.zone == minimapZone;
+
+    if self.DB.Char.MANUALLY_TRACKED_QUESTS[quest.questID] == true then
+        return AddQuestWatch(quest.index);
+    elseif self.DB.Char.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
+        return RemoveQuestWatch(quest.index);
+    end
+
+    if criteria.hideCompletedQuests and quest.isComplete then
+        return RemoveQuestWatch(quest.index);
+    end
+
+    if criteria.currentZoneOnly then
+        if isCurrentZone or quest.isClassQuest or quest.isProfessionQuest then
+            self.forciblyTrackedQuests[quest.questID] = true;
+            AddQuestWatch(quest.index);
+        else
+            return RemoveQuestWatch(quest.index);
+        end
+    end
+
+    AddQuestWatch(quest.index);
 end
 
 function BQT:Clear()
-	if QuestWatchFrame:IsVisible() then
-		QuestWatchFrame:Hide()
-	end
-
-	for i, fontString in ipairs(self.fontStrings) do
-		fontString:Hide();
-	end
+	for i, line in ipairs(self.gui.lines) do
+		line:Hide();
+    end
 
 	-- Frames can't be destroyed, therefore they have to be reused!
 	for i, clickFrame in ipairs(self.clickFrames) do
@@ -213,74 +175,86 @@ function BQT:Clear()
 	self.truncated = false;
 end
 
-function BQT:LoadQuests()
+function BQT:Refresh()
 	ns.Log.Info("Load Quests");
-	self:Clear();
+    self:Clear();
+
+    self:RefreshQuestWatch({
+		currentZoneOnly = self.DB.Global.CurrentZoneOnly,
+        hideCompletedQuests = self.DB.Global.HideCompletedQuests
+    });
+
+    local quests = QLH:GetWatchedQuests();
 
 	local currentLineNumber = 1;
-
-	local quests, questCount = self:GetQuests({
-		currentZoneOnly = ButterQuestTrackerConfig.CurrentZoneOnly,
-		showCompletedQuests = ButterQuestTrackerConfig.ShowCompletedQuests
-	});
 
     local visibleQuestCount = 0;
     local visibleObjectiveCount = 0;
 
-    local header = self:CreateHeader(self, "");
-    self.fontStrings[currentLineNumber] = header;
+    self.gui.header = self:CreateHeader(self, "");
+    self.gui.lines[currentLineNumber] = self.gui.header;
 
 	for i, quest in spairs(quests, sortQuests) do
-		if not self.truncated and visibleQuestCount < ButterQuestTrackerConfig.QuestLimit then
+		if not self.truncated and visibleQuestCount < self.DB.Global.QuestLimit then
 			currentLineNumber = currentLineNumber + 1;
 
 			local questStartLineNumber = currentLineNumber;
-			local objectiveCount = 0;
 
-			self.fontStrings[currentLineNumber] = self:CreateQuestHeader(self.fontStrings[currentLineNumber - 1], quest);
-			quest.gui.header = self.fontStrings[currentLineNumber];
+            self.gui.quests[i] = {
+                header = nil,
+                readyToTurnIn = nil,
+                objectives = {}
+            };
+            local questGUI = self.gui.quests[i];
 
-			if quest.isComplete == 1 then
+            questGUI.header = self:CreateQuestHeader(self.gui.lines[currentLineNumber - 1], quest);
+            self.gui.lines[currentLineNumber] = questGUI.header;
+
+            local objectiveCount = table.getn(quest.objectives);
+
+			if quest.isComplete then
 				currentLineNumber = currentLineNumber + 1;
-				objectiveCount = objectiveCount + 1;
+                objectiveCount = 1;
 
-				self.fontStrings[currentLineNumber] = self:CreateReadyToTurnIn(self.fontStrings[currentLineNumber - 1]);
-				quest.gui.readyToTurnIn = self.fontStrings[currentLineNumber];
-			else
-				for _, objective in ipairs(quest.objectives) do
+                questGUI.readyToTurnIn = self:CreateReadyToTurnIn(self.gui.lines[currentLineNumber - 1]);
+				self.gui.lines[currentLineNumber] = questGUI.readyToTurnIn;
+            else
+				for i, objective in ipairs(quest.objectives) do
 					currentLineNumber = currentLineNumber + 1;
-					objectiveCount = objectiveCount + 1;
 
-					self.fontStrings[currentLineNumber] = self:CreateQuestObjective(self.fontStrings[currentLineNumber - 1], objective);
+                    questGUI.objectives[i] = self:CreateQuestObjective(self.gui.lines[currentLineNumber - 1], objective);
+                    self.gui.lines[currentLineNumber] = questGUI.objectives[i];
 				end
 			end
 
-			if self:GetTop() - self.fontStrings[currentLineNumber]:GetBottom() > ButterQuestTrackerConfig.MaxHeight then
+			if self:GetTop() - self.gui.lines[currentLineNumber]:GetBottom() > self.DB.Global.MaxHeight then
 				self.truncated = true;
 				for lineNumber = questStartLineNumber, currentLineNumber do
-					self.fontStrings[lineNumber]:Hide();
+					self.gui.lines[lineNumber]:Hide();
 				end
 
 				currentLineNumber = currentLineNumber - objectiveCount;
 
-				self.fontStrings[currentLineNumber] = self:CreateTruncatedHeader(self.fontStrings[currentLineNumber - 1], "...");
+                self.gui.truncated = self:CreateTruncatedHeader(self.gui.lines[currentLineNumber - 1], "...");
+                self.gui.lines[currentLineNumber] = self.gui.truncated;
 			else
 				visibleQuestCount = visibleQuestCount + 1;
 				visibleObjectiveCount = visibleObjectiveCount + objectiveCount;
-				self:SetClickFrame(i, quest);
+				self:SetClickFrame(i, quest, questGUI);
 			end
 		end
 	end
 
     local frameHeight = 10 + visibleQuestCount * 10 + visibleObjectiveCount * 2;
 
-    if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
-        header:SetText("Quests");
-    elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" then
+    local questCount = QLH:GetQuestCount();
+    if self.DB.Global.TrackerHeaderFormat == "Quests" then
+        self.gui.header:SetText("Quests");
+    elseif self.DB.Global.TrackerHeaderFormat == "QuestsNumberVisible" then
         if visibleQuestCount < questCount then
-            header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
+            self.gui.header:SetText("Quests (" .. visibleQuestCount .. "/" .. questCount .. ")");
         else
-            header:SetText("Quests");
+            self.gui.header:SetText("Quests");
         end
     end
 
@@ -288,7 +262,7 @@ function BQT:LoadQuests()
 		frameHeight = frameHeight - 10;
 	end
 
-	for _, text in pairs(self.fontStrings) do
+	for _, text in pairs(self.gui.lines) do
 		if text:IsVisible() then
 			frameHeight = frameHeight + text:GetHeight();
 		end
@@ -296,48 +270,6 @@ function BQT:LoadQuests()
 
 	self:RefreshSize(frameHeight);
 	self:RefreshFrame();
-end
-
-function BQT:GetTextColorByDifficultyLevel(difficulty)
-	local playerLevel = UnitLevel("player");
-
-    if (difficulty == 4) then
-		return 1, 0.1, 0.1; -- Red
-	elseif (difficulty == 3) then
-		return 1, 0.5, 0.25; -- Orange
-    elseif (difficulty == 2) then
-        return 1, 1, 0; -- Yellow
-    elseif (difficulty == 1) then
-        return 0.25, 0.75, 0.25; -- Green
-	end
-
-	return 0.75, 0.75, 0.75; -- Grey
-end
-
-function BQT:GetDifficultyOfQuest(level)
-	local playerLevel = UnitLevel("player");
-
-	if (level > (playerLevel + 4)) then
-		return 4;
-	elseif (level > (playerLevel + 2)) then
-		return 3;
-    elseif (level <= (playerLevel + 2)) and (level >= (playerLevel - 2)) then
-        return 2;
-    elseif (level > BQT:GetQuestGreyLevel(playerLevel)) then
-        return 1;
-	end
-
-    return 0;
-end
-
-function BQT:GetQuestGreyLevel(level)
-    if (level <= 5) then
-        return 0;
-    elseif (level <= 39) then
-        return (level - math.floor(level / 10) - 5);
-    else
-        return (level - math.floor(level / 5) - 1);
-    end
 end
 
 function BQT:CreateFont(anchor, label)
@@ -355,7 +287,7 @@ end
 function BQT:CreateHeader(anchor, label)
 	local header = self:CreateFont(anchor, label)
 
-    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.TrackerHeaderFontSize);
+    header:SetFont(header:GetFont(), self.DB.Global.TrackerHeaderFontSize);
 	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
 	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5);
 
@@ -365,7 +297,7 @@ end
 function BQT:CreateTruncatedHeader(anchor)
 	local header = self:CreateHeader(anchor, "...");
 
-    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.QuestHeaderFontSize);
+    header:SetFont(header:GetFont(), self.DB.Global.QuestHeaderFontSize);
 	header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 0.75);
 	header:SetPoint("TOPLEFT", anchor, "TOPLEFT", 5, -5);
 	header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10);
@@ -385,9 +317,9 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
 	headerText = headerText .. questInfo.title;
 
 	local header = self:CreateHeader(anchor, headerText);
-    header:SetFont(header:GetFont(), ButterQuestTrackerConfig.QuestHeaderFontSize);
-	if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
-		header:SetTextColor(self:GetTextColorByDifficultyLevel(questInfo.difficulty));
+    header:SetFont(header:GetFont(), self.DB.Global.QuestHeaderFontSize);
+	if self.DB.Global.ColorHeadersByDifficultyLevel then
+		header:SetTextColor(QLH:GetDifficultyColor(questInfo.difficulty));
 	else
 		header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 	end
@@ -399,7 +331,7 @@ end
 
 function BQT:CreateReadyToTurnIn(anchor)
 	local turnInFont = self:CreateFont(anchor, " - Ready to turn in");
-    turnInFont:SetFont(turnInFont:GetFont(), ButterQuestTrackerConfig.ObjectiveFontSize);
+    turnInFont:SetFont(turnInFont:GetFont(), self.DB.Global.ObjectiveFontSize);
 	turnInFont:SetTextColor(0.0, 0.7, 0.0);
 	turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
 
@@ -407,80 +339,16 @@ function BQT:CreateReadyToTurnIn(anchor)
 end
 
 function BQT:CreateQuestObjective(anchor, objective)
-	local objectiveFont = self:CreateFont(anchor, " - " .. objective.text)
+	local objectiveFont = self:CreateFont(anchor, " - " .. objective.text);
 
-    objectiveFont:SetFont(objectiveFont:GetFont(), ButterQuestTrackerConfig.ObjectiveFontSize);
-	if objective.finished then
-		objectiveFont:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b)
+    objectiveFont:SetFont(objectiveFont:GetFont(), self.DB.Global.ObjectiveFontSize);
+	if objective.completed then
+		objectiveFont:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 	end
 
-	objectiveFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2)
+	objectiveFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
 
-	objective.gui = objectiveFont
-
-	return objectiveFont
-end
-
-function BQT:IsQuestLogPanelVisible()
-	if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
-		return QuestLogExFrame:IsVisible();
-	elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
-		return ClassicQuestLog:IsVisible();
-	elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
-		return QuestGuru:IsVisible();
-	else
-		return QuestLogFrame:IsVisible();
-	end
-end
-
-function BQT:ViewQuest(quest)
-	local isQuestAlreadyOpen = GetQuestLogSelection() == quest.index and self:IsQuestLogPanelVisible();
-
-	if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
-		ns.Log.Trace('Clicked Quest with QuestLogEx enabled.');
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestLogExFrame);
-		else
-			ShowUIPanel(QuestLogExFrame);
-			QuestLogEx:QuestLog_SetSelection(quest.index);
-			QuestLogEx:Maximize();
-		end
-	elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
-		ns.Log.Trace('Clicked Quest with ClassicQuestLog enabled.');
-		if isQuestAlreadyOpen then
-			HideUIPanel(ClassicQuestLog);
-		else
-			ShowUIPanel(ClassicQuestLog);
-			QuestLog_SetSelection(quest.index);
-		end
-	elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
-		ns.Log.Trace('Clicked Quest with QuestGuru enabled.');
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestGuru);
-		else
-			ShowUIPanel(QuestGuru);
-			QuestGuru:SelectQuestIndex(quest.index);
-		end
-	else
-		ns.Log.Trace('Clicked Quest with Default enabled.');
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestLogFrame);
-		else
-			ShowUIPanel(QuestLogFrame);
-			QuestLog_SetSelection(quest.index);
-			local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep();
-			QuestLogListScrollFrame.ScrollBar:SetValue(quest.index * valueStep / 2);
-		end
-	end
-end
-
-function BQT:SelectQuestLogEntry(index, func)
-	local currentSelection = GetQuestLogSelection();
-
-	SelectQuestLogEntry(index);
-	func();
-
-	SelectQuestLogEntry(currentSelection);
+	return objectiveFont;
 end
 
 function BQT:ToggleContextMenu(quest)
@@ -494,54 +362,60 @@ function BQT:ToggleContextMenu(quest)
 	self.contextMenu.quest = quest;
 
 	UIDropDownMenu_Initialize(self.contextMenu, function(frame, level, menuList)
-		self:SelectQuestLogEntry(quest.index, function()
-			UIDropDownMenu_AddButton({
-				text = quest.title,
-				notCheckable = true,
-				isTitle = true
-			});
+        UIDropDownMenu_AddButton({
+            text = quest.title,
+            notCheckable = true,
+            isTitle = true
+        });
 
-			UIDropDownMenu_AddButton({
-				text = "View Quest",
-				notCheckable = true,
-				func = function()
-					self:ViewQuest(quest);
-				end
-			});
+        UIDropDownMenu_AddButton({
+            text = "Untrack Quest",
+            notCheckable = true,
+            disabled = self.forciblyTrackedQuests[self.contextMenu.quest.questID],
+            func = function()
+                self.DB.Char.MANUALLY_TRACKED_QUESTS[self.contextMenu.quest.questID] = false;
+                RemoveQuestWatch(self.contextMenu.quest.index);
+            end
+        });
 
-			UIDropDownMenu_AddButton({
-				text = "Share Quest",
-				notCheckable = true,
-				disabled = not UnitInParty("player") or not GetQuestLogPushable(),
-				func = function()
-					self:SelectQuestLogEntry(quest.index, function()
-						QuestLogPushQuest();
-					end);
-				end
-			});
+        UIDropDownMenu_AddButton({
+            text = "View Quest",
+            notCheckable = true,
+            func = function()
+                QLH:ToggleQuest(self.contextMenu.quest.index);
+            end
+        });
 
-			UIDropDownMenu_AddButton({
-				text = "Cancel",
-				notCheckable = true,
-				func = function()
-					PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-				end
-			});
+        UIDropDownMenu_AddButton({
+            text = "Share Quest",
+            notCheckable = true,
+            disabled = not UnitInParty("player") or not self.contextMenu.quest.sharable,
+            func = function()
+                QLH:ShareQuest(self.contextMenu.quest.index);
+            end
+        });
 
-			UIDropDownMenu_AddButton({
-				isTitle = true
-			});
+        UIDropDownMenu_AddButton({
+            text = "Cancel",
+            notCheckable = true,
+            func = function()
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+            end
+        });
 
-			UIDropDownMenu_AddButton({
-				text = "Abandon Quest",
-				notCheckable = true,
-				colorCode = "|cffff0000",
-				func = function()
-					SetAbandonQuest(quest.index);
-					AbandonQuest();
-				end
-			});
-		end);
+        UIDropDownMenu_AddButton({
+            isTitle = true
+        });
+
+        UIDropDownMenu_AddButton({
+            text = "Abandon Quest",
+            notCheckable = true,
+            colorCode = "|cffff0000",
+            func = function()
+                SetAbandonQuest(self.contextMenu.quest.index);
+                AbandonQuest();
+            end
+        });
 	end, "MENU");
 
 	-- If this Dropdown menu isn't already open then play the sound effect.
@@ -553,8 +427,9 @@ function BQT:ToggleContextMenu(quest)
 	end
 end
 
-function BQT:SetClickFrame(i, quest)
+function BQT:SetClickFrame(i, quest, gui)
 	local clickFrame = self.clickFrames[i];
+
 	if not clickFrame then
 		self.clickFrames[i] = CreateFrame("Frame");
 		clickFrame = self.clickFrames[i];
@@ -565,101 +440,136 @@ function BQT:SetClickFrame(i, quest)
 			elseif IsShiftKeyDown() then
 				ChatEdit_InsertLink("[" .. self.quest.title .. "] ");
 			else
-				CloseDropDownMenus();
-				BQT:ViewQuest(self.quest);
+                CloseDropDownMenus();
+                QLH:ToggleQuest(self.quest.index);
 			end
 		end);
 
-		clickFrame:SetScript("OnEnter", function(self)
-			self.quest.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+        clickFrame:SetScript("OnEnter", function(self)
+			self.gui.header:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 
-			if self.quest.gui.readyToTurnIn then
-				self.quest.gui.readyToTurnIn:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-			end
+			if self.gui.readyToTurnIn then
+				self.gui.readyToTurnIn:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+            end
 
-			for _, objective in ipairs(self.quest.objectives) do
-				if objective.gui ~= nil then
-					objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-				end
-			end
+            for j, objective in ipairs(self.quest.objectives) do
+                local objectiveGUI = self.gui.objectives and self.gui.objectives[j];
+
+                if objectiveGUI then
+                    objectiveGUI:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                end
+            end
 		end);
 
 		clickFrame:SetScript("OnLeave", function(self)
-			if ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel then
-				self.quest.gui.header:SetTextColor(BQT:GetTextColorByDifficultyLevel(self.quest.difficulty));
+			if BQT.DB.Global.ColorHeadersByDifficultyLevel then
+				self.gui.header:SetTextColor(QLH:GetDifficultyColor(self.quest.difficulty));
 			else
-				self.quest.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
+				self.gui.header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
 			end
 
-			if self.quest.gui.readyToTurnIn then
-				self.quest.gui.readyToTurnIn:SetTextColor(0.0, 0.7, 0.0);
+			if self.gui.readyToTurnIn then
+				self.gui.readyToTurnIn:SetTextColor(0.0, 0.7, 0.0);
 			end
 
-			for _, objective in ipairs(self.quest.objectives) do
-				if objective.gui ~= nil then
-					if objective.done then
-						objective.gui:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-					else
-						objective.gui:SetTextColor(.8, .8, .8);
-					end
-				end
-			end
+            for j, objective in ipairs(self.quest.objectives) do
+                local objectiveGUI = self.gui.objectives and self.gui.objectives[j];
+
+                if objectiveGUI then
+                    if objective.completed then
+                        objectiveGUI:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                    else
+                        objectiveGUI:SetTextColor(.8, .8, .8);
+                    end
+                end
+            end
 		end);
 	end
 
 	clickFrame:Show();
 
     local lastObjective;
-    if quest.gui.readyToTurnIn then
-        lastObjective = quest.gui.readyToTurnIn;
+    if gui.readyToTurnIn then
+        lastObjective = gui.readyToTurnIn;
     else
-		lastObjective = quest.objectives[table.getn(quest.objectives)].gui;
+		lastObjective = gui.objectives[table.getn(gui.objectives)];
     end
 
-	clickFrame:SetPoint("TOPLEFT", quest.gui.header, "TOPLEFT", 0, 0);
-	clickFrame:SetPoint("TOPRIGHT", quest.gui.header, "TOPRIGHT", 0, 0);
+	clickFrame:SetPoint("TOPLEFT", gui.header, "TOPLEFT", 0, 0);
+	clickFrame:SetPoint("TOPRIGHT", gui.header, "TOPRIGHT", 0, 0);
 	clickFrame:SetPoint("BOTTOMLEFT", lastObjective, "BOTTOMLEFT", 0, 0);
 	clickFrame:SetPoint("BOTTOMRIGHT", lastObjective, "BOTTOMRIGHT", 0, 0);
-	clickFrame.quest = quest
+	clickFrame.quest = quest;
+	clickFrame.gui = gui;
 end
 
 function BQT:ADDON_LOADED(addon)
-	if addon == NAME then
+    if addon == NAME then
 		if not ButterQuestTrackerConfig then
 			ButterQuestTrackerConfig = {};
+        end
+
+		if not ButterQuestTrackerCharacterConfig then
+			ButterQuestTrackerCharacterConfig = {};
 		end
 
-		for key, value in pairs(ns.CONSTANTS.DEFAULT_CONFIG) do
+        for key, value in pairs(ns.CONSTANTS.DEFAULT_CONFIG) do
 			if ButterQuestTrackerConfig[key] == nil then
 				ButterQuestTrackerConfig[key] = value;
 			end
 		end
 
-		ns.Log.Info("ADDON_LOADED");
+		for key, value in pairs(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG) do
+			if ButterQuestTrackerCharacterConfig[key] == nil then
+				ButterQuestTrackerCharacterConfig[key] = value;
+			end
+		end
+
+        self.DB = {
+            Global = ButterQuestTrackerConfig,
+            Char = ButterQuestTrackerCharacterConfig,
+        };
+
+        QWH:BypassWatchLimit(self.DB.Global.TRACKED_QUESTS);
+        QWH:KeepHidden();
+
+        QWH:OnQuestWatchUpdated(function(questWatchUpdates)
+            for index, updateInfo in pairs(questWatchUpdates) do
+                local questID = QLH:GetQuestIDFromIndex(index);
+
+                if updateInfo.byUser then
+                    if updateInfo.watched then
+                        self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = true;
+                    else
+                        self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = false;
+                    end
+                end
+            end
+
+            self:Refresh();
+        end);
+
         self:Initialize();
 
-        -- totally prevent the blizzard tracker frame from showing (BAD CODE, shouldn't be needed but some have had trouble)
-        QuestWatchFrame:HookScript("OnShow", function(self) return self:Hide() end);
-        QuestWatchFrame:Hide();
-
+		ns.Log.Info("ADDON_LOADED");
 		self:UnregisterEvent("ADDON_LOADED");
 	end
 end
 
 function BQT:QUEST_LOG_UPDATE()
-	ns.Log.Trace("QUEST_LOG_UPDATE")
-	self:LoadQuests()
+	ns.Log.Trace("QUEST_LOG_UPDATE");
+	self:Refresh();
 end
 
 function BQT:ZONE_CHANGED_NEW_AREA()
-	ns.Log.Info("ZONE_CHANGED_NEW_AREA")
-	self:LoadQuests()
+	ns.Log.Info("ZONE_CHANGED_NEW_AREA");
+	self:Refresh();
 end
 
 function BQT:MODIFIER_STATE_CHANGED()
-	ns.Log.Trace("MODIFIER_STATE_CHANGED")
+	ns.Log.Trace("MODIFIER_STATE_CHANGED");
 	if self:IsMouseOver() or self:IsMouseEnabled() then
-		self:RefreshFrame()
+		self:RefreshFrame();
 	end
 end
 

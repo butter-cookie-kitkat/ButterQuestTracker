@@ -10,6 +10,10 @@
 
 embeds.xml
 
+# Localization
+Locale\ButterQuestTrackerLocale.lua
+Locale\enUS\locale.xml
+
 utilities\constants.lua
 utilities\logger.lua
 

@@ -77,8 +77,6 @@ function BQT:Initialize()
 
     self.clickFrames = {};
 
-    self.forciblyTrackedQuests = {}; -- These are quests that can't be untracked unless a filter is disabled
-
      -- These are all the gui elements
     self.gui = {
         quests = {},
@@ -124,7 +122,6 @@ end
 
 function BQT:RefreshQuestWatch(criteria)
     criteria = criteria or {};
-    self.forciblyTrackedQuests = {};
 
     local quests = QLH:GetQuests();
 
@@ -132,7 +129,6 @@ function BQT:RefreshQuestWatch(criteria)
     local minimapZone = GetMinimapZoneText();
 
     for questID, quest in pairs(quests) do
-        -- RemoveQuestWatch(quest.index);
         self:UpdateQuestWatch(criteria, currentZone, minimapZone, quest);
 	end
 end
@@ -152,7 +148,6 @@ function BQT:UpdateQuestWatch(criteria, currentZone, minimapZone, quest)
 
     if criteria.currentZoneOnly then
         if isCurrentZone or quest.isClassQuest or quest.isProfessionQuest then
-            self.forciblyTrackedQuests[quest.questID] = true;
             AddQuestWatch(quest.index);
         else
             return RemoveQuestWatch(quest.index);
@@ -371,7 +366,6 @@ function BQT:ToggleContextMenu(quest)
         UIDropDownMenu_AddButton({
             text = "Untrack Quest",
             notCheckable = true,
-            disabled = self.forciblyTrackedQuests[self.contextMenu.quest.questID],
             func = function()
                 self.DB.Char.MANUALLY_TRACKED_QUESTS[self.contextMenu.quest.questID] = false;
                 RemoveQuestWatch(self.contextMenu.quest.index);

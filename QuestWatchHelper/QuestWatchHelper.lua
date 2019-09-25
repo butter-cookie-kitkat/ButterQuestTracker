@@ -68,7 +68,8 @@ function helper:BypassWatchLimit(trackedQuests)
     end
 
     -- This bypasses a limitation that would prevent users from tracking quests without objectives
-    GetNumQuestLeaderBoards = function(index)
+    GetNumQuestLeaderBoards = function()
+        local index = GetQuestLogSelection();
         local questID = QLH:GetQuestIDFromIndex(index);
 
         if not questID then return 0 end

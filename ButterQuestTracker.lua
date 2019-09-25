@@ -432,7 +432,11 @@ function BQT:SetClickFrame(i, quest, gui)
 			if GetMouseButtonClicked() == "RightButton" then
 				BQT:ToggleContextMenu(self.quest);
 			elseif IsShiftKeyDown() then
-				ChatEdit_InsertLink("[" .. self.quest.title .. "] ");
+                BQT.DB.Char.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
+                RemoveQuestWatch(self.quest.index);
+                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+            elseif IsControlKeyDown() then
+                ChatEdit_InsertLink("[" .. self.quest.title .. "]");
 			else
                 CloseDropDownMenus();
                 QLH:ToggleQuest(self.quest.index);

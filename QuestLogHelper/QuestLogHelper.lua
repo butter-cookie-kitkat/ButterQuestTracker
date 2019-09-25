@@ -169,7 +169,6 @@ function helper:Refresh()
                 quests[questID] = {
                     title = title,
                     level = level,
-                    isComplete = isComplete,
                     questID = questID,
                     zone = zone,
 
@@ -184,6 +183,7 @@ function helper:Refresh()
 
             local quest = quests[questID];
             quest.index = index;
+            quest.isComplete = isComplete;
             quest.difficulty = self:GetDifficulty(level);
             quest.objectives = self:GetObjectives(questID);
 

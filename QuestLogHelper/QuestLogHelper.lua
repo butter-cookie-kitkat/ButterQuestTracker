@@ -235,19 +235,6 @@ function helper:Refresh()
             quest.difficulty = self:GetDifficulty(level);
             quest.objectives = self:GetObjectives(questID);
 
-            if table.getn(quest.objectives) == 0 then
-                tinsert(quest.objectives, {
-                    text = quest.summary,
-                    -- Use this if you want to filter out this objective
-                    type = "QuestLogHelper-Description",
-                    completed = false,
-                    fulfilled = 0,
-                    required = 1
-                });
-
-                quest.isComplete = false;
-            end
-
             local completionPercent = getCompletionPercent(quest.objectives);
 
             if quest.completionPercent and quest.completionPercent ~= completionPercent then

@@ -31,10 +31,24 @@ function helper:GetFrame()
     return BlizzardTrackerFrame;
 end
 
-function helper:BypassWatchLimit(trackedQuests)
+function helper:IsAutomaticQuestWatchEnabled()
+    return GetCVar('autoQuestWatch') == '1';
+end
+
+function helper:SetAutomaticQuestWatch(autoQuestWatch)
+    SetCVar('autoQuestWatch', autoQuestWatch and '1' or '2');
+end
+
+function helper:BypassWatchLimit(initialTrackedQuests)
     if not isWoWClassic then return end
 
-    trackedQuests = trackedQuests or {};
+    trackedQuests = {};
+
+    for questID, tracked in pairs(initialTrackedQuests) do
+        if tracked then
+            trackedQuests[questID] = true;
+        end
+    end
 
     local function _addWatch(index)
         local questID = QLH:GetQuestIDFromIndex(index);

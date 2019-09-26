@@ -44,6 +44,8 @@ local function sortQuests(quest, otherQuest)
         return quest.level > otherQuest.level;
     elseif sorting == "ByPercentCompleted" then
         return quest.completionPercent > otherQuest.completionPercent;
+    elseif sorting == "ByRecentlyUpdated" then
+        return quest.lastUpdated > otherQuest.lastUpdated;
     else
         ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
     end
@@ -171,7 +173,7 @@ function BQT:Clear()
 end
 
 function BQT:Refresh()
-    ns.Log.Info("Load Quests");
+    ns.Log.Info("Refresh Quests");
     self:Clear();
 
     self:RefreshQuestWatch({
@@ -528,6 +530,8 @@ function BQT:ADDON_LOADED(addon)
             Char = ButterQuestTrackerCharacterConfig,
         };
 
+        ns.Log.Info("ADDON_LOADED");
+
         QWH:BypassWatchLimit(self.DB.Char.MANUALLY_TRACKED_QUESTS);
         QWH:KeepHidden();
 
@@ -547,16 +551,27 @@ function BQT:ADDON_LOADED(addon)
             self:Refresh();
         end);
 
-        self:Initialize();
+        QLH:OnQuestUpdated(function(updatedQuests)
+            for questID, updatedQuest in pairs(updatedQuests) do
+                if not updatedQuest.abandoned then
+                    self.DB.Char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
-        ns.Log.Info("ADDON_LOADED");
+                    -- TODO: This is how we're going to automatically track updated quests.
+                    -- if not updatedQuests.initialUpdate and QWH:IsAutomaticQuestWatchEnabled() then
+                    --     print('auto quest watch');
+                    -- end
+                end
+
+                self:Refresh();
+            end
+        end);
+
+        self.DB.Char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.DB.Char.QUESTS_LAST_UPDATED);
+
+        self:Initialize();
+        self:Refresh();
         self:UnregisterEvent("ADDON_LOADED");
     end
-end
-
-function BQT:QUEST_LOG_UPDATE()
-    ns.Log.Trace("QUEST_LOG_UPDATE");
-    self:Refresh();
 end
 
 function BQT:ZONE_CHANGED_NEW_AREA()
@@ -576,7 +591,6 @@ function BQT:OnEvent(event, ...)
 end
 
 BQT:RegisterEvent("ADDON_LOADED");
-BQT:RegisterEvent("QUEST_LOG_UPDATE");
 BQT:RegisterEvent("MODIFIER_STATE_CHANGED");
 BQT:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 BQT:SetScript("OnEvent", BQT.OnEvent)

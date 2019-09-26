@@ -19,6 +19,7 @@ CONSTANTS.DEFAULT_CONFIG = {
     CurrentZoneOnly = false,
     HideCompletedQuests = false,
     QuestLimit = 10,
+    AutoTrackUpdatedQuests = false,
 
     -- Frame Settings
 

@@ -25,6 +25,9 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_QUEST_LIMIT_NAME'] = "Quest Limit",
     ['SETTINGS_QUEST_LIMIT_DESC'] = "Limits the number of quests visible on the screen at a given time.",
 
+    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'] = "Automatically Track Updated Quests",
+    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'] = "If a quest is accepted / updated it will automatically be tracked on the tracker.\n\n|c00FF9696This functionality utilizes the tracking overrides to bypass the filters. As such, disabling this option will also wipe out your overrides.|r",
+
     ['SETTINGS_RESET_TRACKING_OVERRIDES_NAME'] = "Reset Tracking Overrides",
     ['SETTINGS_RESET_TRACKING_OVERRIDES_DESC'] = "Reset's all manual quest watch overrides.",
 

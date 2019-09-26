@@ -528,7 +528,7 @@ function BQT:ADDON_LOADED(addon)
             Char = ButterQuestTrackerCharacterConfig,
         };
 
-        QWH:BypassWatchLimit(self.DB.Global.TRACKED_QUESTS);
+        QWH:BypassWatchLimit(self.DB.Char.MANUALLY_TRACKED_QUESTS);
         QWH:KeepHidden();
 
         QWH:OnQuestWatchUpdated(function(questWatchUpdates)

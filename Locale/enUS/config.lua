@@ -1,7 +1,7 @@
 ButterQuestTrackerLocale.locale['enUS'] = {
     -- Settings
 
-    ['SETTINGS_NAME'] = "Butter Quest Tracker %s",
+    ['SETTINGS_NAME'] = "Butter Quest Tracker v%s",
 
     -- Settings > Filters & Sorting
 

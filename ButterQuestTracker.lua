@@ -250,7 +250,12 @@ function BQT:Refresh()
 
             local objectiveCount = table.getn(quest.objectives);
 
-            if quest.isComplete then
+            if objectiveCount == 0 then
+                currentLineNumber = currentLineNumber + 1;
+
+                questGUI.summary = self:CreateQuestSummary(self.gui.lines[currentLineNumber - 1], quest);
+                self.gui.lines[currentLineNumber] = questGUI.summary;
+            elseif quest.isComplete then
                 currentLineNumber = currentLineNumber + 1;
                 objectiveCount = 1;
 
@@ -374,6 +379,15 @@ function BQT:CreateReadyToTurnIn(anchor)
     turnInFont:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
 
     return turnInFont;
+end
+
+function BQT:CreateQuestSummary(anchor, quest)
+    local summary = self:CreateFont(anchor, " - " .. quest.summary);
+
+    summary:SetFont(summary:GetFont(), self.DB.Global.ObjectiveFontSize);
+    summary:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -2);
+
+    return summary;
 end
 
 function BQT:CreateQuestObjective(anchor, objective)
@@ -503,6 +517,10 @@ function BQT:SetClickFrame(i, quest, gui)
                 self.gui.readyToTurnIn:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
             end
 
+            if self.gui.summary then
+                self.gui.summary:SetTextColor(HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+            end
+
             for j, objective in ipairs(self.quest.objectives) do
                 local objectiveGUI = self.gui.objectives and self.gui.objectives[j];
 
@@ -521,6 +539,10 @@ function BQT:SetClickFrame(i, quest, gui)
 
             if self.gui.readyToTurnIn then
                 self.gui.readyToTurnIn:SetTextColor(0.0, 0.7, 0.0);
+            end
+
+            if self.gui.summary then
+                self.gui.summary:SetTextColor(.8, .8, .8);
             end
 
             for j, objective in ipairs(self.quest.objectives) do
@@ -542,8 +564,12 @@ function BQT:SetClickFrame(i, quest, gui)
     local lastObjective;
     if gui.readyToTurnIn then
         lastObjective = gui.readyToTurnIn;
-    else
+    elseif gui.summary then
+        lastObjective = gui.summary;
+    elseif gui.objectives and table.getn(gui.objectives) > 0 then
         lastObjective = gui.objectives[table.getn(gui.objectives)];
+    else
+        lastObjective = gui.header;
     end
 
     clickFrame:SetPoint("TOPLEFT", gui.header, "TOPLEFT", 0, 0);

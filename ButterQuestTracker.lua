@@ -127,6 +127,7 @@ function BQT:Initialize()
 
     self:RefreshFrame();
     self:RefreshPosition();
+    self:RefreshSize();
     self.initialized = true;
 end
 

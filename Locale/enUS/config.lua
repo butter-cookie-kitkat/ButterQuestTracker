@@ -17,6 +17,7 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_SORTING_BY_LEVEL_OPTION'] = "By Level",
     ['SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'] = "By Level (Reversed)",
     ['SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'] = "By %% Completed",
+    ['SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION'] = "By Recently Updated",
 
     ['SETTINGS_HIDE_COMPLETED_QUESTS_NAME'] = "Hide Completed Quests",
     ['SETTINGS_HIDE_COMPLETED_QUESTS_DESC'] = "Displays quests that have been completed.",

@@ -2,9 +2,9 @@ local _, ns = ...
 
 local Log = {}
 function Log.Debug(type, bypass, ...)
-	if bypass or (ButterQuestTrackerConfig.DeveloperMode and ButterQuestTrackerConfig.DebugLevel >= type.LEVEL) then
-		print(ns.CONSTANTS.LOGGER.PREFIX .. type.COLOR, ...);
-	end
+    if bypass or (ButterQuestTrackerConfig.DeveloperMode and ButterQuestTrackerConfig.DebugLevel >= type.LEVEL) then
+        print(ns.CONSTANTS.LOGGER.PREFIX .. type.COLOR, ...);
+    end
 end
 
 function Log.Error(...)

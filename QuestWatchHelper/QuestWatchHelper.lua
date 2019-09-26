@@ -31,13 +31,21 @@ function helper:GetFrame()
     return BlizzardTrackerFrame;
 end
 
-function helper:BypassWatchLimit(externallyTrackedQuests)
+function helper:IsAutomaticQuestWatchEnabled()
+    return GetCVar('autoQuestWatch') == '1';
+end
+
+function helper:SetAutomaticQuestWatch(autoQuestWatch)
+    SetCVar('autoQuestWatch', autoQuestWatch and '1' or '2');
+end
+
+function helper:BypassWatchLimit(initialTrackedQuests)
     if not isWoWClassic then return end
 
     trackedQuests = {};
-    for questID, watched in pairs(externallyTrackedQuests) do
-        if watched then
-            trackedQuests[questID] = watched;
+    for questID, tracked in pairs(initialTrackedQuests) do
+        if tracked then
+            trackedQuests[questID] = true;
         end
     end
 
@@ -73,8 +81,8 @@ function helper:BypassWatchLimit(externallyTrackedQuests)
     end
 
     -- This bypasses a limitation that would prevent users from tracking quests without objectives
-    GetNumQuestLeaderBoards = function()
-        local index = GetQuestLogSelection();
+    GetNumQuestLeaderBoards = function(index)
+        local index = index or GetQuestLogSelection();
         local questID = QLH:GetQuestIDFromIndex(index);
 
         if not questID then return 0 end
@@ -83,8 +91,14 @@ function helper:BypassWatchLimit(externallyTrackedQuests)
 
         if not quest then return 0 end
 
-        return table.getn(quest.objectives);
+        local objectiveCount = table.getn(quest.objectives);
+
+        if objectiveCount == 0 then return 1 end
+
+        return objectiveCount;
     end
+
+    MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
 end
 
 function helper:OnQuestWatchUpdated(listener)

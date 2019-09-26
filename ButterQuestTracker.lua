@@ -653,10 +653,10 @@ function BQT:ADDON_LOADED(addon)
                 else
                     self.DB.Char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
-                    -- TODO: This is how we're going to automatically track updated quests.
-                    -- if not updatedQuests.initialUpdate and QWH:IsAutomaticQuestWatchEnabled() then
-                    --     print('auto quest watch');
-                    -- end
+                    -- If the quest is updated then remove it from the manually tracked quests list.
+                    if not updatedQuests.initialUpdate and self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] == false then
+                        self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = nil;
+                    end
                 end
             end
 

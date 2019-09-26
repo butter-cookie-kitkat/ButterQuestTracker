@@ -7,12 +7,12 @@ local BQT = ButterQuestTracker
 
 local _order = 0;
 local function order()
-	_order = _order + 1;
-	return _order;
+    _order = _order + 1;
+    return _order;
 end
 
 local function Spacer(size)
-	size = size or "small";
+    size = size or "small";
 
     return {
         type = "description",
@@ -31,93 +31,95 @@ local function SetInDB(info, value)
 end
 
 local function SetAndRefreshTracker(info, value)
-	SetInDB(info, value);
-	BQT:Refresh();
+    SetInDB(info, value);
+    BQT:Refresh();
 end
 
 local options = {
     name = function() return BQTL:GetString('SETTINGS_NAME', ns.CONSTANTS.VERSION) end,
-	type = "group",
-	childGroups = "tab",
+    type = "group",
+    childGroups = "tab",
 
-	get = GetFromDB,
-	set = SetInDB,
+    get = GetFromDB,
+    set = SetInDB,
 
-	args = {
+    args = {
         filtersAndSorting = {
             name = BQTL:GetStringWrap('SETTINGS_FILTERS_AND_SORTING_TAB'),
             type = "group",
             order = order(),
 
             args = {
-				currentZoneOnly = {
+                currentZoneOnly = {
                     name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
-					arg = "CurrentZoneOnly",
-					type = "toggle",
-					width = 2.4,
-					order = order(),
+                    arg = "CurrentZoneOnly",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
 
-					set = SetAndRefreshTracker
+                    set = SetAndRefreshTracker
                 },
 
-				sorting = {
+                sorting = {
                     name = BQTL:GetStringWrap('SETTINGS_SORTING_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_SORTING_DESC'),
-					arg = "Sorting",
-					type = "select",
-					order = order(),
+                    arg = "Sorting",
+                    type = "select",
+                    order = order(),
 
                     values = function()
                         return {
                             Disabled = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION'),
                             ByLevel = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION'),
                             ByLevelReversed = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'),
-                            ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION')
+                            ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'),
+                            ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
                         };
                     end,
 
-					sorting = {
-						"Disabled",
-						"ByLevel",
-						"ByLevelReversed",
-						"ByPercentCompleted"
-					},
+                    sorting = {
+                        "Disabled",
+                        "ByLevel",
+                        "ByLevelReversed",
+                        "ByPercentCompleted",
+                        "ByRecentlyUpdated"
+                    },
 
-					set = SetAndRefreshTracker
+                    set = SetAndRefreshTracker
                 },
 
-				hideCompletedQuests = {
+                hideCompletedQuests = {
                     name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
-					arg = "HideCompletedQuests",
-					type = "toggle",
-					width = 2.4,
-					order = order(),
+                    arg = "HideCompletedQuests",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
 
-					set = SetAndRefreshTracker
+                    set = SetAndRefreshTracker
                 },
 
-				questLimit = {
+                questLimit = {
                     name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
-					arg = "QuestLimit",
-					type = "range",
-					width = 1.0,
-					min = 1,
-					max = 20,
-					step = 1,
-					order = order(),
+                    arg = "QuestLimit",
+                    type = "range",
+                    width = 1.0,
+                    min = 1,
+                    max = 20,
+                    step = 1,
+                    order = order(),
 
-					set = SetAndRefreshTracker
-				},
+                    set = SetAndRefreshTracker
+                },
 
-				reset = {
+                reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_DESC'),
-					type = "execute",
-					width = 1.3,
-					order = order(),
+                    type = "execute",
+                    width = 1.3,
+                    order = order(),
 
                     func = function()
                         for questID, tracked in pairs(BQT.DB.Char.MANUALLY_TRACKED_QUESTS) do
@@ -128,147 +130,147 @@ local options = {
                         end
 
                         BQT.DB.Char.MANUALLY_TRACKED_QUESTS = {};
-						BQT:Refresh();
-					end
-				},
+                        BQT:Refresh();
+                    end
+                },
 
-				spacerEnd = Spacer("large"),
+                spacerEnd = Spacer("large"),
             }
         },
 
         frameSettings = {
             name = BQTL:GetStringWrap('SETTINGS_FRAME_TAB'),
-			type = "group",
-			order = order(),
+            type = "group",
+            order = order(),
 
-			args = {
-				positionX = {
+            args = {
+                positionX = {
                     name = BQTL:GetStringWrap('SETTINGS_POSITIONX_NAME'),
-					arg = "PositionX",
-					type = "range",
-					width = 1.6,
-					min = 0,
-					max = math.ceil(GetScreenWidth() * UIParent:GetEffectiveScale());
-					step = 0.01,
-					bigStep = 10,
-					order = order(),
+                    arg = "PositionX",
+                    type = "range",
+                    width = 1.6,
+                    min = 0,
+                    max = math.ceil(GetScreenWidth() * UIParent:GetEffectiveScale());
+                    step = 0.01,
+                    bigStep = 10,
+                    order = order(),
 
                     get = function(info)
                         return -GetFromDB(info);
-					end,
+                    end,
 
                     set = function(info, value)
                         SetInDB(info, -value);
-						BQT:RefreshPosition();
-					end
-				},
+                        BQT:RefreshPosition();
+                    end
+                },
 
-				positionY = {
+                positionY = {
                     name = BQTL:GetStringWrap('SETTINGS_POSITIONY_NAME'),
-					arg = "PositionY",
-					type = "range",
-					width = 1.6,
-					min = 0,
-					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
-					step = 0.01,
-					bigStep = 10,
-					order = order(),
+                    arg = "PositionY",
+                    type = "range",
+                    width = 1.6,
+                    min = 0,
+                    max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
+                    step = 0.01,
+                    bigStep = 10,
+                    order = order(),
 
-					get = function(info)
+                    get = function(info)
                         return -GetFromDB(info);
-					end,
+                    end,
 
-					set = function(info, value)
+                    set = function(info, value)
                         SetInDB(info, -value);
-						BQT:RefreshPosition();
-					end
-				},
+                        BQT:RefreshPosition();
+                    end
+                },
 
-				spacer1 = Spacer(),
+                spacer1 = Spacer(),
 
-				width = {
+                width = {
                     name = BQTL:GetStringWrap('SETTINGS_WIDTH_NAME'),
-					arg = "Width",
-					type = "range",
-					width = 1.6,
-					min = 100,
-					max = 400,
-					step = 1,
-					bigStep = 10,
-					order = order(),
+                    arg = "Width",
+                    type = "range",
+                    width = 1.6,
+                    min = 100,
+                    max = 400,
+                    step = 1,
+                    bigStep = 10,
+                    order = order(),
 
-					set = SetAndRefreshTracker
-				},
+                    set = SetAndRefreshTracker
+                },
 
-				maxHeight = {
+                maxHeight = {
                     name = BQTL:GetStringWrap('SETTINGS_MAX_HEIGHT_NAME'),
-					arg = "MaxHeight",
-					type = "range",
-					width = 1.6,
-					min = 100,
-					max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
-					step = 1,
-					bigStep = 10,
-					order = order(),
+                    arg = "MaxHeight",
+                    type = "range",
+                    width = 1.6,
+                    min = 100,
+                    max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
+                    step = 1,
+                    bigStep = 10,
+                    order = order(),
 
-					set = SetAndRefreshTracker
-				},
+                    set = SetAndRefreshTracker
+                },
 
-				spacer2 = Spacer(),
+                spacer2 = Spacer(),
 
-				resetPosition = {
+                resetPosition = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_POSITION_NAME'),
-					type = "execute",
-					width = 0.8,
-					order = order(),
+                    type = "execute",
+                    width = 0.8,
+                    order = order(),
 
                     func = function()
                         BQT.DB.Global.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
                         BQT.DB.Global.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
-						BQT:RefreshPosition();
-					end
-				},
+                        BQT:RefreshPosition();
+                    end
+                },
 
-				resetSize = {
+                resetSize = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_SIZE_NAME'),
-					type = "execute",
-					width = 0.7,
-					order = order(),
+                    type = "execute",
+                    width = 0.7,
+                    order = order(),
 
-					func = function()
+                    func = function()
                         BQT.DB.Global.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
                         BQT.DB.Global.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
-						BQT:Refresh();
-					end
-				},
+                        BQT:Refresh();
+                    end
+                },
 
-				spacerEnd = Spacer("large"),
+                spacerEnd = Spacer("large"),
             }
         },
 
-		visuals = {
-			name = "Visual Settings",
-			type = "group",
-			order = order(),
+        visuals = {
+            name = "Visual Settings",
+            type = "group",
+            order = order(),
 
-			args = {
-				colorHeadersByDifficultyLevel = {
+            args = {
+                colorHeadersByDifficultyLevel = {
                     name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
-					arg = "ColorHeadersByDifficultyLevel",
-					type = "toggle",
-					width = 2.4,
-					order = order(),
+                    arg = "ColorHeadersByDifficultyLevel",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
 
-					set = SetAndRefreshTracker
+                    set = SetAndRefreshTracker
                 },
 
-				trackerHeaderFormat = {
+                trackerHeaderFormat = {
                     name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
-					arg = "TrackerHeaderFormat",
-					type = "select",
-					order = order(),
+                    arg = "TrackerHeaderFormat",
+                    type = "select",
+                    order = order(),
 
                     values = function()
                         return {
@@ -278,111 +280,125 @@ local options = {
                         };
                     end,
 
-					sorting = {
-						"Classic",
-						"Quests",
-						"QuestsNumberVisible"
-					},
+                    sorting = {
+                        "Classic",
+                        "Quests",
+                        "QuestsNumberVisible"
+                    },
 
-					set = SetAndRefreshTracker
+                    set = SetAndRefreshTracker
                 },
 
-				trackerHeaderFontSize = {
+                trackerHeaderFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
-					arg = "TrackerHeaderFontSize",
-					type = "range",
-					min = 10,
-					max = 20,
-					step = 1,
+                    arg = "TrackerHeaderFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
                     order = order(),
 
-					set = SetAndRefreshTracker
-				},
-
-				questHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
-					arg = "QuestHeaderFontSize",
-					type = "range",
-					min = 10,
-					max = 20,
-					step = 1,
-					order = order(),
-
-					set = SetAndRefreshTracker
-				},
-
-				spacer1 = Spacer(),
-
-				objectiveFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
-					arg = "ObjectiveFontSize",
-					type = "range",
-					min = 10,
-					max = 20,
-					step = 1,
-					order = order(),
-
-					set = SetAndRefreshTracker
-				},
-
-				spacerEnd = Spacer("large"),
-			}
-		},
-
-		advanced = {
-            name = BQTL:GetStringWrap('SETTINGS_ADVANCED_TAB'),
-			type = "group",
-			order = order(),
-
-			args = {
-				developerOptionsHeader = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_HEADER'),
-					type = "header",
-					order = order(),
-				},
-
-				spacer1 = Spacer(),
-
-				developerMode = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_DESC'),
-					arg = "DeveloperMode",
-					type = "toggle",
-					order = order(),
-
-					set = function(info, value)
-						SetInDB(info, value);
-						BQT:RefreshFrame();
-					end
-				},
-
-				spacer2 = Spacer(),
-
-				debugLevel = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEBUG_LEVEL_NAME'),
-					desc = "ERROR = 1\nWARN = 2\nINFO = 3\nTRACE = 4",
-					arg = "DebugLevel",
-					type = "range",
-					min = 1,
-					max = 4,
-					step = 1,
-					order = order(),
-
-					disabled = function()
-                        return not BQT.DB.Global.DeveloperMode;
-					end
+                    set = SetAndRefreshTracker
                 },
 
-				spacer3 = Spacer(),
+                questHeaderFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
+                    arg = "QuestHeaderFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
+                    order = order(),
 
-				localeHeader = {
+                    set = SetAndRefreshTracker
+                },
+
+                spacer1 = Spacer(),
+
+                objectiveFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
+                    arg = "ObjectiveFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshTracker
+                },
+
+                spacer2 = Spacer(),
+
+                questPadding = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
+                    arg = "QuestPadding",
+                    type = "range",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshTracker
+                },
+
+                spacerEnd = Spacer("large"),
+            }
+        },
+
+        advanced = {
+            name = BQTL:GetStringWrap('SETTINGS_ADVANCED_TAB'),
+            type = "group",
+            order = order(),
+
+            args = {
+                developerOptionsHeader = {
+                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_HEADER'),
+                    type = "header",
+                    order = order(),
+                },
+
+                spacer1 = Spacer(),
+
+                developerMode = {
+                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_DESC'),
+                    arg = "DeveloperMode",
+                    type = "toggle",
+                    order = order(),
+
+                    set = function(info, value)
+                        SetInDB(info, value);
+                        BQT:RefreshFrame();
+                    end
+                },
+
+                spacer2 = Spacer(),
+
+                debugLevel = {
+                    name = BQTL:GetStringWrap('SETTINGS_DEBUG_LEVEL_NAME'),
+                    desc = "ERROR = 1\nWARN = 2\nINFO = 3\nTRACE = 4",
+                    arg = "DebugLevel",
+                    type = "range",
+                    min = 1,
+                    max = 4,
+                    step = 1,
+                    order = order(),
+
+                    disabled = function()
+                        return not BQT.DB.Global.DeveloperMode;
+                    end
+                },
+
+                spacer3 = Spacer(),
+
+                localeHeader = {
                     name = BQTL:GetStringWrap('SETTINGS_LOCALE_HEADER'),
-					name = "Localization Settings",
-					type = "header",
-					order = order(),
-				},
+                    name = "Localization Settings",
+                    type = "header",
+                    order = order(),
+                },
 
-				spacer4 = Spacer(),
+                spacer4 = Spacer(),
 
                 locale = {
                     name = BQTL:GetStringWrap('SETTINGS_LOCALE_NAME'),
@@ -409,53 +425,53 @@ local options = {
                     end,
                 },
 
-				spacer5 = Spacer(),
+                spacer5 = Spacer(),
 
-				resetHeader = {
+                resetHeader = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_HEADER'),
-					type = "header",
-					order = order(),
-				},
+                    type = "header",
+                    order = order(),
+                },
 
-				spacer6 = Spacer(),
+                spacer6 = Spacer(),
 
-				resetDescription = {
+                resetDescription = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TEXT'),
-					type = "description",
-					fontSize = "medium",
-					order = order(),
-				},
+                    type = "description",
+                    fontSize = "medium",
+                    order = order(),
+                },
 
-				spacer7 = Spacer(),
+                spacer7 = Spacer(),
 
-				reset = {
+                reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_RESET_DESC'),
-					type = "execute",
-					width = 1.0,
-					order = order(),
+                    type = "execute",
+                    width = 1.0,
+                    order = order(),
 
                     func = function()
                         BQT.DB.Global = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
                         BQT.DB.Char = CopyTable(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG);
-						BQT:RefreshPosition();
-						BQT:Refresh();
-					end
-				},
+                        BQT:RefreshPosition();
+                        BQT:Refresh();
+                    end
+                },
 
-				spacer8 = Spacer(),
+                spacer8 = Spacer(),
 
-				advert = {
+                advert = {
                     name = BQTL:GetStringWrap('SETTINGS_ADVERT_TEXT'),
-					type = "description",
-					fontSize = "medium",
-					order = order(),
-				},
+                    type = "description",
+                    fontSize = "medium",
+                    order = order(),
+                },
 
-				spacerEnd = Spacer("large"),
-			}
-		},
-	},
+                spacerEnd = Spacer("large"),
+            }
+        },
+    },
 }
 
 LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", options);
@@ -464,6 +480,6 @@ LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ButterQuestTracker");
 -- Handling ButterQuestTracker's options.
 SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
 SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
-	InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
-	InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
+    InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
+    InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
 end

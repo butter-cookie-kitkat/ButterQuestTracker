@@ -1,64 +1,74 @@
-local _, ns = ...
+local NAME, ns = ...
 
 local CONSTANTS = {
-    VERSION = "1.6.6",
+    VERSION = "1.7.0-rc.2",
+    NAME = "Butter Quest Tracker",
+    NAME_SQUASHED = "ButterQuestTracker",
+    CURSEFORGE_SLUG = "butter-quest-tracker",
+    BRAND_COLOR = "|c00FF9696",
+    PATHS = {}
+};
 
-    DEFAULT_CONFIG = {
-        -- Filters & Sorting
+CONSTANTS.PATHS.MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\";
+CONSTANTS.PATHS.LOGO = "|T" .. CONSTANTS.PATHS.MEDIA .. "BQT_logo:24:24:0:-8" .. "|t";
 
-        Sorting = "Disabled",
-        CurrentZoneOnly = false,
-        HideCompletedQuests = false,
-        QuestLimit = 10,
+CONSTANTS.DEFAULT_CONFIG = {
+    -- Filters & Sorting
 
-        -- Frame Settings
+    Sorting = "Disabled",
+    CurrentZoneOnly = false,
+    HideCompletedQuests = false,
+    QuestLimit = 10,
 
-        PositionX = 0,
-        PositionY = -240,
-        Width = 250,
-        MaxHeight = 600,
+    -- Frame Settings
 
-        -- Visuals
+    PositionX = 0,
+    PositionY = -240,
+    Width = 250,
+    MaxHeight = 600,
 
-        TrackerHeaderFormat = "QuestsNumberVisible",
-        ColorHeadersByDifficultyLevel = false,
-        TrackerHeaderFontSize = 12,
-        QuestHeaderFontSize = 12,
-        ObjectiveFontSize = 12,
+    -- Visuals
 
-        -- Advanced
+    TrackerHeaderFormat = "QuestsNumberVisible",
+    ColorHeadersByDifficultyLevel = false,
+    TrackerHeaderFontSize = 12,
+    QuestHeaderFontSize = 12,
+    ObjectiveFontSize = 12,
+    QuestPadding = 10,
 
-        DeveloperMode = false,
-        DebugLevel = 3
-    },
+    -- Advanced
 
-    DEFAULT_CHARACTER_CONFIG = {
-        -- Backend
+    DeveloperMode = false,
+    DebugLevel = 3
+};
 
-        MANUALLY_TRACKED_QUESTS = {}
-    },
+CONSTANTS.DEFAULT_CHARACTER_CONFIG = {
+    -- Backend
 
-    LOGGER = {
-        PREFIX = "|r[|c00FF9696ButterQuestTracker|r]: |r",
-        TYPES = {
-            ERROR = {
-                COLOR = "|c00FF0000",
-                LEVEL = 1
-            },
-            WARN = {
-                COLOR = "|c00FF7F00",
-                LEVEL = 2
-            },
-            INFO = {
-                COLOR = "|r",
-                LEVEL = 3
-            },
-            TRACE = {
-                COLOR = "|c00ADD8E6",
-                LEVEL = 4
-            }
+    MANUALLY_TRACKED_QUESTS = {},
+    QUESTS_LAST_UPDATED = {}
+};
+
+CONSTANTS.LOGGER = {
+    PREFIX = "|r[" .. CONSTANTS.BRAND_COLOR .. CONSTANTS.NAME_SQUASHED .. "|r]: |r",
+    TYPES = {
+        ERROR = {
+            COLOR = "|c00FF0000",
+            LEVEL = 1
+        },
+        WARN = {
+            COLOR = "|c00FF7F00",
+            LEVEL = 2
+        },
+        INFO = {
+            COLOR = "|r",
+            LEVEL = 3
+        },
+        TRACE = {
+            COLOR = "|c00ADD8E6",
+            LEVEL = 4
         }
     }
-}
+};
 
 ns.CONSTANTS = CONSTANTS

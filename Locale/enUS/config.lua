@@ -1,7 +1,7 @@
 ButterQuestTrackerLocale.locale['enUS'] = {
     -- Settings
 
-    ['SETTINGS_NAME'] = "Butter Quest Tracker %s",
+    ['SETTINGS_NAME'] = "Butter Quest Tracker v%s",
 
     -- Settings > Filters & Sorting
 
@@ -17,6 +17,7 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_SORTING_BY_LEVEL_OPTION'] = "By Level",
     ['SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'] = "By Level (Reversed)",
     ['SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'] = "By %% Completed",
+    ['SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION'] = "By Recently Updated",
 
     ['SETTINGS_HIDE_COMPLETED_QUESTS_NAME'] = "Hide Completed Quests",
     ['SETTINGS_HIDE_COMPLETED_QUESTS_DESC'] = "Displays quests that have been completed.",
@@ -60,6 +61,7 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'] = "Tracker Header Font Size",
     ['SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'] = "Quest Header Font Size",
     ['SETTINGS_OBJECTIVE_FONT_SIZE_NAME'] = "Objective Font Size",
+    ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",
 
     -- Settings > Advanced Settings
 

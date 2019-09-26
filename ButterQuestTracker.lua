@@ -356,9 +356,9 @@ function BQT:ToggleContextMenu(quest)
 
 	self.contextMenu.quest = quest;
 
-	UIDropDownMenu_Initialize(self.contextMenu, function(frame, level, menuList)
+    UIDropDownMenu_Initialize(self.contextMenu, function(self, level, menuList)
         UIDropDownMenu_AddButton({
-            text = quest.title,
+            text = self.quest.title,
             notCheckable = true,
             isTitle = true
         });
@@ -367,8 +367,8 @@ function BQT:ToggleContextMenu(quest)
             text = "Untrack Quest",
             notCheckable = true,
             func = function()
-                self.DB.Char.MANUALLY_TRACKED_QUESTS[self.contextMenu.quest.questID] = false;
-                RemoveQuestWatch(self.contextMenu.quest.index);
+                BQT.DB.Char.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
+                RemoveQuestWatch(self.quest.index);
             end
         });
 
@@ -376,16 +376,16 @@ function BQT:ToggleContextMenu(quest)
             text = "View Quest",
             notCheckable = true,
             func = function()
-                QLH:ToggleQuest(self.contextMenu.quest.index);
+                QLH:ToggleQuest(self.quest.index);
             end
         });
 
         UIDropDownMenu_AddButton({
             text = "Share Quest",
             notCheckable = true,
-            disabled = not UnitInParty("player") or not self.contextMenu.quest.sharable,
+            disabled = not UnitInParty("player") or not self.quest.sharable,
             func = function()
-                QLH:ShareQuest(self.contextMenu.quest.index);
+                QLH:ShareQuest(self.quest.index);
             end
         });
 
@@ -406,8 +406,8 @@ function BQT:ToggleContextMenu(quest)
             notCheckable = true,
             colorCode = "|cffff0000",
             func = function()
-                SetAbandonQuest(self.contextMenu.quest.index);
-                AbandonQuest();
+                QLH:AbandonQuest(self.quest.index);
+                PlaySound(SOUNDKIT.IG_QUEST_LOG_ABANDON_QUEST);
             end
         });
 	end, "MENU");

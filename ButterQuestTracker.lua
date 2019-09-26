@@ -72,6 +72,23 @@ local function spairs(t, order)
     end
 end
 
+local function sortQuestFallback(quest, otherQuest, field, comparator)
+    local value = quest[field];
+    local otherValue = otherQuest[field];
+
+    if value == otherValue then
+        return quest.index < otherQuest.index;
+    end
+
+    if comparator == ">" then
+        return value > otherValue;
+    elseif comparator == "<" then
+        return value < otherValue;
+    else
+        ns.Log.Error("Unknown Comparator. (" .. comparator .. ")");
+    end
+end
+
 local function sortQuests(quest, otherQuest)
     local sorting = BQT.DB.Global.Sorting or "nil";
     if sorting == "Disabled" then
@@ -79,13 +96,13 @@ local function sortQuests(quest, otherQuest)
     end
 
     if sorting == "ByLevel" then
-        return quest.level < otherQuest.level;
+        return sortQuestFallback(quest, otherQuest, "level", "<");
     elseif sorting == "ByLevelReversed" then
-        return quest.level > otherQuest.level;
+        return sortQuestFallback(quest, otherQuest, "level", ">");
     elseif sorting == "ByPercentCompleted" then
-        return quest.completionPercent > otherQuest.completionPercent;
+        return sortQuestFallback(quest, otherQuest, "completionPercent", ">");
     elseif sorting == "ByRecentlyUpdated" then
-        return quest.lastUpdated > otherQuest.lastUpdated;
+        return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     else
         ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
     end

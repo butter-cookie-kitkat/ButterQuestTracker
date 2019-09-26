@@ -2,6 +2,7 @@ local NAME, ns = ...
 
 local QWH = LibStub("QuestWatchHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
+local ZH = LibStub("ZoneHelper-1.0");
 
 ButterQuestTracker = CreateFrame("Frame", nil, UIParent);
 local BQT = ButterQuestTracker;
@@ -663,17 +664,17 @@ function BQT:ADDON_LOADED(addon)
             self:Refresh();
         end);
 
+        ZH:OnZoneChanged(function(info)
+            ns.Log.Info("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
+            self:Refresh();
+        end)
+
         self.DB.Char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.DB.Char.QUESTS_LAST_UPDATED);
 
         self:Initialize();
         self:Refresh();
         self:UnregisterEvent("ADDON_LOADED");
     end
-end
-
-function BQT:ZONE_CHANGED()
-    ns.Log.Info("Changed Zones: (" .. GetRealZoneText() .. ", " .. GetMinimapZoneText() .. ")");
-    self:Refresh();
 end
 
 function BQT:MODIFIER_STATE_CHANGED()
@@ -689,5 +690,4 @@ end
 
 BQT:RegisterEvent("ADDON_LOADED");
 BQT:RegisterEvent("MODIFIER_STATE_CHANGED");
-BQT:RegisterEvent("ZONE_CHANGED");
 BQT:SetScript("OnEvent", BQT.OnEvent)

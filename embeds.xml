@@ -8,4 +8,5 @@
 
     <Include file="QuestLogHelper\QuestLogHelper.xml"/>
     <Include file="QuestWatchHelper\QuestWatchHelper.xml"/>
+    <Include file="ZoneHelper\ZoneHelper.xml"/>
 </Ui>

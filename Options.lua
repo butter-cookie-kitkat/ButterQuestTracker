@@ -115,6 +115,25 @@ local options = {
                     set = SetAndRefreshTracker
                 },
 
+                autoTrackUpdatedQuests = {
+                    name = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
+                    arg = "AutoTrackUpdatedQuests",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
+
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        if not value then
+                            BQT:ResetOverrides();
+                        end
+                    end
+                },
+
+                spacer1 = Spacer(),
+
                 reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_DESC'),
@@ -123,15 +142,7 @@ local options = {
                     order = order(),
 
                     func = function()
-                        for questID, tracked in pairs(BQT.DB.Char.MANUALLY_TRACKED_QUESTS) do
-                            local index = QLH:GetIndexFromQuestID(questID);
-                            if index then
-                                RemoveQuestWatch()
-                            end
-                        end
-
-                        BQT.DB.Char.MANUALLY_TRACKED_QUESTS = {};
-                        BQT:Refresh();
+                        BQT:ResetOverrides();
                     end
                 },
 

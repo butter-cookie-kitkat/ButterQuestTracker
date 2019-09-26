@@ -655,8 +655,12 @@ function BQT:ADDON_LOADED(addon)
                     self.DB.Char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
                     -- If the quest is updated then remove it from the manually tracked quests list.
-                    if not updatedQuests.initialUpdate and self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] == false then
-                        self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = nil;
+                    if not updatedQuests.initialUpdate then
+                        if self.DB.Global.AutoTrackUpdatedQuests then
+                            self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = true;
+                        elseif self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] == false then
+                            self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = nil;
+                        end
                     end
                 end
             end
@@ -675,6 +679,19 @@ function BQT:ADDON_LOADED(addon)
         self:Refresh();
         self:UnregisterEvent("ADDON_LOADED");
     end
+end
+
+function BQT:ResetOverrides()
+    ns.Log.Info("Clearing Tracking Overrides...");
+    for questID, tracked in pairs(self.DB.Char.MANUALLY_TRACKED_QUESTS) do
+        local index = QLH:GetIndexFromQuestID(questID);
+        if index then
+            RemoveQuestWatch()
+        end
+    end
+
+    self.DB.Char.MANUALLY_TRACKED_QUESTS = {};
+    self:Refresh();
 end
 
 function BQT:MODIFIER_STATE_CHANGED()

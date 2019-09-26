@@ -36,7 +36,7 @@ function helper:IsAutomaticQuestWatchEnabled()
 end
 
 function helper:SetAutomaticQuestWatch(autoQuestWatch)
-    SetCVar('autoQuestWatch', autoQuestWatch and '1' or '2');
+    SetCVar('autoQuestWatch', autoQuestWatch and '1' or '0');
 end
 
 function helper:BypassWatchLimit(initialTrackedQuests)

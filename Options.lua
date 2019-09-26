@@ -1,5 +1,6 @@
 local NAME, ns = ...
 
+local ACD = LibStub("AceConfigDialog-3.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local BQTL = ButterQuestTrackerLocale;
 
@@ -475,11 +476,14 @@ local options = {
 }
 
 LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", options);
-LibStub("AceConfigDialog-3.0"):AddToBlizOptions("ButterQuestTracker");
+ACD:AddToBlizOptions("ButterQuestTracker");
 
 -- Handling ButterQuestTracker's options.
 SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
 SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
-    InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
-    InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker")
+    if command == "" then
+        ACD:Open("ButterQuestTracker")
+    elseif command == "reset" then
+        print('command', command);
+    end
 end

@@ -275,6 +275,15 @@ function helper:IsQuestSharable(index)
     return sharable;
 end
 
+function helper:AbandonQuest(index)
+	local currentSelection = GetQuestLogSelection();
+
+    SelectQuestLogEntry(index);
+    SetAbandonQuest();
+    AbandonQuest();
+    SelectQuestLogEntry(currentSelection);
+end
+
 function helper:ShareQuest(index)
 	local currentSelection = GetQuestLogSelection();
 

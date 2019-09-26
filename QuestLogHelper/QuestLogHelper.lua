@@ -256,7 +256,7 @@ function helper:GetObjectives(questID)
         formattedObjectives[i] = {
             text = objective.text,
             type = objective.type,
-            completed = objective.completed,
+            completed = objective.finished,
             fulfilled = objective.numFulfilled,
             required = objective.numRequired
         };

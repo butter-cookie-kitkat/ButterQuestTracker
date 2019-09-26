@@ -536,7 +536,7 @@ function BQT:ADDON_LOADED(addon)
                 local questID = QLH:GetQuestIDFromIndex(index);
 
                 if updateInfo.byUser then
-                    if updateInfo.watched then
+					if updateInfo.watched then
                         self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = true;
                     else
                         self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = false;

@@ -31,10 +31,15 @@ function helper:GetFrame()
     return BlizzardTrackerFrame;
 end
 
-function helper:BypassWatchLimit(trackedQuests)
+function helper:BypassWatchLimit(externallyTrackedQuests)
     if not isWoWClassic then return end
 
-    trackedQuests = trackedQuests or {};
+    trackedQuests = {};
+    for questID, watched in pairs(externallyTrackedQuests) do
+        if watched then
+            trackedQuests[questID] = watched;
+        end
+    end
 
     local function _addWatch(index)
         local questID = QLH:GetQuestIDFromIndex(index);

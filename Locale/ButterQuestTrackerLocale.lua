@@ -54,8 +54,6 @@ function ButterQuestTrackerLocale:GetString(key, ...)
             arg[i] = tostring(v);
         end
 
-        print(unpack(arg));
-
         return string.format(dictionary[key], unpack(arg));
     else
         return tostring(key) .. ' ERROR: ' .. lang .. ' key missing!';

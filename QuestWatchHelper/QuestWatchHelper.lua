@@ -82,8 +82,8 @@ function helper:BypassWatchLimit(initialTrackedQuests)
     end
 
     -- This bypasses a limitation that would prevent users from tracking quests without objectives
-    GetNumQuestLeaderBoards = function()
-        local index = GetQuestLogSelection();
+    GetNumQuestLeaderBoards = function(index)
+        local index = index or GetQuestLogSelection();
         local questID = QLH:GetQuestIDFromIndex(index);
 
         if not questID then return 0 end
@@ -92,8 +92,14 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
         if not quest then return 0 end
 
-        return table.getn(quest.objectives);
+        local objectiveCount = table.getn(quest.objectives);
+
+        if objectiveCount == 0 then return 1 end
+
+        return objectiveCount;
     end
+
+    MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
 end
 
 function helper:OnQuestWatchUpdated(listener)

@@ -49,18 +49,12 @@ end
 local listeners = {};
 local updateListenersTimer;
 local updatedQuests = {};
-local function updateListeners(questID, lastUpdated, previousCompletionPercent, completionPercent, initialUpdate)
+local function updateListeners(questID, info)
     if updateListenersTimer then
         updateListenersTimer:Cancel();
     end
 
-    updatedQuests[questID] = {
-        lastUpdated = lastUpdated,
-        previousCompletionPercent = previousCompletionPercent,
-        completionPercent = completionPercent,
-        initialUpdate = initialUpdate,
-        abandoned = not C_QuestLog.IsOnQuest(questID)
-    };
+    updatedQuests[questID] = info;
 
     updateListenersTimer = C_Timer.NewTimer(0.1, function()
         for i, listener in ipairs(listeners) do
@@ -199,7 +193,13 @@ function helper:Refresh()
         if not C_QuestLog.IsOnQuest(questID) then
             cache.quests[questID] = nil;
             cache.lastUpdated[questID] = nil;
-            updateListeners(questID, quest.lastUpdated, quest.completionPercent, quest.completionPercent);
+
+            updateListeners(questID, {
+                lastUpdated = quest.lastUpdated,
+                previousCompletionPercent = quest.completionPercent,
+                completionPercent = quest.completionPercent,
+                abandoned = true
+            });
         end
     end
 
@@ -239,10 +239,21 @@ function helper:Refresh()
 
             if quest.completionPercent and quest.completionPercent ~= completionPercent then
                 quest.lastUpdated = GetTime();
-                updateListeners(questID, quest.lastUpdated, quest.completionPercent, completionPercent);
+
+                updateListeners(questID, {
+                    lastUpdated = quest.lastUpdated,
+                    previousCompletionPercent = quest.completionPercent,
+                    completionPercent = completionPercent
+                });
             elseif not cache.lastUpdated[questID] and not quest.lastUpdated then
                 quest.lastUpdated = GetTime();
-                updateListeners(questID, quest.lastUpdated, quest.completionPercent, completionPercent, true);
+
+                updateListeners(questID, {
+                    lastUpdated = quest.lastUpdated,
+                    previousCompletionPercent = quest.completionPercent,
+                    completionPercent = completionPercent,
+                    initialUpdate = true
+                });
             else
                 quest.lastUpdated = quest.lastUpdated or cache.lastUpdated[questID];
             end

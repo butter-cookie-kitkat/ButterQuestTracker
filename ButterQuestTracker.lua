@@ -629,8 +629,11 @@ function BQT:ADDON_LOADED(addon)
         end);
 
         QLH:OnQuestUpdated(function(updatedQuests)
+            ns.Log.Trace("Event(OnQuestUpdated)");
             for questID, updatedQuest in pairs(updatedQuests) do
-                if not updatedQuest.abandoned then
+                if updatedQuest.abandoned then
+                    self.DB.Char.QUESTS_LAST_UPDATED[questID] = nil;
+                else
                     self.DB.Char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
                     -- TODO: This is how we're going to automatically track updated quests.
@@ -638,9 +641,9 @@ function BQT:ADDON_LOADED(addon)
                     --     print('auto quest watch');
                     -- end
                 end
-
-                self:Refresh();
             end
+
+            self:Refresh();
         end);
 
         self.DB.Char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.DB.Char.QUESTS_LAST_UPDATED);
@@ -651,8 +654,8 @@ function BQT:ADDON_LOADED(addon)
     end
 end
 
-function BQT:ZONE_CHANGED_NEW_AREA()
-    ns.Log.Info("ZONE_CHANGED_NEW_AREA");
+function BQT:ZONE_CHANGED()
+    ns.Log.Info("Changed Zones: (" .. GetRealZoneText() .. ", " .. GetMinimapZoneText() .. ")");
     self:Refresh();
 end
 
@@ -669,5 +672,5 @@ end
 
 BQT:RegisterEvent("ADDON_LOADED");
 BQT:RegisterEvent("MODIFIER_STATE_CHANGED");
-BQT:RegisterEvent("ZONE_CHANGED_NEW_AREA");
+BQT:RegisterEvent("ZONE_CHANGED");
 BQT:SetScript("OnEvent", BQT.OnEvent)

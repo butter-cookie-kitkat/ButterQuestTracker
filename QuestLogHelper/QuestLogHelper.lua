@@ -80,70 +80,70 @@ function helper:IsQuestSelected(index)
 end
 
 function helper:ToggleQuest(index)
-	local isQuestAlreadyOpen = self:IsShown() and self:IsQuestSelected(index);
+    local isQuestAlreadyOpen = self:IsShown() and self:IsQuestSelected(index);
 
-	if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestLogExFrame);
-		else
-			ShowUIPanel(QuestLogExFrame);
-			QuestLogEx:QuestLog_SetSelection(index);
-			QuestLogEx:Maximize();
-		end
-	elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
-		if isQuestAlreadyOpen then
-			HideUIPanel(ClassicQuestLog);
-		else
-			ShowUIPanel(ClassicQuestLog);
-			QuestLog_SetSelection(index);
-		end
-	elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestGuru);
-		else
-			ShowUIPanel(QuestGuru);
-			QuestGuru:SelectQuestIndex(index);
-		end
-	else
-		if isQuestAlreadyOpen then
-			HideUIPanel(QuestLogFrame);
-		else
-			ShowUIPanel(QuestLogFrame);
-			QuestLog_SetSelection(index);
-			local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep();
-			QuestLogListScrollFrame.ScrollBar:SetValue(index * valueStep / 2);
-		end
-	end
+    if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
+        if isQuestAlreadyOpen then
+            HideUIPanel(QuestLogExFrame);
+        else
+            ShowUIPanel(QuestLogExFrame);
+            QuestLogEx:QuestLog_SetSelection(index);
+            QuestLogEx:Maximize();
+        end
+    elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
+        if isQuestAlreadyOpen then
+            HideUIPanel(ClassicQuestLog);
+        else
+            ShowUIPanel(ClassicQuestLog);
+            QuestLog_SetSelection(index);
+        end
+    elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
+        if isQuestAlreadyOpen then
+            HideUIPanel(QuestGuru);
+        else
+            ShowUIPanel(QuestGuru);
+            QuestGuru:SelectQuestIndex(index);
+        end
+    else
+        if isQuestAlreadyOpen then
+            HideUIPanel(QuestLogFrame);
+        else
+            ShowUIPanel(QuestLogFrame);
+            QuestLog_SetSelection(index);
+            local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep();
+            QuestLogListScrollFrame.ScrollBar:SetValue(index * valueStep / 2);
+        end
+    end
 end
 
 function helper:GetDifficulty(level)
-	local playerLevel = UnitLevel("player");
+    local playerLevel = UnitLevel("player");
 
-	if (level > (playerLevel + 4)) then
-		return 4; -- Extremely Hard (Red)
-	elseif (level > (playerLevel + 2)) then
-		return 3; -- Hard (Orange)
+    if (level > (playerLevel + 4)) then
+        return 4; -- Extremely Hard (Red)
+    elseif (level > (playerLevel + 2)) then
+        return 3; -- Hard (Orange)
     elseif (level <= (playerLevel + 2)) and (level >= (playerLevel - 2)) then
         return 2; -- Normal (Yellow)
     elseif (level > getQuestGrayLevel(playerLevel)) then
         return 1; -- Easy
-	end
+    end
 
     return 0; -- Too Easy
 end
 
 function helper:GetDifficultyColor(difficulty)
     if (difficulty == 4) then
-		return 1, 0.1, 0.1; -- Red
-	elseif (difficulty == 3) then
-		return 1, 0.5, 0.25; -- Orange
+        return 1, 0.1, 0.1; -- Red
+    elseif (difficulty == 3) then
+        return 1, 0.5, 0.25; -- Orange
     elseif (difficulty == 2) then
         return 1, 1, 0; -- Yellow
     elseif (difficulty == 1) then
         return 0.25, 0.75, 0.25; -- Green
-	end
+    end
 
-	return 0.75, 0.75, 0.75; -- Grey
+    return 0.75, 0.75, 0.75; -- Grey
 end
 
 function helper:Refresh()
@@ -156,13 +156,13 @@ function helper:Refresh()
     end
 
     self._questCount = 0;
-	local zone;
+    local zone;
     for index = 1, numberOfEntries, 1 do
         local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
-		local isClassQuest = zone == class;
+        local isClassQuest = zone == class;
         local isProfessionQuest = has_value(professions, zone);
 
-		if isHeader then
+        if isHeader then
             zone = title;
         else
             if not quests[questID] then
@@ -266,7 +266,7 @@ function helper:GetObjectives(questID)
 end
 
 function helper:IsQuestSharable(index)
-	local currentSelection = GetQuestLogSelection();
+    local currentSelection = GetQuestLogSelection();
 
     SelectQuestLogEntry(index);
     local sharable = GetQuestLogPushable();
@@ -276,7 +276,7 @@ function helper:IsQuestSharable(index)
 end
 
 function helper:AbandonQuest(index)
-	local currentSelection = GetQuestLogSelection();
+    local currentSelection = GetQuestLogSelection();
 
     SelectQuestLogEntry(index);
     SetAbandonQuest();
@@ -285,7 +285,7 @@ function helper:AbandonQuest(index)
 end
 
 function helper:ShareQuest(index)
-	local currentSelection = GetQuestLogSelection();
+    local currentSelection = GetQuestLogSelection();
 
     SelectQuestLogEntry(index);
     QuestLogPushQuest();
@@ -293,7 +293,7 @@ function helper:ShareQuest(index)
 end
 
 function helper:GetQuestSummary(index)
-	local currentSelection = GetQuestLogSelection();
+    local currentSelection = GetQuestLogSelection();
 
     SelectQuestLogEntry(index);
     local _, desc = GetQuestLogQuestText();

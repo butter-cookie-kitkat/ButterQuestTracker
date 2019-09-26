@@ -327,6 +327,20 @@ local options = {
                     set = SetAndRefreshTracker
                 },
 
+                spacer2 = Spacer(),
+
+                questPadding = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
+                    arg = "QuestPadding",
+                    type = "range",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshTracker
+                },
+
                 spacerEnd = Spacer("large"),
             }
         },

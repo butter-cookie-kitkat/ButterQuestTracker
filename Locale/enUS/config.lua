@@ -61,6 +61,7 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'] = "Tracker Header Font Size",
     ['SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'] = "Quest Header Font Size",
     ['SETTINGS_OBJECTIVE_FONT_SIZE_NAME'] = "Objective Font Size",
+    ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",
 
     -- Settings > Advanced Settings
 

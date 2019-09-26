@@ -367,7 +367,7 @@ function BQT:CreateQuestHeader(anchor, questInfo, fontString, previousFontString
         header:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b)
     end
 
-    header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -10);
+    header:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -self.DB.Global.QuestPadding);
 
     return header;
 end

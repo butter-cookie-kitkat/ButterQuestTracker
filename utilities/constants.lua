@@ -34,6 +34,7 @@ CONSTANTS.DEFAULT_CONFIG = {
     TrackerHeaderFontSize = 12,
     QuestHeaderFontSize = 12,
     ObjectiveFontSize = 12,
+    QuestPadding = 10,
 
     -- Advanced
 

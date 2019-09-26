@@ -35,7 +35,8 @@ local CONSTANTS = {
     DEFAULT_CHARACTER_CONFIG = {
         -- Backend
 
-        MANUALLY_TRACKED_QUESTS = {}
+        MANUALLY_TRACKED_QUESTS = {},
+        QUESTS_LAST_UPDATED = {}
     },
 
     LOGGER = {

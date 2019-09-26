@@ -73,7 +73,8 @@ local options = {
                             Disabled = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION'),
                             ByLevel = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION'),
                             ByLevelReversed = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'),
-                            ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION')
+                            ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'),
+                            ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
                         };
                     end,
 
@@ -81,7 +82,8 @@ local options = {
                         "Disabled",
                         "ByLevel",
                         "ByLevelReversed",
-                        "ByPercentCompleted"
+                        "ByPercentCompleted",
+                        "ByRecentlyUpdated"
                     },
 
                     set = SetAndRefreshTracker

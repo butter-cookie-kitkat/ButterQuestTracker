@@ -7,7 +7,10 @@ local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 local class = UnitClass("player");
 local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
 
-local quests = {};
+local cache = {
+    quests = {},
+    lastUpdated = {}
+};
 
 local function has_value (tab, val)
     for index, value in ipairs(tab) do
@@ -43,6 +46,49 @@ local function getCompletionPercent(objectives)
     return completionPercent / table.getn(objectives);
 end
 
+local listeners = {};
+local updateListenersTimer;
+local updatedQuests = {};
+local function updateListeners(questID, lastUpdated, previousCompletionPercent, completionPercent, initialUpdate)
+    if updateListenersTimer then
+        updateListenersTimer:Cancel();
+    end
+
+    updatedQuests[questID] = {
+        lastUpdated = lastUpdated,
+        previousCompletionPercent = previousCompletionPercent,
+        completionPercent = completionPercent,
+        initialUpdate = initialUpdate,
+        abandoned = not C_QuestLog.IsOnQuest(questID)
+    };
+
+    updateListenersTimer = C_Timer.NewTimer(0.1, function()
+        for i, listener in ipairs(listeners) do
+            listener(updatedQuests);
+        end
+        updatedQuests = {};
+    end)
+end
+
+function helper:OnQuestUpdated(listener)
+    tinsert(listeners, listener);
+end
+
+function helper:SetQuestsLastUpdated(questsLastUpdated)
+    if not questsLastUpdated then return end
+
+    for questID, lastUpdated in pairs(questsLastUpdated) do
+        if C_QuestLog.IsOnQuest(questID) then
+            cache.lastUpdated[questID] = lastUpdated;
+        else
+            questsLastUpdated[questID] = nil;
+        end
+    end
+
+    self:Refresh();
+    return questsLastUpdated;
+end
+
 function helper:GetQuestIDFromIndex(index)
     if not index then return nil end
 
@@ -54,7 +100,7 @@ function helper:GetQuestIDFromIndex(index)
 end
 
 function helper:GetIndexFromQuestID(questID)
-    for _, quest in pairs(quests) do
+    for _, quest in pairs(cache.quests) do
         if questID == quest.questID then
             return quest.index;
         end
@@ -149,9 +195,11 @@ end
 function helper:Refresh()
     local numberOfEntries = GetNumQuestLogEntries();
 
-    for questID in pairs(quests) do
+    for questID, quest in pairs(cache.quests) do
         if not C_QuestLog.IsOnQuest(questID) then
-            quests[questID] = nil;
+            cache.quests[questID] = nil;
+            cache.lastUpdated[questID] = nil;
+            updateListeners(questID, quest.lastUpdated, quest.completionPercent, quest.completionPercent);
         end
     end
 
@@ -165,8 +213,8 @@ function helper:Refresh()
         if isHeader then
             zone = title;
         else
-            if not quests[questID] then
-                quests[questID] = {
+            if not cache.quests[questID] then
+                cache.quests[questID] = {
                     title = title,
                     level = level,
                     questID = questID,
@@ -181,7 +229,7 @@ function helper:Refresh()
                 };
             end
 
-            local quest = quests[questID];
+            local quest = cache.quests[questID];
             quest.index = index;
             quest.isComplete = isComplete;
             quest.difficulty = self:GetDifficulty(level);
@@ -200,29 +248,41 @@ function helper:Refresh()
                 quest.isComplete = false;
             end
 
-            quest.completionPercent = getCompletionPercent(quest.objectives);
+            local completionPercent = getCompletionPercent(quest.objectives);
+
+            if quest.completionPercent and quest.completionPercent ~= completionPercent then
+                quest.lastUpdated = GetTime();
+                updateListeners(questID, quest.lastUpdated, quest.completionPercent, completionPercent);
+            elseif not cache.lastUpdated[questID] and not quest.lastUpdated then
+                quest.lastUpdated = GetTime();
+                updateListeners(questID, quest.lastUpdated, quest.completionPercent, completionPercent, true);
+            else
+                quest.lastUpdated = quest.lastUpdated or cache.lastUpdated[questID];
+            end
+
+            quest.completionPercent = completionPercent;
 
             self._questCount = self._questCount + 1;
         end
     end
 
-    return quests;
+    return cache.quests;
 end
 
 function helper:GetQuests()
-    if not quests then
+    if not cache.quests then
         self:Refresh();
     end
 
-    return quests;
+    return cache.quests;
 end
 
 function helper:GetQuest(questID)
-    if not quests then
+    if not cache.quests then
         self:Refresh();
     end
 
-    return quests[questID];
+    return cache.quests[questID];
 end
 
 function helper:GetQuestCount()
@@ -242,10 +302,6 @@ function helper:GetWatchedQuests()
     end
 
     return watchedQuests;
-end
-
-function helper:GetQuest(questID)
-    return quests[questID];
 end
 
 function helper:GetObjectives(questID)

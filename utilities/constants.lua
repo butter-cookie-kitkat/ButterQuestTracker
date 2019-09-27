@@ -1,7 +1,7 @@
 local NAME, ns = ...
 
 local CONSTANTS = {
-    VERSION = "1.7.0-rc.4",
+    VERSION = "1.7.0",
     NAME = "Butter Quest Tracker",
     NAME_SQUASHED = "ButterQuestTracker",
     CURSEFORGE_SLUG = "butter-quest-tracker",

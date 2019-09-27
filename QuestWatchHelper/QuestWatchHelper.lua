@@ -41,7 +41,10 @@ function helper:BypassWatchLimit(externallyTrackedQuests)
         end
     end
 
-    local function _addWatch(index)
+    local function _addWatch(index, isQuestie)
+        -- This is a hack to ignore watch requests from Questie's Tracker...
+        if isQuestie then return end
+
         local questID = QLH:GetQuestIDFromIndex(index);
 
         -- Ignore duplicates
@@ -54,7 +57,10 @@ function helper:BypassWatchLimit(externallyTrackedQuests)
 
     hooksecurefunc("AutoQuestWatch_Insert", _addWatch);
     hooksecurefunc("AddQuestWatch", _addWatch);
-    hooksecurefunc("RemoveQuestWatch", function(index)
+    hooksecurefunc("RemoveQuestWatch", function(index, isQuestie)
+        -- This is a hack to ignore watch requests from Questie's Tracker...
+        if isQuestie then return end
+
         local questID = QLH:GetQuestIDFromIndex(index);
 
         if questID and trackedQuests[questID] then

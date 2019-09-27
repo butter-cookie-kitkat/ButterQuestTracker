@@ -1,7 +1,7 @@
 local _, ns = ...
 
 local CONSTANTS = {
-    VERSION = "1.6.6",
+    VERSION = "1.6.7",
 
     DEFAULT_CONFIG = {
         -- Filters & Sorting

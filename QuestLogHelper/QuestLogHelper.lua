@@ -9,6 +9,14 @@ local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithin
 
 local quests = {};
 
+local function count(t)
+    local count = 0;
+    if t then
+        for _, _ in pairs(t) do count = count + 1 end
+    end
+    return count;
+end
+
 local function has_value (tab, val)
     for index, value in ipairs(tab) do
         if value == val then
@@ -155,7 +163,6 @@ function helper:Refresh()
         end
     end
 
-    self._questCount = 0;
 	local zone;
     for index = 1, numberOfEntries, 1 do
         local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
@@ -201,8 +208,6 @@ function helper:Refresh()
             end
 
             quest.completionPercent = getCompletionPercent(quest.objectives);
-
-            self._questCount = self._questCount + 1;
         end
     end
 
@@ -226,9 +231,7 @@ function helper:GetQuest(questID)
 end
 
 function helper:GetQuestCount()
-    helper:GetQuests();
-
-    return self._questCount;
+    return count(helper:GetQuests());
 end
 
 function helper:GetWatchedQuests()

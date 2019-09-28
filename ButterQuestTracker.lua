@@ -435,7 +435,7 @@ function BQT:ToggleContextMenu(quest)
             text = "Untrack Quest",
             notCheckable = true,
             func = function()
-                BQT.DB.Char.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
+                ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
                 RemoveQuestWatch(self.quest.index);
             end
         });

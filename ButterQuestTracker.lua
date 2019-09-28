@@ -134,6 +134,7 @@ function BQT:OnEnable()
     TH:SetDebugMode(ButterQuestTrackerConfig.DeveloperMode);
 
     self:RefreshQuestWatch();
+    self:RefreshView();
     ns.Log.Info("Addon Initialized");
 end
 
@@ -237,6 +238,8 @@ function BQT:UpdateQuestWatch(criteria, currentZone, minimapZone, quest)
         return AddQuestWatch(quest.index);
     elseif ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
         return RemoveQuestWatch(quest.index);
+    elseif ButterQuestTrackerConfig.DisableFilters then
+        return RemoveQuestWatch(quest.index);
     end
 
     if criteria.hideCompletedQuests and quest.isComplete then
@@ -259,12 +262,13 @@ function BQT:RefreshView()
     TH:Clear();
 
     local quests = QLH:GetWatchedQuests();
+    local questLimit = ButterQuestTrackerConfig.DisableFilters and MAX_WATCHABLE_QUESTS or ButterQuestTrackerConfig.QuestLimit;
 
     local headerLabel;
     if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
         headerLabel = "Quests";
     elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" then
-        local visibleQuestCount = math.min(ButterQuestTrackerConfig.QuestLimit, count(quests));
+        local visibleQuestCount = math.min(questLimit, count(quests));
         local questCount = QLH:GetQuestCount();
 
         if visibleQuestCount < questCount then
@@ -313,7 +317,7 @@ function BQT:RefreshView()
     end
 
     for i, quest in spairs(quests, sortQuests) do
-        if i <= ButterQuestTrackerConfig.QuestLimit then
+        if i <= questLimit then
             local questContainer = TH:CreateContainer({
                 padding = {
                     top = ButterQuestTrackerConfig.QuestPadding

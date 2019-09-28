@@ -73,15 +73,21 @@ local options = {
             order = order(),
 
             args = {
-                currentZoneOnly = {
-                    name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
-                    arg = "CurrentZoneOnly",
+                autoTrackUpdatedQuests = {
+                    name = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
+                    arg = "AutoTrackUpdatedQuests",
                     type = "toggle",
                     width = 2.4,
                     order = order(),
 
-                    set = SetAndRefreshQuestWatch
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        if not value then
+                            BQT:ResetOverrides();
+                        end
+                    end
                 },
 
                 sorting = {
@@ -112,13 +118,41 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                hideCompletedQuests = {
-                    name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
-                    arg = "HideCompletedQuests",
+                spacer1 = Spacer(),
+
+                filtersHeader = {
+                    name = "Filters",
+                    type = "header",
+                    order = order()
+                },
+
+                disableFilters = {
+                    name = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_DESC'),
+                    arg = "DisableFilters",
                     type = "toggle",
                     width = 2.4,
                     order = order(),
+
+                    set = function(info, value)
+                        if value == false then
+                            BQT:ResetOverrides();
+                        end
+                        SetAndRefreshQuestWatch(info, value);
+                    end
+                },
+
+                spacer2 = Spacer(),
+
+                currentZoneOnly = {
+                    name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
+                    arg = "CurrentZoneOnly",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
+
+                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
 
                     set = SetAndRefreshQuestWatch
                 },
@@ -134,29 +168,26 @@ local options = {
                     step = 1,
                     order = order(),
 
+                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
+
                     set = SetAndRefreshView
                 },
 
-                spacer1 = Spacer(),
+                spacer3 = Spacer(),
 
-                autoTrackUpdatedQuests = {
-                    name = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
-                    arg = "AutoTrackUpdatedQuests",
+                hideCompletedQuests = {
+                    name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
+                    arg = "HideCompletedQuests",
                     type = "toggle",
-                    width = 1.5,
                     order = order(),
 
-                    set = function(info, value)
-                        SetInDB(info, value);
+                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
 
-                        if not value then
-                            BQT:ResetOverrides();
-                        end
-                    end
+                    set = SetAndRefreshQuestWatch
                 },
 
-                spacer2 = Spacer(),
+                spacer4 = Spacer(),
 
                 reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),

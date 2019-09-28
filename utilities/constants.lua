@@ -22,6 +22,7 @@ CONSTANTS.PATHS.LOGO = "|T" .. CONSTANTS.PATHS.MEDIA .. "BQT_logo:24:24:0:-8" ..
 CONSTANTS.DEFAULT_CONFIG = {
     -- Filters & Sorting
 
+    DisableFilters = false,
     Sorting = "Disabled",
     CurrentZoneOnly = false,
     HideCompletedQuests = false,

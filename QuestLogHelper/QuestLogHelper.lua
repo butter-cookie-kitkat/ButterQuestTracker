@@ -111,16 +111,28 @@ function helper:GetIndexFromQuestID(questID)
     return nil;
 end
 
-function helper:IsShown()
-    if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
-        return QuestLogExFrame:IsShown();
-    elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
-        return ClassicQuestLog:IsShown();
-    elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
-        return QuestGuru:IsShown();
-    else
-        return QuestLogFrame:IsShown();
+function helper:GetQuestFrame()
+    if not self._questFrame then
+        if QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
+            self._questFrame = QuestGuru;
+            self._questFrame.addon = 'QuestGuru';
+        elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
+            self._questFrame = ClassicQuestLog;
+            self._questFrame.addon = 'ClassicQuestLog';
+        elseif QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
+            self._questFrame = QuestLogExFrame;
+            self._questFrame.addon = 'QuestLogEx';
+        else
+            self._questFrame = QuestLogFrame;
+            self._questFrame.addon = 'Default';
+        end
     end
+
+    return self._questFrame;
+end
+
+function helper:IsShown()
+    return self:GetQuestFrame():IsShown();
 end
 
 function helper:IsQuestSelected(index)
@@ -129,37 +141,19 @@ end
 
 function helper:ToggleQuest(index)
     local isQuestAlreadyOpen = self:IsShown() and self:IsQuestSelected(index);
+    local questFrame = self:GetQuestFrame();
 
-    if QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
-        if isQuestAlreadyOpen then
-            HideUIPanel(QuestLogExFrame);
-        else
-            ShowUIPanel(QuestLogExFrame);
-            QuestLogEx:QuestLog_SetSelection(index);
-            QuestLogEx:Maximize();
-        end
-    elseif ClassicQuestLog then -- https://www.curseforge.com/wow/addons/classic-quest-log
-        if isQuestAlreadyOpen then
-            HideUIPanel(ClassicQuestLog);
-        else
-            ShowUIPanel(ClassicQuestLog);
-            QuestLog_SetSelection(index);
-        end
-    elseif QuestGuru then -- https://www.curseforge.com/wow/addons/questguru_classic
-        if isQuestAlreadyOpen then
-            HideUIPanel(QuestGuru);
-        else
-            ShowUIPanel(QuestGuru);
-            QuestGuru:SelectQuestIndex(index);
-        end
+    if isQuestAlreadyOpen then
+        HideUIPanel(questFrame);
     else
-        if isQuestAlreadyOpen then
-            HideUIPanel(QuestLogFrame);
-        else
-            ShowUIPanel(QuestLogFrame);
-            QuestLog_SetSelection(index);
+        ShowUIPanel(questFrame);
+        QuestLog_SetSelection(index);
+
+        if questFrame.addon == 'QuestLogEx' then
+            QuestLogEx:Maximize();
+        elseif questFrame.addon == 'Default' then
             local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep();
-            QuestLogListScrollFrame.ScrollBar:SetValue(index * valueStep / 2);
+            QuestLogListScrollFrame.ScrollBar:SetValue(index * valueStep - valueStep * 3);
         end
     end
 end

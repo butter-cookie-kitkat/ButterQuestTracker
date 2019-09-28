@@ -7,6 +7,9 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_FILTERS_AND_SORTING_TAB'] = "Filters & Sorting",
 
+    ['SETTINGS_DISABLE_FILTERS_NAME'] = "Disable Filters",
+    ['SETTINGS_DISABLE_FILTERS_DESC'] = "Disables the automatic filtering functionality, requiring you to manually track quests.\n\n|c00FF9696Unchecking this will wipe out your overrides.|r",
+
     ['SETTINGS_CURRENT_ZONE_ONLY_NAME'] = "Current Zone Only",
     ['SETTINGS_CURRENT_ZONE_ONLY_DESC'] = "Displays quests relevant to the current zone / subzone.",
 
@@ -36,10 +39,10 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_VISUAL_TAB'] = "Visual Settings",
 
     ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_NAME'] = "Background Always Visible",
-    ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'] = "Background Always Visible",
+    ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'] = "The background for the tracker will always be visible.",
 
     ['SETTINGS_BACKGROUND_COLOR_NAME'] = "Background Color",
-    ['SETTINGS_BACKGROUND_COLOR_DESC'] = "Background Color",
+    ['SETTINGS_BACKGROUND_COLOR_DESC'] = "The background color of the tracker.",
 
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "Color Headers By Difficulty Level",
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "Color codes the quests by their difficulty level.",

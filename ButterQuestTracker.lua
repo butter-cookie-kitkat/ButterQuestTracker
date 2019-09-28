@@ -129,6 +129,7 @@ function BQT:Initialize()
         local inversedY = y - GetScreenHeight();
         self.DB.Global.PositionX = inversedX;
         self.DB.Global.PositionY = inversedY;
+        self:RefreshPosition();
 
         LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
         ns.Log.Info("Moved to ( x: " .. x .. ", y: " .. y .. ").");
@@ -150,6 +151,7 @@ function BQT:Initialize()
 end
 
 function BQT:RefreshPosition()
+    self:ClearAllPoints();
     self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", self.DB.Global.PositionX, self.DB.Global.PositionY);
 end
 

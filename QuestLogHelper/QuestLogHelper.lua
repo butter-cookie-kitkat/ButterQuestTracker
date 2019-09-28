@@ -182,16 +182,17 @@ end
 
 function helper:GetDifficultyColor(difficulty)
     if (difficulty == 4) then
-        return 1, 0.1, 0.1; -- Red
+         -- Red
+        return { r = 1, g = 0.1, b = 0.1 };
     elseif (difficulty == 3) then
-        return 1, 0.5, 0.25; -- Orange
+        return { r = 1, g = 0.5, b = 0.25 }; -- Orange
     elseif (difficulty == 2) then
-        return 1, 1, 0; -- Yellow
+        return { r = 1, g = 1, b = 0 }; -- Yellow
     elseif (difficulty == 1) then
-        return 0.25, 0.75, 0.25; -- Green
+        return { r = 0.25, g = 0.75, b = 0.25 }; -- Green
     end
 
-    return 0.75, 0.75, 0.75; -- Grey
+    return { r = 0.75, g = 0.75, b = 0.75 }; -- Grey
 end
 
 function helper:Refresh()

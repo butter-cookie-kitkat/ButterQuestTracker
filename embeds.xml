@@ -5,8 +5,10 @@
     <Include file="Libs\AceConfig-3.0\AceConfig-3.0.xml"/>
     <Include file="Libs\AceTab-3.0\AceTab-3.0.xml"/>
     <Include file="Libs\AceEvent-3.0\AceEvent-3.0.xml"/>
+    <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
 
     <Include file="QuestLogHelper\QuestLogHelper.xml"/>
     <Include file="QuestWatchHelper\QuestWatchHelper.xml"/>
     <Include file="ZoneHelper\ZoneHelper.xml"/>
+    <Include file="TrackerHelper\TrackerHelper.xml"/>
 </Ui>

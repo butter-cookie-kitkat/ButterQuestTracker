@@ -31,22 +31,6 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_RESET_TRACKING_OVERRIDES_NAME'] = "Reset Tracking Overrides",
     ['SETTINGS_RESET_TRACKING_OVERRIDES_DESC'] = "Reset's all manual quest watch overrides.",
 
-    -- Settings > Frame Settings
-
-    ['SETTINGS_FRAME_TAB'] = "Frame Settings",
-
-    ['SETTINGS_POSITIONX_NAME'] = "Position X",
-
-    ['SETTINGS_POSITIONY_NAME'] = "Position Y",
-
-    ['SETTINGS_WIDTH_NAME'] = "Width",
-
-    ['SETTINGS_MAX_HEIGHT_NAME'] = "Max Height",
-
-    ['SETTINGS_RESET_POSITION_NAME'] = "Reset Position",
-
-    ['SETTINGS_RESET_SIZE_NAME'] = "Reset Size",
-
     -- Settings > Visual Settings
 
     ['SETTINGS_VISUAL_TAB'] = "Visual Settings",
@@ -65,6 +49,22 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'] = "Quest Header Font Size",
     ['SETTINGS_OBJECTIVE_FONT_SIZE_NAME'] = "Objective Font Size",
     ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",
+
+    -- Settings > Frame Settings
+
+    ['SETTINGS_FRAME_TAB'] = "Frame Settings",
+
+    ['SETTINGS_POSITIONX_NAME'] = "Position X",
+
+    ['SETTINGS_POSITIONY_NAME'] = "Position Y",
+
+    ['SETTINGS_WIDTH_NAME'] = "Width",
+
+    ['SETTINGS_MAX_HEIGHT_NAME'] = "Max Height",
+
+    ['SETTINGS_RESET_POSITION_NAME'] = "Reset Position",
+
+    ['SETTINGS_RESET_SIZE_NAME'] = "Reset Size",
 
     -- Settings > Advanced Settings
 

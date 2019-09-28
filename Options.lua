@@ -3,6 +3,7 @@ local NAME, ns = ...
 local ACD = LibStub("AceConfigDialog-3.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local BQTL = ButterQuestTrackerLocale;
+local TH = LibStub("TrackerHelper-1.0");
 
 local BQT = ButterQuestTracker
 
@@ -31,9 +32,14 @@ local function SetInDB(info, value)
     BQT.DB.Global[info.arg] = value;
 end
 
-local function SetAndRefreshTracker(info, value)
+local function SetAndRefreshQuestWatch(info, value)
     SetInDB(info, value);
-    BQT:Refresh();
+    BQT:RefreshQuestWatch();
+end
+
+local function SetAndRefreshView(info, value)
+    SetInDB(info, value);
+    BQT:RefreshView();
 end
 
 local options = {
@@ -59,7 +65,7 @@ local options = {
                     width = 2.4,
                     order = order(),
 
-                    set = SetAndRefreshTracker
+                    set = SetAndRefreshQuestWatch
                 },
 
                 sorting = {
@@ -87,7 +93,7 @@ local options = {
                         "ByRecentlyUpdated"
                     },
 
-                    set = SetAndRefreshTracker
+                    set = SetAndRefreshView
                 },
 
                 hideCompletedQuests = {
@@ -98,7 +104,7 @@ local options = {
                     width = 2.4,
                     order = order(),
 
-                    set = SetAndRefreshTracker
+                    set = SetAndRefreshQuestWatch
                 },
 
                 questLimit = {
@@ -112,15 +118,17 @@ local options = {
                     step = 1,
                     order = order(),
 
-                    set = SetAndRefreshTracker
+                    set = SetAndRefreshView
                 },
+
+                spacer1 = Spacer(),
 
                 autoTrackUpdatedQuests = {
                     name = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
                     arg = "AutoTrackUpdatedQuests",
                     type = "toggle",
-                    width = 2.4,
+                    width = 1.5,
                     order = order(),
 
                     set = function(info, value)
@@ -132,7 +140,7 @@ local options = {
                     end
                 },
 
-                spacer1 = Spacer(),
+                spacer2 = Spacer(),
 
                 reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
@@ -144,6 +152,103 @@ local options = {
                     func = function()
                         BQT:ResetOverrides();
                     end
+                },
+
+                spacerEnd = Spacer("large"),
+            }
+        },
+
+        visuals = {
+            name = "Visual Settings",
+            type = "group",
+            order = order(),
+
+            args = {
+                colorHeadersByDifficultyLevel = {
+                    name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
+                    arg = "ColorHeadersByDifficultyLevel",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
+
+                    set = SetAndRefreshView
+                },
+
+                trackerHeaderFormat = {
+                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
+                    arg = "TrackerHeaderFormat",
+                    type = "select",
+                    order = order(),
+
+                    values = function()
+                        return {
+                            Classic = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_CLASSIC_OPTION'),
+                            Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
+                            QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
+                        };
+                    end,
+
+                    sorting = {
+                        "Classic",
+                        "Quests",
+                        "QuestsNumberVisible"
+                    },
+
+                    set = SetAndRefreshView
+                },
+
+                trackerHeaderFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
+                    arg = "TrackerHeaderFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshView
+                },
+
+                questHeaderFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
+                    arg = "QuestHeaderFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshView
+                },
+
+                spacer1 = Spacer(),
+
+                objectiveFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
+                    arg = "ObjectiveFontSize",
+                    type = "range",
+                    min = 10,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshView
+                },
+
+                spacer2 = Spacer(),
+
+                questPadding = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
+                    arg = "QuestPadding",
+                    type = "range",
+                    min = 0,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshView
                 },
 
                 spacerEnd = Spacer("large"),
@@ -173,7 +278,7 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, -value);
-                        BQT:RefreshPosition();
+                        TH:UpdatePosition(-value);
                     end
                 },
 
@@ -194,7 +299,7 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, -value);
-                        BQT:RefreshPosition();
+                        TH:UpdatePosition(nil, -value);
                     end
                 },
 
@@ -211,7 +316,13 @@ local options = {
                     bigStep = 10,
                     order = order(),
 
-                    set = SetAndRefreshTracker
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        TH:UpdateFrame({
+                            width = value
+                        });
+                    end
                 },
 
                 maxHeight = {
@@ -225,7 +336,13 @@ local options = {
                     bigStep = 10,
                     order = order(),
 
-                    set = SetAndRefreshTracker
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        TH:UpdateFrame({
+                            maxHeight = value
+                        });
+                    end
                 },
 
                 spacer2 = Spacer(),
@@ -239,7 +356,7 @@ local options = {
                     func = function()
                         BQT.DB.Global.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
                         BQT.DB.Global.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
-                        BQT:RefreshPosition();
+                        TH:UpdatePosition(BQT.DB.Global.PositionX, BQT.DB.Global.PositionY);
                     end
                 },
 
@@ -252,105 +369,12 @@ local options = {
                     func = function()
                         BQT.DB.Global.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
                         BQT.DB.Global.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
-                        BQT:Refresh();
+
+                        TH:UpdateFrame({
+                            width = BQT.DB.Global.Width,
+                            maxHeight = BQT.DB.Global.MaxHeight
+                        });
                     end
-                },
-
-                spacerEnd = Spacer("large"),
-            }
-        },
-
-        visuals = {
-            name = "Visual Settings",
-            type = "group",
-            order = order(),
-
-            args = {
-                colorHeadersByDifficultyLevel = {
-                    name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
-                    arg = "ColorHeadersByDifficultyLevel",
-                    type = "toggle",
-                    width = 2.4,
-                    order = order(),
-
-                    set = SetAndRefreshTracker
-                },
-
-                trackerHeaderFormat = {
-                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
-                    arg = "TrackerHeaderFormat",
-                    type = "select",
-                    order = order(),
-
-                    values = function()
-                        return {
-                            Classic = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_CLASSIC_OPTION'),
-                            Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
-                            QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
-                        };
-                    end,
-
-                    sorting = {
-                        "Classic",
-                        "Quests",
-                        "QuestsNumberVisible"
-                    },
-
-                    set = SetAndRefreshTracker
-                },
-
-                trackerHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
-                    arg = "TrackerHeaderFontSize",
-                    type = "range",
-                    min = 10,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshTracker
-                },
-
-                questHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
-                    arg = "QuestHeaderFontSize",
-                    type = "range",
-                    min = 10,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshTracker
-                },
-
-                spacer1 = Spacer(),
-
-                objectiveFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
-                    arg = "ObjectiveFontSize",
-                    type = "range",
-                    min = 10,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshTracker
-                },
-
-                spacer2 = Spacer(),
-
-                questPadding = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
-                    arg = "QuestPadding",
-                    type = "range",
-                    min = 0,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshTracker
                 },
 
                 spacerEnd = Spacer("large"),
@@ -380,7 +404,7 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, value);
-                        BQT:RefreshFrame();
+                        TH:SetDebugMode(value);
                     end
                 },
 
@@ -405,7 +429,6 @@ local options = {
 
                 localeHeader = {
                     name = BQTL:GetStringWrap('SETTINGS_LOCALE_HEADER'),
-                    name = "Localization Settings",
                     type = "header",
                     order = order(),
                 },
@@ -466,8 +489,16 @@ local options = {
                     func = function()
                         BQT.DB.Global = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
                         BQT.DB.Char = CopyTable(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG);
-                        BQT:RefreshPosition();
-                        BQT:Refresh();
+
+                        TH:UpdateFrame({
+                            x = BQT.DB.Global.PositionX,
+                            y = BQT.DB.Global.PositionY,
+                            width = BQT.DB.Global.Width,
+                            maxHeight = BQT.DB.Global.MaxHeight
+                        });
+
+                        TH:SetDebugMode(BQT.DB.Global.DeveloperMode);
+                        BQT:RefreshQuestWatch();
                     end
                 },
 

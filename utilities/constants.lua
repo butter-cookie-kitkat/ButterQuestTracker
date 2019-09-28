@@ -6,7 +6,14 @@ local CONSTANTS = {
     NAME_SQUASHED = "ButterQuestTracker",
     CURSEFORGE_SLUG = "butter-quest-tracker",
     BRAND_COLOR = "|c00FF9696",
-    PATHS = {}
+    PATHS = {},
+    COLORS = {
+        OBJECTIVE = {
+            r = 0.8,
+            g = 0.8,
+            b = 0.8
+        }
+    }
 };
 
 CONSTANTS.PATHS.MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\";
@@ -21,21 +28,22 @@ CONSTANTS.DEFAULT_CONFIG = {
     QuestLimit = 10,
     AutoTrackUpdatedQuests = false,
 
+    -- Visuals
+
+    TrackerHeaderFormat = "QuestsNumberVisible",
+    ColorHeadersByDifficultyLevel = false,
+
+    TrackerHeaderFontSize = 12,
+    QuestHeaderFontSize = 12,
+    ObjectiveFontSize = 12,
+    QuestPadding = 10,
+
     -- Frame Settings
 
     PositionX = 0,
     PositionY = -240,
     Width = 250,
-    MaxHeight = 600,
-
-    -- Visuals
-
-    TrackerHeaderFormat = "QuestsNumberVisible",
-    ColorHeadersByDifficultyLevel = false,
-    TrackerHeaderFontSize = 12,
-    QuestHeaderFontSize = 12,
-    ObjectiveFontSize = 12,
-    QuestPadding = 10,
+    MaxHeight = 450,
 
     -- Advanced
 

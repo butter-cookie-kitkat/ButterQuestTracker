@@ -286,6 +286,10 @@ function BQT:RefreshView()
             hoverColor = HIGHLIGHT_FONT_COLOR,
 
             container = TH:CreateContainer({
+                padding = {
+                    bottom = ButterQuestTrackerConfig.QuestPadding
+                },
+
                 events = {
                     OnMouseDown = function()
                         local frame = TH:GetFrame();
@@ -320,7 +324,7 @@ function BQT:RefreshView()
         if i <= questLimit then
             local questContainer = TH:CreateContainer({
                 padding = {
-                    top = ButterQuestTrackerConfig.QuestPadding
+                    top = i == 1 and 0 or ButterQuestTrackerConfig.QuestPadding
                 },
                 events = {
                     OnMouseUp = function(target, button)

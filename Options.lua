@@ -619,7 +619,12 @@ ACD:AddToBlizOptions("ButterQuestTracker");
 SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
 SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
     if command == "" then
-        ACD:Open("ButterQuestTracker")
+        if InterfaceOptionsFrame:IsShown() then
+            InterfaceOptionsFrame:Hide();
+        else
+            InterfaceOptionsFrame:Show();
+            InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
+        end
     elseif command == "reset" then
         print('command', command);
     end

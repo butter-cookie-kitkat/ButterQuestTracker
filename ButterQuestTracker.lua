@@ -263,12 +263,12 @@ function BQT:RefreshView()
 
     local quests = QLH:GetWatchedQuests();
     local questLimit = ButterQuestTrackerConfig.DisableFilters and MAX_WATCHABLE_QUESTS or ButterQuestTrackerConfig.QuestLimit;
+    local visibleQuestCount = math.min(questLimit, count(quests));
 
     local headerLabel;
     if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
         headerLabel = "Quests";
     elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" then
-        local visibleQuestCount = math.min(questLimit, count(quests));
         local questCount = QLH:GetQuestCount();
 
         if visibleQuestCount < questCount then
@@ -287,16 +287,25 @@ function BQT:RefreshView()
 
             container = TH:CreateContainer({
                 padding = {
-                    bottom = ButterQuestTrackerConfig.QuestPadding
+                    bottom = visibleQuestCount > 0 and ButterQuestTrackerConfig.QuestPadding or 0
                 },
 
                 events = {
-                    OnMouseDown = function()
+                    OnMouseDown = function(self, button)
                         local frame = TH:GetFrame();
 
-                        frame:StartMoving();
+                        if button == "LeftButton" then
+                            frame:StartMoving();
+                            TH:SetBackgroundVisibility(true);
+                        else
+                            if InterfaceOptionsFrame:IsShown() then
+                                InterfaceOptionsFrame:Hide();
+                            else
+                                InterfaceOptionsFrame:Show();
+                                InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
+                            end
+                        end
 
-                        TH:SetBackgroundVisibility(true);
                     end,
 
                     OnMouseUp = function()

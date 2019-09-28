@@ -43,28 +43,20 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     hideOnEscape = true
 }
 
-function BQT:OnEnable()
-    if not ButterQuestTrackerConfig then
-        ButterQuestTrackerConfig = {};
-    end
+function BQT:OnInitialize()
+    self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
 
-    if not ButterQuestTrackerCharacterConfig then
-        ButterQuestTrackerCharacterConfig = {};
-    end
-
-    for key, value in pairs(ns.CONSTANTS.DEFAULT_CONFIG) do
-        if ButterQuestTrackerConfig[key] == nil then
-            ButterQuestTrackerConfig[key] = value;
+    -- TODO: This is for backwards compatible support of the SavedVariables
+    -- Remove this in v2.0.0
+    if ButterQuestTrackerCharacterConfig then
+        for key, value in pairs(ButterQuestTrackerCharacterConfig) do
+            self.db.char[key] = value;
+            ButterQuestTrackerCharacterConfig[key] = nil;
         end
     end
+    -- END TODO
 
-    for key, value in pairs(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG) do
-        if ButterQuestTrackerCharacterConfig[key] == nil then
-            ButterQuestTrackerCharacterConfig[key] = value;
-        end
-    end
-
-    QWH:BypassWatchLimit(ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS);
+    QWH:BypassWatchLimit(self.db.char.MANUALLY_TRACKED_QUESTS);
     QWH:KeepHidden();
 
     QWH:OnQuestWatchUpdated(function(questWatchUpdates)
@@ -73,9 +65,9 @@ function BQT:OnEnable()
 
             if updateInfo.byUser then
                 if updateInfo.watched then
-                    ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[questID] = true;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
                 else
-                    ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[questID] = false;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = false;
                 end
             end
         end
@@ -84,19 +76,19 @@ function BQT:OnEnable()
     end);
 
     QLH:OnQuestUpdated(function(updatedQuests)
-        ns.Log.Trace("Event(OnQuestUpdated)");
+        self:LogTrace("Event(OnQuestUpdated)");
         for questID, updatedQuest in pairs(updatedQuests) do
             if updatedQuest.abandoned then
-                ButterQuestTrackerCharacterConfig.QUESTS_LAST_UPDATED[questID] = nil;
+                self.db.char.QUESTS_LAST_UPDATED[questID] = nil;
             else
-                ButterQuestTrackerCharacterConfig.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
+                self.db.char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
                 -- If the quest is updated then remove it from the manually tracked quests list.
                 if not updatedQuests.initialUpdate then
-                    if ButterQuestTrackerConfig.AutoTrackUpdatedQuests then
-                        ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[questID] = true;
-                    elseif ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[questID] == false then
-                        ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[questID] = nil;
+                    if self.db.global.AutoTrackUpdatedQuests then
+                        self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
+                    elseif self.db.char.MANUALLY_TRACKED_QUESTS[questID] == false then
+                        self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
                     end
                 end
             end
@@ -106,36 +98,37 @@ function BQT:OnEnable()
     end);
 
     ZH:OnZoneChanged(function(info)
-        ns.Log.Info("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
+        self:LogInfo("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
         self:RefreshQuestWatch();
     end)
 
-    ButterQuestTrackerCharacterConfig.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(ButterQuestTrackerCharacterConfig.QUESTS_LAST_UPDATED);
+    self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
     TH:UpdateFrame({
         clamp = true,
 
-        x = ButterQuestTrackerConfig.PositionX,
-        y = ButterQuestTrackerConfig.PositionY,
+        x = self.db.global.PositionX,
+        y = self.db.global.PositionY,
 
-        width = ButterQuestTrackerConfig.Width,
-        maxHeight = ButterQuestTrackerConfig.MaxHeight,
+        width = self.db.global.Width,
+        maxHeight = self.db.global.MaxHeight,
 
         backgroundColor = {
-            r = ButterQuestTrackerConfig['BackgroundColor-R'],
-            g = ButterQuestTrackerConfig['BackgroundColor-G'],
-            b = ButterQuestTrackerConfig['BackgroundColor-B'],
-            a = ButterQuestTrackerConfig['BackgroundColor-A']
+            r = self.db.global['BackgroundColor-R'],
+            g = self.db.global['BackgroundColor-G'],
+            b = self.db.global['BackgroundColor-B'],
+            a = self.db.global['BackgroundColor-A']
         },
 
-        backgroundAlwaysVisible = ButterQuestTrackerConfig.BackgroundAlwaysVisible
+        backgroundAlwaysVisible = self.db.global.BackgroundAlwaysVisible
     });
 
-    TH:SetDebugMode(ButterQuestTrackerConfig.DeveloperMode);
+    TH:SetDebugMode(self.db.global.DeveloperMode);
 
     self:RefreshQuestWatch();
     self:RefreshView();
-    ns.Log.Info("Addon Initialized");
+
+    self:LogInfo("Initialized");
 end
 
 function BQT:ShowWowheadPopup(type, id)
@@ -189,12 +182,12 @@ local function sortQuestFallback(quest, otherQuest, field, comparator)
     elseif comparator == "<" then
         return value < otherValue;
     else
-        ns.Log.Error("Unknown Comparator. (" .. comparator .. ")");
+        self:LogError("Unknown Comparator. (" .. comparator .. ")");
     end
 end
 
 local function sortQuests(quest, otherQuest)
-    local sorting = ButterQuestTrackerConfig.Sorting or "nil";
+    local sorting = BQT.db.global.Sorting or "nil";
     if sorting == "Disabled" then
         return false;
     end
@@ -208,18 +201,14 @@ local function sortQuests(quest, otherQuest)
     elseif sorting == "ByRecentlyUpdated" then
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     else
-        ns.Log.Error("Unknown Sorting value. (" .. sorting .. ")")
+        self:LogError("Unknown Sorting value. (" .. sorting .. ")")
     end
 
     return false;
 end
 
 function BQT:RefreshQuestWatch()
-    ns.Log.Trace("Refreshing Quest Watch");
-    local criteria = {
-        currentZoneOnly = ButterQuestTrackerConfig.CurrentZoneOnly,
-        hideCompletedQuests = ButterQuestTrackerConfig.HideCompletedQuests
-    };
+    self:LogTrace("Refreshing Quest Watch");
 
     local quests = QLH:GetQuests();
 
@@ -227,26 +216,26 @@ function BQT:RefreshQuestWatch()
     local minimapZone = GetMinimapZoneText();
 
     for questID, quest in pairs(quests) do
-        self:UpdateQuestWatch(criteria, currentZone, minimapZone, quest);
+        self:UpdateQuestWatch(currentZone, minimapZone, quest);
     end
 end
 
-function BQT:UpdateQuestWatch(criteria, currentZone, minimapZone, quest)
+function BQT:UpdateQuestWatch(currentZone, minimapZone, quest)
     local isCurrentZone = quest.zone == currentZone or quest.zone == minimapZone;
 
-    if ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[quest.questID] == true then
+    if self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == true then
         return AddQuestWatch(quest.index);
-    elseif ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
+    elseif self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
         return RemoveQuestWatch(quest.index);
-    elseif ButterQuestTrackerConfig.DisableFilters then
-        return RemoveQuestWatch(quest.index);
-    end
-
-    if criteria.hideCompletedQuests and quest.isComplete then
+    elseif self.db.global.DisableFilters then
         return RemoveQuestWatch(quest.index);
     end
 
-    if criteria.currentZoneOnly then
+    if self.db.global.HideCompletedQuests and quest.isComplete then
+        return RemoveQuestWatch(quest.index);
+    end
+
+    if self.db.global.CurrentZoneOnly then
         if isCurrentZone or quest.isClassQuest or quest.isProfessionQuest then
             AddQuestWatch(quest.index);
         else
@@ -258,18 +247,21 @@ function BQT:UpdateQuestWatch(criteria, currentZone, minimapZone, quest)
 end
 
 function BQT:RefreshView()
-    ns.Log.Info("Refresh Quests");
+    self:LogInfo("Refresh Quests");
     TH:Clear();
 
     local quests = QLH:GetWatchedQuests();
-    local questLimit = ButterQuestTrackerConfig.DisableFilters and MAX_WATCHABLE_QUESTS or ButterQuestTrackerConfig.QuestLimit;
+    local questLimit = self.db.global.DisableFilters and MAX_WATCHABLE_QUESTS or self.db.global.QuestLimit;
+    local questCount = QLH:GetQuestCount();
     local visibleQuestCount = math.min(questLimit, count(quests));
 
+    self:LogTrace("Quest Count:", questCount);
+    self:LogTrace("Visible Quest Count:", visibleQuestCount);
+
     local headerLabel;
-    if ButterQuestTrackerConfig.TrackerHeaderFormat == "Quests" then
+    if self.db.global.TrackerHeaderFormat == "Quests" then
         headerLabel = "Quests";
-    elseif ButterQuestTrackerConfig.TrackerHeaderFormat == "QuestsNumberVisible" then
-        local questCount = QLH:GetQuestCount();
+    elseif self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
 
         if visibleQuestCount < questCount then
             headerLabel = "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
@@ -281,13 +273,13 @@ function BQT:RefreshView()
     if headerLabel ~= nil then
         TH:DrawFont({
             label = headerLabel,
-            size = ButterQuestTrackerConfig.TrackerHeaderFontSize,
+            size = self.db.global.TrackerHeaderFontSize,
             color = NORMAL_FONT_COLOR,
             hoverColor = HIGHLIGHT_FONT_COLOR,
 
             container = TH:CreateContainer({
                 padding = {
-                    bottom = visibleQuestCount > 0 and ButterQuestTrackerConfig.QuestPadding or 0
+                    bottom = visibleQuestCount > 0 and self.db.global.QuestPadding or 0
                 },
 
                 events = {
@@ -317,8 +309,8 @@ function BQT:RefreshView()
                         TH:SetDebugMode();
                         local x, y = TH:GetPosition();
 
-                        ButterQuestTrackerConfig.PositionX = x;
-                        ButterQuestTrackerConfig.PositionY = y;
+                        self.db.global.PositionX = x;
+                        self.db.global.PositionY = y;
 
                         TH:UpdatePosition(x, y);
 
@@ -333,7 +325,7 @@ function BQT:RefreshView()
         if i <= questLimit then
             local questContainer = TH:CreateContainer({
                 padding = {
-                    top = i == 1 and 0 or ButterQuestTrackerConfig.QuestPadding
+                    top = i == 1 and 0 or self.db.global.QuestPadding
                 },
                 events = {
                     OnMouseUp = function(target, button)
@@ -358,8 +350,8 @@ function BQT:RefreshView()
 
             TH:DrawFont({
                 label = headerText,
-                size = ButterQuestTrackerConfig.QuestHeaderFontSize,
-                color = ButterQuestTrackerConfig.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or NORMAL_FONT_COLOR,
+                size = self.db.global.QuestHeaderFontSize,
+                color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or NORMAL_FONT_COLOR,
                 hoverColor = HIGHLIGHT_FONT_COLOR,
                 container = questContainer
             });
@@ -369,7 +361,7 @@ function BQT:RefreshView()
             if objectiveCount == 0 then
                 TH:DrawFont({
                     label = ' - ' .. quest.summary,
-                    size = ButterQuestTrackerConfig.ObjectiveFontSize,
+                    size = self.db.global.ObjectiveFontSize,
                     color = {
                         r = 0.8,
                         g = 0.8,
@@ -384,7 +376,7 @@ function BQT:RefreshView()
             elseif quest.isComplete then
                 TH:DrawFont({
                     label = ' - Ready to turn in',
-                    size = ButterQuestTrackerConfig.ObjectiveFontSize,
+                    size = self.db.global.ObjectiveFontSize,
                     color = {
                         r = 0.0,
                         g = 0.7,
@@ -400,7 +392,7 @@ function BQT:RefreshView()
                 for i, objective in ipairs(quest.objectives) do
                     TH:DrawFont({
                         label = ' - ' .. objective.text,
-                        size = ButterQuestTrackerConfig.ObjectiveFontSize,
+                        size = self.db.global.ObjectiveFontSize,
                         color = objective.completed and HIGHLIGHT_FONT_COLOR or ns.CONSTANTS.COLORS.OBJECTIVE,
                         hoverColor = HIGHLIGHT_FONT_COLOR,
                         container = questContainer,
@@ -435,7 +427,7 @@ function BQT:ToggleContextMenu(quest)
             text = "Untrack Quest",
             notCheckable = true,
             func = function()
-                ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
+                self.db.char.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
                 RemoveQuestWatch(self.quest.index);
             end
         });
@@ -498,14 +490,36 @@ function BQT:ToggleContextMenu(quest)
 end
 
 function BQT:ResetOverrides()
-    ns.Log.Info("Clearing Tracking Overrides...");
-    for questID, tracked in pairs(ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS) do
+    self:LogInfo("Clearing Tracking Overrides...");
+    for questID, tracked in pairs(self.db.char.MANUALLY_TRACKED_QUESTS) do
         local index = QLH:GetIndexFromQuestID(questID);
         if index then
             RemoveQuestWatch()
         end
     end
 
-    ButterQuestTrackerCharacterConfig.MANUALLY_TRACKED_QUESTS = {};
+    self.db.char.MANUALLY_TRACKED_QUESTS = {};
     self:RefreshQuestWatch();
+end
+
+function BQT:Debug(type, bypass, ...)
+    if bypass or (self.db.global.DeveloperMode and self.db.global.DebugLevel >= type.LEVEL) then
+        print(ns.CONSTANTS.LOGGER.PREFIX .. type.COLOR, ...);
+    end
+end
+
+function BQT:LogError(...)
+    self:Debug(ns.CONSTANTS.LOGGER.TYPES.ERROR, true, ...);
+end
+
+function BQT:LogWarn(...)
+    self:Debug(ns.CONSTANTS.LOGGER.TYPES.WARN, false, ...);
+end
+
+function BQT:LogInfo(...)
+    self:Debug(ns.CONSTANTS.LOGGER.TYPES.INFO, false, ...);
+end
+
+function BQT:LogTrace(...)
+    self:Debug(ns.CONSTANTS.LOGGER.TYPES.TRACE, false, ...);
 end

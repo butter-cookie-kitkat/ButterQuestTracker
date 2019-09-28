@@ -35,6 +35,12 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_VISUAL_TAB'] = "Visual Settings",
 
+    ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_NAME'] = "Background Always Visible",
+    ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'] = "Background Always Visible",
+
+    ['SETTINGS_BACKGROUND_COLOR_NAME'] = "Background Color",
+    ['SETTINGS_BACKGROUND_COLOR_DESC'] = "Background Color",
+
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "Color Headers By Difficulty Level",
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "Color codes the quests by their difficulty level.",
 

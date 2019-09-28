@@ -30,6 +30,12 @@ CONSTANTS.DEFAULT_CONFIG = {
 
     -- Visuals
 
+    BackgroundAlwaysVisible = false,
+    ['BackgroundColor-R'] = 0.0,
+    ['BackgroundColor-G'] = 0.0,
+    ['BackgroundColor-B'] = 0.0,
+    ['BackgroundColor-A'] = 0.5,
+
     TrackerHeaderFormat = "QuestsNumberVisible",
     ColorHeadersByDifficultyLevel = false,
 

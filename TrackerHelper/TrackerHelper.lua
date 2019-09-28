@@ -87,6 +87,15 @@ function helper:UpdateFrame(options)
         self.maxHeight = options.maxHeight;
         self:UpdateHeight();
     end
+
+    if options.backgroundColor ~= nil then
+        frame.backgroundFrame.texture:SetColorTexture(options.backgroundColor.r, options.backgroundColor.g, options.backgroundColor.b, options.backgroundColor.a)
+    end
+
+    if options.backgroundAlwaysVisible ~= nil then
+        self.backgroundAlwaysVisible = options.backgroundAlwaysVisible;
+        self:SetBackgroundVisibility();
+    end
 end
 
 function helper:Clear()
@@ -141,8 +150,9 @@ function helper:GetFrame()
         frame.backgroundFrame:SetSize(1, 1);
         frame.backgroundFrame:SetAllPoints();
 
-        frame.backgroundFrame:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" });
-        frame.backgroundFrame:SetBackdropColor(0, 0, 0, 1);
+        frame.backgroundFrame.texture = frame.backgroundFrame:CreateTexture(nil, "BACKGROUND");
+        frame.backgroundFrame.texture:SetAllPoints();
+        frame.backgroundFrame.texture:SetColorTexture(0, 0, 0, 0.5);
 
         self:SetDebugMode();
         self:UpdateWidth(250);
@@ -234,9 +244,9 @@ function helper:GetPosition()
 end
 
 function helper:SetBackgroundVisibility(visible)
-    self.initial = self.initial == nil and true or self.initial;
-    local from = visible and 0 or 1;
-    local to = visible and 1 or 0;
+    self.initial = self.initial == nil or self.initial;
+    local from = (self.backgroundAlwaysVisible or visible) and 0 or 1;
+    local to = (self.backgroundAlwaysVisible or visible) and 1 or 0;
 
     local frame = self:GetFrame();
 

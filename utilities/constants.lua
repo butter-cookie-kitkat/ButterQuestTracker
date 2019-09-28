@@ -19,50 +19,52 @@ local CONSTANTS = {
 CONSTANTS.PATHS.MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\";
 CONSTANTS.PATHS.LOGO = "|T" .. CONSTANTS.PATHS.MEDIA .. "BQT_logo:24:24:0:-8" .. "|t";
 
-CONSTANTS.DEFAULT_CONFIG = {
-    -- Filters & Sorting
+CONSTANTS.DB_DEFAULTS = {
+    global = {
+        -- Filters & Sorting
 
-    DisableFilters = false,
-    Sorting = "Disabled",
-    CurrentZoneOnly = false,
-    HideCompletedQuests = false,
-    QuestLimit = 10,
-    AutoTrackUpdatedQuests = false,
+        DisableFilters = false,
+        Sorting = "Disabled",
+        CurrentZoneOnly = false,
+        HideCompletedQuests = false,
+        QuestLimit = 10,
+        AutoTrackUpdatedQuests = false,
 
-    -- Visuals
+        -- Visuals
 
-    BackgroundAlwaysVisible = false,
-    ['BackgroundColor-R'] = 0.0,
-    ['BackgroundColor-G'] = 0.0,
-    ['BackgroundColor-B'] = 0.0,
-    ['BackgroundColor-A'] = 0.5,
+        BackgroundAlwaysVisible = false,
+        ['BackgroundColor-R'] = 0.0,
+        ['BackgroundColor-G'] = 0.0,
+        ['BackgroundColor-B'] = 0.0,
+        ['BackgroundColor-A'] = 0.5,
 
-    TrackerHeaderFormat = "QuestsNumberVisible",
-    ColorHeadersByDifficultyLevel = false,
+        TrackerHeaderFormat = "QuestsNumberVisible",
+        ColorHeadersByDifficultyLevel = false,
 
-    TrackerHeaderFontSize = 12,
-    QuestHeaderFontSize = 12,
-    ObjectiveFontSize = 12,
-    QuestPadding = 10,
+        TrackerHeaderFontSize = 12,
+        QuestHeaderFontSize = 12,
+        ObjectiveFontSize = 12,
+        QuestPadding = 10,
 
-    -- Frame Settings
+        -- Frame Settings
 
-    PositionX = 0,
-    PositionY = -240,
-    Width = 250,
-    MaxHeight = 450,
+        PositionX = 0,
+        PositionY = -240,
+        Width = 250,
+        MaxHeight = 450,
 
-    -- Advanced
+        -- Advanced
 
-    DeveloperMode = false,
-    DebugLevel = 3
-};
+        DeveloperMode = false,
+        DebugLevel = 3
+    },
 
-CONSTANTS.DEFAULT_CHARACTER_CONFIG = {
-    -- Backend
+    char = {
+        -- Backend
 
-    MANUALLY_TRACKED_QUESTS = {},
-    QUESTS_LAST_UPDATED = {}
+        MANUALLY_TRACKED_QUESTS = {},
+        QUESTS_LAST_UPDATED = {}
+    }
 };
 
 CONSTANTS.LOGGER = {

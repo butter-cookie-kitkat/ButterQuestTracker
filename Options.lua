@@ -25,20 +25,20 @@ local function Spacer(size)
 end
 
 local function GetFromDB(info)
-    return ButterQuestTrackerConfig[info.arg];
+    return BQT.db.global[info.arg];
 end
 
 local function GetColor(info)
-    local r = ButterQuestTrackerConfig[info.arg .. "-R"];
-    local g = ButterQuestTrackerConfig[info.arg .. "-G"];
-    local b = ButterQuestTrackerConfig[info.arg .. "-B"];
-    local a = ButterQuestTrackerConfig[info.arg .. "-A"];
+    local r = BQT.db.global[info.arg .. "-R"];
+    local g = BQT.db.global[info.arg .. "-G"];
+    local b = BQT.db.global[info.arg .. "-B"];
+    local a = BQT.db.global[info.arg .. "-A"];
 
     return r, g, b, a;
 end
 
 local function SetInDB(info, value)
-    ButterQuestTrackerConfig[info.arg] = value;
+    BQT.db.global[info.arg] = value;
 end
 
 local function SetAndRefreshQuestWatch(info, value)
@@ -52,10 +52,10 @@ local function SetAndRefreshView(info, value)
 end
 
 local function SetColor(info, r, g, b ,a)
-    ButterQuestTrackerConfig[info.arg .. "-R"] = r;
-    ButterQuestTrackerConfig[info.arg .. "-G"] = g;
-    ButterQuestTrackerConfig[info.arg .. "-B"] = b;
-    ButterQuestTrackerConfig[info.arg .. "-A"] = a;
+    BQT.db.global[info.arg .. "-R"] = r;
+    BQT.db.global[info.arg .. "-G"] = g;
+    BQT.db.global[info.arg .. "-B"] = b;
+    BQT.db.global[info.arg .. "-A"] = a;
 end
 
 local options = {
@@ -152,7 +152,7 @@ local options = {
                     width = 2.4,
                     order = order(),
 
-                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
+                    disabled = function() return BQT.db.global.DisableFilters end,
 
                     set = SetAndRefreshQuestWatch
                 },
@@ -168,7 +168,7 @@ local options = {
                     step = 1,
                     order = order(),
 
-                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
+                    disabled = function() return BQT.db.global.DisableFilters end,
 
                     set = SetAndRefreshView
                 },
@@ -182,7 +182,7 @@ local options = {
                     type = "toggle",
                     order = order(),
 
-                    disabled = function() return ButterQuestTrackerConfig.DisableFilters end,
+                    disabled = function() return BQT.db.global.DisableFilters end,
 
                     set = SetAndRefreshQuestWatch
                 },
@@ -222,7 +222,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
                         TH:UpdateFrame({
-                            backgroundAlwaysVisible = ButterQuestTrackerConfig.BackgroundAlwaysVisible
+                            backgroundAlwaysVisible = BQT.db.global.BackgroundAlwaysVisible
                         });
                     end
                 },
@@ -440,9 +440,9 @@ local options = {
                     order = order(),
 
                     func = function()
-                        ButterQuestTrackerConfig.PositionX = ns.CONSTANTS.DEFAULT_CONFIG.PositionX;
-                        ButterQuestTrackerConfig.PositionY = ns.CONSTANTS.DEFAULT_CONFIG.PositionY;
-                        TH:UpdatePosition(ButterQuestTrackerConfig.PositionX, ButterQuestTrackerConfig.PositionY);
+                        BQT.db.global.PositionX = ns.CONSTANTS.DB_DEFAULTS.global.PositionX;
+                        BQT.db.global.PositionY = ns.CONSTANTS.DB_DEFAULTS.global.PositionY;
+                        TH:UpdatePosition(BQT.db.global.PositionX, BQT.db.global.PositionY);
                     end
                 },
 
@@ -453,12 +453,12 @@ local options = {
                     order = order(),
 
                     func = function()
-                        ButterQuestTrackerConfig.Width = ns.CONSTANTS.DEFAULT_CONFIG.Width;
-                        ButterQuestTrackerConfig.MaxHeight = ns.CONSTANTS.DEFAULT_CONFIG.MaxHeight;
+                        BQT.db.global.Width = ns.CONSTANTS.DB_DEFAULTS.global.Width;
+                        BQT.db.global.MaxHeight = ns.CONSTANTS.DB_DEFAULTS.global.MaxHeight;
 
                         TH:UpdateFrame({
-                            width = ButterQuestTrackerConfig.Width,
-                            maxHeight = ButterQuestTrackerConfig.MaxHeight
+                            width = BQT.db.global.Width,
+                            maxHeight = BQT.db.global.MaxHeight
                         });
                     end
                 },
@@ -507,7 +507,7 @@ local options = {
                     order = order(),
 
                     disabled = function()
-                        return not ButterQuestTrackerConfig.DeveloperMode;
+                        return not BQT.db.global.DeveloperMode;
                     end
                 },
 
@@ -541,7 +541,7 @@ local options = {
 
                     get = function() return BQTL:GetLocale() end,
                     set = function(input, locale)
-                        ButterQuestTrackerConfig.Locale = locale;
+                        BQT.db.global.Locale = locale;
                         BQTL:SetLocale(locale);
                     end,
                 },
@@ -573,26 +573,31 @@ local options = {
                     order = order(),
 
                     func = function()
-                        ButterQuestTrackerConfig = CopyTable(ns.CONSTANTS.DEFAULT_CONFIG);
-                        ButterQuestTrackerCharacterConfig = CopyTable(ns.CONSTANTS.DEFAULT_CHARACTER_CONFIG);
+                        for k, v in pairs(ns.CONSTANTS.DB_DEFAULTS.global) do
+                           BQT.db.global[k] = v
+                        end
+
+                        for k, v in pairs(ns.CONSTANTS.DB_DEFAULTS.char) do
+                           BQT.db.char[k] = v
+                        end
 
                         TH:UpdateFrame({
-                            x = ButterQuestTrackerConfig.PositionX,
-                            y = ButterQuestTrackerConfig.PositionY,
-                            width = ButterQuestTrackerConfig.Width,
-                            maxHeight = ButterQuestTrackerConfig.MaxHeight,
+                            x = BQT.db.global.PositionX,
+                            y = BQT.db.global.PositionY,
+                            width = BQT.db.global.Width,
+                            maxHeight = BQT.db.global.MaxHeight,
 
                             backgroundColor = {
-                                r = ButterQuestTrackerConfig['BackgroundColor-R'],
-                                g = ButterQuestTrackerConfig['BackgroundColor-G'],
-                                b = ButterQuestTrackerConfig['BackgroundColor-B'],
-                                a = ButterQuestTrackerConfig['BackgroundColor-A']
+                                r = BQT.db.global['BackgroundColor-R'],
+                                g = BQT.db.global['BackgroundColor-G'],
+                                b = BQT.db.global['BackgroundColor-B'],
+                                a = BQT.db.global['BackgroundColor-A']
                             },
 
-                            backgroundAlwaysVisible = ButterQuestTrackerConfig.BackgroundAlwaysVisible
+                            backgroundAlwaysVisible = BQT.db.global.BackgroundAlwaysVisible
                         });
 
-                        TH:SetDebugMode(ButterQuestTrackerConfig.DeveloperMode);
+                        TH:SetDebugMode(BQT.db.global.DeveloperMode);
                         BQT:RefreshQuestWatch();
                     end
                 },

@@ -6,7 +6,7 @@
 ## RequiredDeps:
 ## OptionalDeps: Ace3
 ## SavedVariables: ButterQuestTrackerConfig
-## SavedVariablesPerCharacter: ButterQuestTrackerCharacterConfig
+## SavedVariablesPerCharacter: ButterQuestTrackerCharacterConfig, ButterQuestTrackerConfigCharacter
 
 embeds.xml
 
@@ -15,7 +15,6 @@ Locale\ButterQuestTrackerLocale.lua
 Locale\enUS\locale.xml
 
 utilities\constants.lua
-utilities\logger.lua
 
 ButterQuestTracker.lua
 Options.lua

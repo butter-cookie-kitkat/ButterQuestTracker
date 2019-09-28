@@ -7,11 +7,8 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_FILTERS_AND_SORTING_TAB'] = "Filters & Sorting",
 
-    ['SETTINGS_DISABLE_FILTERS_NAME'] = "Disable Filters",
-    ['SETTINGS_DISABLE_FILTERS_DESC'] = "Disables the automatic filtering functionality, requiring you to manually track quests.\n\n|c00FF9696Unchecking this will wipe out your overrides.|r",
-
-    ['SETTINGS_CURRENT_ZONE_ONLY_NAME'] = "Current Zone Only",
-    ['SETTINGS_CURRENT_ZONE_ONLY_DESC'] = "Displays quests relevant to the current zone / subzone.",
+    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'] = "Automatically Track Updated Quests",
+    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'] = "If a quest is accepted / updated it will bypass the filters and be automatically tracked.\n\n|c00FF9696This functionality utilizes the tracking overrides to bypass the filters. As such, disabling this option will also wipe out your overrides.|r",
 
     ['SETTINGS_SORTING_NAME'] = "Sorting",
     ['SETTINGS_SORTING_DESC'] = "Dictate how quests are sorted in the tracker.",
@@ -22,14 +19,19 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'] = "By %% Completed",
     ['SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION'] = "By Recently Updated",
 
-    ['SETTINGS_HIDE_COMPLETED_QUESTS_NAME'] = "Hide Completed Quests",
-    ['SETTINGS_HIDE_COMPLETED_QUESTS_DESC'] = "Displays quests that have been completed.",
+    -- Settings > Filters & Sorting > Filters
+
+    ['SETTINGS_DISABLE_FILTERS_NAME'] = "Disable Filters / Manually Track Quests",
+    ['SETTINGS_DISABLE_FILTERS_DESC'] = "Disables the automatic filtering functionality, requiring you to manually track quests.\n\n|c00FF9696Unchecking this will wipe out your overrides.|r",
+
+    ['SETTINGS_CURRENT_ZONE_ONLY_NAME'] = "Current Zone Only",
+    ['SETTINGS_CURRENT_ZONE_ONLY_DESC'] = "Displays quests relevant to the current zone / subzone.",
 
     ['SETTINGS_QUEST_LIMIT_NAME'] = "Quest Limit",
     ['SETTINGS_QUEST_LIMIT_DESC'] = "Limits the number of quests visible on the screen at a given time.",
 
-    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'] = "Automatically Track Updated Quests",
-    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'] = "If a quest is accepted / updated it will automatically be tracked on the tracker.\n\n|c00FF9696This functionality utilizes the tracking overrides to bypass the filters. As such, disabling this option will also wipe out your overrides.|r",
+    ['SETTINGS_HIDE_COMPLETED_QUESTS_NAME'] = "Hide Completed Quests",
+    ['SETTINGS_HIDE_COMPLETED_QUESTS_DESC'] = "Displays quests that have been completed.",
 
     ['SETTINGS_RESET_TRACKING_OVERRIDES_NAME'] = "Reset Tracking Overrides",
     ['SETTINGS_RESET_TRACKING_OVERRIDES_DESC'] = "Reset's all manual quest watch overrides.",

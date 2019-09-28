@@ -5,26 +5,56 @@ local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
 local BlizzardTrackerFrame = isWoWClassic and QuestWatchFrame or ObjectiveTrackerFrame;
 
-local listeners = {};
-local updateListenersTimer;
-local updatedQuestIndexes = {};
-local function updateListeners(index, watched)
-    if updateListenersTimer then
-        updateListenersTimer:Cancel();
+local timers = {};
+local function debounce(name, func)
+    if timers[name] then
+        timers[name]:Cancel();
     end
 
+    timers[name] = C_Timer.NewTimer(0.1, func);
+end
+
+local listeners = {};
+local updatedQuestIndexes = {};
+local function updateListeners(index, watched)
     updatedQuestIndexes[index] = {
         watched = watched,
         -- This is a massive hack, is there a better way to see if a quest log was manually watched by the user.. ?
         byUser = IsShiftKeyDown() and QLH:IsShown()
     };
 
-    updateListenersTimer = C_Timer.NewTimer(0.1, function()
+    debounce("listeners", function()
         for i, listener in ipairs(listeners) do
             listener(updatedQuestIndexes);
         end
         updatedQuestIndexes = {};
-    end)
+    end);
+end
+
+local updatedQuestIDs = {};
+local function updateMapTrackerAddons(questID, watched)
+    updatedQuestIDs[questID] = watched;
+
+    debounce("mapAddons", function()
+        for questID, watched in pairs(updatedQuestIDs) do
+            if Questie then
+                local quest = QuestieDB:GetQuest(questID);
+
+                quest.HideIcons = not watched;
+            end
+        end
+
+        if Questie then
+            QuestieQuest:UpdateHiddenNotes();
+        end
+        updatedQuestIDs = {};
+    end);
+end
+
+local function count(t)
+    local count = 0;
+    for _, _ in pairs(t) do count = count + 1 end
+    return count;
 end
 
 function helper:GetFrame()
@@ -60,6 +90,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
             trackedQuests[questID] = true;
 
             updateListeners(index, true);
+            updateMapTrackerAddons(questID, true);
         end
     end
 
@@ -75,6 +106,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
             trackedQuests[questID] = nil;
 
             updateListeners(index, false);
+            updateMapTrackerAddons(questID, false);
         end
     end);
 
@@ -83,7 +115,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
     end
 
     GetNumQuestWatches = function()
-        return table.getn(trackedQuests);
+        return 0;
     end
 
     -- This bypasses a limitation that would prevent users from tracking quests without objectives
@@ -97,7 +129,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
         if not quest then return 0 end
 
-        local objectiveCount = table.getn(quest.objectives);
+        local objectiveCount = count(quest.objectives);
 
         if objectiveCount == 0 then return 1 end
 
@@ -105,6 +137,13 @@ function helper:BypassWatchLimit(initialTrackedQuests)
     end
 
     MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
+
+    -- This is a massive hack to prevent questie from ignoring us.
+    C_Timer.After(0.1, function()
+        for questID, quest in pairs(QLH:GetQuests()) do
+            updateMapTrackerAddons(questID, trackedQuests[questID] == true);
+        end
+    end);
 end
 
 function helper:OnQuestWatchUpdated(listener)

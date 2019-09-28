@@ -8,7 +8,6 @@ local class = UnitClass("player");
 local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
 
 local cache = {
-    quests = {},
     lastUpdated = {}
 };
 
@@ -190,6 +189,8 @@ function helper:GetDifficultyColor(difficulty)
 end
 
 function helper:Refresh()
+    cache.quests = cache.quests or {};
+
     local numberOfEntries = GetNumQuestLogEntries();
 
     for questID, quest in pairs(cache.quests) do

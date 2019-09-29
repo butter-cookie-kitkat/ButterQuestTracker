@@ -185,15 +185,45 @@ local function getWorldPlayerPosition()
     return worldPosition;
 end
 
-local function getDistanceToClosestObjective(questID)
+local function getDistanceToClosestObjective(quest)
     if not BQT.playerPosition then
         BQT.playerPosition = getWorldPlayerPosition();
     end
 
-    local closestDistance, closestPosition;
+    local closestDistance;
     if Questie then
-        local QQ = QuestieDB:GetQuest(questID);
-        if QQ and QQ.Objectives then
+        local QQ = QuestieDB:GetQuest(quest.questID);
+
+        if not QQ then return end;
+
+        if quest.isComplete or count(quest.objectives) == 0 then
+            local finisher;
+            if QQ.Finisher.Type == "monster" then
+                finisher = QuestieDB:GetNPC(QQ.Finisher.Id)
+            elseif QQ.Finisher.Type == "object" then
+                finisher = QuestieDB:GetObject(QQ.Finisher.Id)
+            end
+
+            if not finisher then return end;
+
+            for zoneID, spawns in pairs(finisher.spawns) do
+                for _, coords in pairs(spawns) do
+                    local uiMapID = ZH:GetUIMapID(zoneID);
+
+                    if uiMapID then
+                        local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, {
+                            x = coords[1] / 100,
+                            y = coords[2] / 100
+                        });
+
+                        local distance = distance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
+                        if closestDistance == nil or distance < closestDistance then
+                            closestDistance = distance;
+                        end
+                    end
+                end
+            end
+        elseif QQ.Objectives then
             for _, objective in pairs(QQ.Objectives) do
                 for k, v in pairs(objective.AlreadySpawned) do
                     for _, mapRef in pairs(v.mapRefs) do
@@ -205,14 +235,11 @@ local function getDistanceToClosestObjective(questID)
                         local distance = distance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
                         if closestDistance == nil or distance < closestDistance then
                             closestDistance = distance;
-                            closestPosition = worldPosition;
                         end
                     end
                 end
             end
         end
-    else
-        closestDistance = 0;
     end
 
     return closestDistance;
@@ -257,8 +284,8 @@ local function sortQuests(quest, otherQuest)
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     elseif sorting == "ByQuestProximity" then
         if Questie then
-            quest.distanceToClosestObjective = getDistanceToClosestObjective(quest.questID);
-            otherQuest.distanceToClosestObjective = getDistanceToClosestObjective(otherQuest.questID);
+            quest.distanceToClosestObjective = getDistanceToClosestObjective(quest);
+            otherQuest.distanceToClosestObjective = getDistanceToClosestObjective(otherQuest);
         else
             quest.distanceToClosestObjective = 0;
             otherQuest.distanceToClosestObjective = 0;
@@ -448,6 +475,11 @@ function BQT:RefreshView()
             end
 
             headerText = headerText .. quest.title;
+
+            if self.db.global.DeveloperMode and quest.distanceToClosestObjective then
+                local precision = "%.".. 1 .."f";
+                headerText = headerText .. string.format(" ( " .. precision .. " )", quest.distanceToClosestObjective);
+            end
 
             TH:DrawFont({
                 label = headerText,

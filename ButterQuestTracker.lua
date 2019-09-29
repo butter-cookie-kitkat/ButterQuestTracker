@@ -139,8 +139,8 @@ function BQT:ShowWowheadPopup(type, id)
     StaticPopup_Show(NAME .. "_WowheadURL", type, id)
 end
 
-local function distance(x1, x2, y1, y2)
-    return math.sqrt(math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2));
+local function distance(x1, y1, x2, y2)
+	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
 end
 
 local function count(t)
@@ -177,23 +177,35 @@ local function spairs(t, order)
     end
 end
 
+local function getWorldPlayerPosition()
+    local uiMapID = C_Map.GetBestMapForUnit("player");
+    local mapPosition = C_Map.GetPlayerMapPosition(uiMapID, "player");
+    local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, mapPosition);
+
+    return worldPosition;
+end
+
 local function getDistanceToClosestObjective(questID)
     if not BQT.playerPosition then
-        BQT.playerPosition = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
+        BQT.playerPosition = getWorldPlayerPosition();
     end
 
-    local closestDistance;
+    local closestDistance, closestPosition;
     if Questie then
         local QQ = QuestieDB:GetQuest(questID);
         if QQ and QQ.Objectives then
             for _, objective in pairs(QQ.Objectives) do
                 for k, v in pairs(objective.AlreadySpawned) do
                     for _, mapRef in pairs(v.mapRefs) do
-                        local distance = distance(BQT.playerPosition.x, mapRef.x, BQT.playerPosition.y, mapRef.y);
-                        if closestDistance == nil then
+                        local _, worldPosition = C_Map.GetWorldPosFromMapPos(mapRef.data.UiMapID, {
+                            x = mapRef.x / 100,
+                            y = mapRef.y / 100
+                        });
+
+                        local distance = distance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
+                        if closestDistance == nil or distance < closestDistance then
                             closestDistance = distance;
-                        else
-                            closestDistance = math.min(closestDistance, distance)
+                            closestPosition = worldPosition;
                         end
                     end
                 end
@@ -268,8 +280,8 @@ function BQT:UpdateQuestProximityTimer()
         self.questProximityTimer = C_Timer.NewTicker(5.0, function()
             self:LogTrace("-- Starting ByQuestProximity Checks --");
             self:LogTrace("Checking if player has moved...");
-            local position = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
-            local distance = distance(position.x, self.playerPosition.x, position.y, self.playerPosition.y);
+            local position = getWorldPlayerPosition();
+            local distance = distance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
 
             if not initialized or distance > 0.01 then
                 initialized = true;

@@ -262,25 +262,26 @@ end
 
 function BQT:UpdateQuestProximityTimer()
     if self.db.global.Sorting == "ByQuestProximity" then
-        C_Timer.After(3.0, function()
-            self:RefreshView();
+        local initialized = false;
+        self:RefreshView();
 
-            self.questProximityTimer = C_Timer.NewTicker(5.0, function()
-                self:LogTrace("-- Starting ByQuestProximity Checks --");
-                self:LogTrace("Checking if player has moved...");
-                local position = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
-                local distance = distance(position.x, self.playerPosition.x, position.y, self.playerPosition.y);
+        self.questProximityTimer = C_Timer.NewTicker(5.0, function()
+            self:LogTrace("-- Starting ByQuestProximity Checks --");
+            self:LogTrace("Checking if player has moved...");
+            local position = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
+            local distance = distance(position.x, self.playerPosition.x, position.y, self.playerPosition.y);
 
-                if not self.playerPosition or distance > 0.01 then
-                    self.playerPosition = position;
-                    self:RefreshView();
-                else
-                    self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
-                end
-                self:LogTrace("-- Ending ByQuestProximity Checks --");
-            end);
+            if not initialized or distance > 0.01 then
+                initialized = true;
+                self.playerPosition = position;
+                self:RefreshView();
+            else
+                self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
+            end
+            self:LogTrace("-- Ending ByQuestProximity Checks --");
         end);
     elseif self.questProximityTimer then
+        self.playerPosition = nil;
         self.questProximityTimer:Cancel();
     end
 end

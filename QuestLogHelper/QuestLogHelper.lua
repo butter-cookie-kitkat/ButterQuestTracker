@@ -1,6 +1,5 @@
 local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local helper = LibStub:NewLibrary("QuestLogHelper-1.0", 1);
-local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 -- /dump LibStub("QuestLogHelper-1.0"):GetQuests();
 -- /dump LibStub("QuestLogHelper-1.0"):GetWatchedQuests();
 
@@ -12,15 +11,15 @@ local cache = {
 };
 
 local function count(t)
-    local count = 0;
+    local _count = 0;
     if t then
-        for _, _ in pairs(t) do count = count + 1 end
+        for _, _ in pairs(t) do _count = _count + 1 end
     end
-    return count;
+    return _count;
 end
 
 local function has_value (tab, val)
-    for index, value in ipairs(tab) do
+    for _, value in ipairs(tab) do
         if value == val then
             return true
         end
@@ -42,7 +41,7 @@ end
 local function getCompletionPercent(objectives)
     local completionPercent = 0;
 
-    for i, objective in ipairs(objectives) do
+    for _, objective in ipairs(objectives) do
         if objective.completed then
             completionPercent = completionPercent + 1;
         elseif objective.numFulfilled ~= 0 then
@@ -64,7 +63,7 @@ local function updateListeners(questID, info)
     updatedQuests[questID] = info;
 
     updateListenersTimer = C_Timer.NewTimer(0.1, function()
-        for i, listener in ipairs(listeners) do
+        for _, listener in ipairs(listeners) do
             listener(updatedQuests);
         end
         updatedQuests = {};
@@ -209,7 +208,7 @@ function helper:Refresh()
 
 	local zone;
     for index = 1, numberOfEntries, 1 do
-        local title, level, suggestedGroup, isHeader, _, isComplete, frequency, questID, startEvent, displayQuestID, isOnMap, hasLocalPOI, isTask, isBounty, isStory, isHidden, isScaling = GetQuestLogTitle(index);
+        local title, level, _, isHeader, _, isComplete, _, questID, _, _, _, _, _, _, _, _, _ = GetQuestLogTitle(index);
         local isClassQuest = zone == class;
         local isProfessionQuest = has_value(professions, zone);
 

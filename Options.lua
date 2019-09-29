@@ -1,7 +1,6 @@
-local NAME, ns = ...
+local _, ns = ...
 
 local ACD = LibStub("AceConfigDialog-3.0");
-local QLH = LibStub("QuestLogHelper-1.0");
 local BQTL = ButterQuestTrackerLocale;
 local TH = LibStub("TrackerHelper-1.0");
 

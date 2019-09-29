@@ -24,7 +24,7 @@ local function updateListeners(index, watched)
     };
 
     debounce("listeners", function()
-        for i, listener in ipairs(listeners) do
+        for _, listener in ipairs(listeners) do
             listener(updatedQuestIndexes);
         end
         updatedQuestIndexes = {};
@@ -32,8 +32,8 @@ local function updateListeners(index, watched)
 end
 
 local updatedQuestIDs = {};
-local function updateMapTrackerAddons(questID, watched)
-    updatedQuestIDs[questID] = watched;
+local function updateMapTrackerAddons(updatedQuestID, updatedWathed)
+    updatedQuestIDs[updatedQuestID] = updatedWathed;
 
     debounce("mapAddons", function()
         for questID, watched in pairs(updatedQuestIDs) do
@@ -52,9 +52,9 @@ local function updateMapTrackerAddons(questID, watched)
 end
 
 local function count(t)
-    local count = 0;
-    for _, _ in pairs(t) do count = count + 1 end
-    return count;
+    local _count = 0;
+    for _, _ in pairs(t) do _count = _count + 1 end
+    return _count;
 end
 
 function helper:GetFrame()
@@ -72,7 +72,7 @@ end
 function helper:BypassWatchLimit(initialTrackedQuests)
     if not isWoWClassic then return end
 
-    trackedQuests = {};
+    local trackedQuests = {};
     for questID, tracked in pairs(initialTrackedQuests) do
         if tracked then
             trackedQuests[questID] = true;
@@ -120,7 +120,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
     -- This bypasses a limitation that would prevent users from tracking quests without objectives
     GetNumQuestLeaderBoards = function(index)
-        local index = index or GetQuestLogSelection();
+        index = index or GetQuestLogSelection();
         local questID = QLH:GetQuestIDFromIndex(index);
 
         if not questID then return 0 end
@@ -140,7 +140,7 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
     -- This is a massive hack to prevent questie from ignoring us.
     C_Timer.After(0.1, function()
-        for questID, quest in pairs(QLH:GetQuests()) do
+        for questID in pairs(QLH:GetQuests()) do
             updateMapTrackerAddons(questID, trackedQuests[questID] == true);
         end
     end);
@@ -151,8 +151,8 @@ function helper:OnQuestWatchUpdated(listener)
 end
 
 function helper:KeepHidden()
-    BlizzardTrackerFrame:HookScript("OnShow", function(self)
-        return self:Hide()
+    BlizzardTrackerFrame:HookScript("OnShow", function(frame)
+        return frame:Hide()
     end);
     BlizzardTrackerFrame:Hide();
 end

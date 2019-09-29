@@ -1,8 +1,6 @@
 local helper = LibStub:NewLibrary("TrackerHelper-1.0", 1);
-local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
-local frame;
-local indexes;
+local _frame, indexes;
 local elements = {
     fonts = {},
     containers = {}
@@ -112,47 +110,47 @@ function helper:Clear()
         elements.fonts[i] = nil;
     end
 
-    for i, container in pairs(elements.containers) do
+    for _, container in pairs(elements.containers) do
         container:Hide();
     end
 end
 
 -- /dump LibStub("TrackerHelper-1.0"):GetFrame()
 function helper:GetFrame()
-    if not frame then
-        frame = CreateFrame("Frame", nil, UIParent);
-        frame:SetSize(1, 1);
-        frame:SetFrameStrata("BACKGROUND");
-        frame:SetMovable(true);
-        frame:EnableMouseWheel(true);
-        frame:SetClipsChildren(true);
+    if not _frame then
+        _frame = CreateFrame("Frame", nil, UIParent);
+        _frame:SetSize(1, 1);
+        _frame:SetFrameStrata("BACKGROUND");
+        _frame:SetMovable(true);
+        _frame:EnableMouseWheel(true);
+        _frame:SetClipsChildren(true);
 
-        frame:SetScript("OnMouseWheel", function(self, value)
-            local _, _, _, _, y = frame.content:GetPoint("TOP");
-            frame.content:SetPoint("TOP", frame, 0, y + 10 * -value);
+        _frame:SetScript("OnMouseWheel", function(_, value)
+            local _, _, _, _, y = _frame.content:GetPoint("TOP");
+            _frame.content:SetPoint("TOP", _frame, 0, y + 10 * -value);
 
-            if frame.content:GetTop() + 5 < frame:GetTop() then
-                frame.content:SetPoint("TOP", frame, 0, -5);
-            elseif frame.content:GetBottom() - 5 > frame:GetBottom() then
-                frame.content:SetPoint("TOP", frame, 0, frame.content:GetHeight() - frame:GetHeight() + 5);
+            if _frame.content:GetTop() + 5 < _frame:GetTop() then
+                _frame.content:SetPoint("TOP", _frame, 0, -5);
+            elseif _frame.content:GetBottom() - 5 > _frame:GetBottom() then
+                _frame.content:SetPoint("TOP", _frame, 0, _frame.content:GetHeight() - _frame:GetHeight() + 5);
             end
         end);
 
-        frame.content = CreateFrame("Frame", nil, frame);
-        frame.content.elements = {};
+        _frame.content = CreateFrame("Frame", nil, _frame);
+        _frame.content.elements = {};
 
-        frame.content.SetRealHeight = frame.content.SetHeight;
-        function frame.content:SetHeight(height)
+        _frame.content.SetRealHeight = _frame.content.SetHeight;
+        _frame.content.SetHeight = function(_, height)
             helper:UpdateHeight(height);
         end
 
-        frame.backgroundFrame = CreateFrame("Frame", nil, frame);
-        frame.backgroundFrame:SetSize(1, 1);
-        frame.backgroundFrame:SetAllPoints();
+        _frame.backgroundFrame = CreateFrame("Frame", nil, _frame);
+        _frame.backgroundFrame:SetSize(1, 1);
+        _frame.backgroundFrame:SetAllPoints();
 
-        frame.backgroundFrame.texture = frame.backgroundFrame:CreateTexture(nil, "BACKGROUND");
-        frame.backgroundFrame.texture:SetAllPoints();
-        frame.backgroundFrame.texture:SetColorTexture(0, 0, 0, 0.5);
+        _frame.backgroundFrame.texture = _frame.backgroundFrame:CreateTexture(nil, "BACKGROUND");
+        _frame.backgroundFrame.texture:SetAllPoints();
+        _frame.backgroundFrame.texture:SetColorTexture(0, 0, 0, 0.5);
 
         self:SetDebugMode();
         self:UpdateWidth(250);
@@ -160,7 +158,7 @@ function helper:GetFrame()
         self:Clear();
     end
 
-    return frame;
+    return _frame;
 end
 
 local function refreshElementSize(element, parent)
@@ -280,7 +278,7 @@ function helper:SetDebugMode(debug)
 
     self:SetBackgroundVisibility(self.debug);
 
-    for i, container in pairs(elements.containers) do
+    for _, container in pairs(elements.containers) do
         if self.debug then
             container:SetBackdropColor(0, 1, 0, 0.5);
         else
@@ -369,7 +367,7 @@ function helper:CreateContainer(options)
         end);
 
         container:SetScript("OnEnter", function(...)
-            for i, element in pairs(container.elements) do
+            for _, element in pairs(container.elements) do
                 local hoverColor = element.metadata.hoverColor;
 
                 if hoverColor then
@@ -390,7 +388,7 @@ function helper:CreateContainer(options)
                 originalPosition = nil;
             end
 
-            for i, element in pairs(container.elements) do
+            for _, element in pairs(container.elements) do
                 local color = element.metadata.color;
 
                 if color then

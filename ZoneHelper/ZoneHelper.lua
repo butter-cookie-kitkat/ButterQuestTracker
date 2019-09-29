@@ -1,6 +1,5 @@
 local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local helper = LibStub:NewLibrary("ZoneHelper-1.0", 1);
-local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
 local zoneIDToUiMapID = {};
 
@@ -13,7 +12,7 @@ local function updateListeners()
 
     if previousSubZone == subZone and previousZone == zone then return end
 
-    for i, listener in ipairs(listeners) do
+    for _, listener in ipairs(listeners) do
         listener({
             previousSubZone = previousSubZone,
             previousZone = previousZone,

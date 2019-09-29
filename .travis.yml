@@ -1,0 +1,23 @@
+language: minimal
+
+addons:
+  apt:
+    packages:
+      - luarocks
+
+jobs:
+  include:
+    - stage: test
+      script:
+        - luarocks install --local luacheck
+        - /home/travis/.luarocks/bin/luacheck . --no-color -q
+    - stage: release
+      script:
+        - curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh >> release.sh
+        - ./release.sh -g 1.13.2
+      if: branch = master AND type != pull_request
+
+notifications:
+  email:
+    on_success: never
+    on_failure: always

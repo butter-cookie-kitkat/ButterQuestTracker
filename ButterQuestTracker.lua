@@ -139,16 +139,16 @@ function BQT:ShowWowheadPopup(type, id)
     StaticPopup_Show(NAME .. "_WowheadURL", type, id)
 end
 
-local function distance(x1, y1, x2, y2)
+local function getDistance(x1, y1, x2, y2)
 	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
 end
 
 local function count(t)
-    local count = 0;
+    local _count = 0;
     if t then
-        for _, _ in pairs(t) do count = count + 1 end
+        for _, _ in pairs(t) do _count = _count + 1 end
     end
-    return count;
+    return _count;
 end
 
 local function spairs(t, order)
@@ -216,7 +216,7 @@ local function getDistanceToClosestObjective(quest)
                             y = coords[2] / 100
                         });
 
-                        local distance = distance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
+                        local distance = getDistance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
                         if closestDistance == nil or distance < closestDistance then
                             closestDistance = distance;
                         end
@@ -225,14 +225,14 @@ local function getDistanceToClosestObjective(quest)
             end
         elseif QQ.Objectives then
             for _, objective in pairs(QQ.Objectives) do
-                for k, v in pairs(objective.AlreadySpawned) do
+                for _, v in pairs(objective.AlreadySpawned) do
                     for _, mapRef in pairs(v.mapRefs) do
                         local _, worldPosition = C_Map.GetWorldPosFromMapPos(mapRef.data.UiMapID, {
                             x = mapRef.x / 100,
                             y = mapRef.y / 100
                         });
 
-                        local distance = distance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
+                        local distance = getDistance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
                         if closestDistance == nil or distance < closestDistance then
                             closestDistance = distance;
                         end
@@ -264,7 +264,7 @@ local function sortQuestFallback(quest, otherQuest, field, comparator)
     elseif comparator == "<" then
         return value < otherValue;
     else
-        self:LogError("Unknown Comparator. (" .. comparator .. ")");
+        BQT:LogError("Unknown Comparator. (" .. comparator .. ")");
     end
 end
 
@@ -293,7 +293,7 @@ local function sortQuests(quest, otherQuest)
 
         return sortQuestFallback(quest, otherQuest, "distanceToClosestObjective", "<")
     else
-        self:LogError("Unknown Sorting value. (" .. sorting .. ")")
+        BQT:LogError("Unknown Sorting value. (" .. sorting .. ")")
     end
 
     return false;
@@ -308,7 +308,7 @@ function BQT:UpdateQuestProximityTimer()
             self:LogTrace("-- Starting ByQuestProximity Checks --");
             self:LogTrace("Checking if player has moved...");
             local position = getWorldPlayerPosition();
-            local distance = distance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
+            local distance = getDistance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
 
             if not initialized or distance > 0.01 then
                 initialized = true;
@@ -333,7 +333,7 @@ function BQT:RefreshQuestWatch()
     local currentZone = GetRealZoneText();
     local minimapZone = GetMinimapZoneText();
 
-    for questID, quest in pairs(quests) do
+    for _, quest in pairs(quests) do
         self:UpdateQuestWatch(currentZone, minimapZone, quest);
     end
 end
@@ -401,7 +401,7 @@ function BQT:RefreshView()
                 },
 
                 events = {
-                    OnMouseDown = function(self, button)
+                    OnMouseDown = function(_, button)
                         local frame = TH:GetFrame();
 
                         if button == "LeftButton" then
@@ -522,7 +522,7 @@ function BQT:RefreshView()
                     }
                 });
             else
-                for i, objective in ipairs(quest.objectives) do
+                for _, objective in ipairs(quest.objectives) do
                     TH:DrawFont({
                         label = ' - ' .. objective.text,
                         size = self.db.global.ObjectiveFontSize,
@@ -549,9 +549,9 @@ function BQT:ToggleContextMenu(quest)
 
     self.contextMenu.quest = quest;
 
-    UIDropDownMenu_Initialize(self.contextMenu, function(self, level, menuList)
+    UIDropDownMenu_Initialize(self.contextMenu, function()
         UIDropDownMenu_AddButton({
-            text = self.quest.title,
+            text = self.contextMenu.quest.title,
             notCheckable = true,
             isTitle = true
         });
@@ -560,8 +560,8 @@ function BQT:ToggleContextMenu(quest)
             text = "Untrack Quest",
             notCheckable = true,
             func = function()
-                self.db.char.MANUALLY_TRACKED_QUESTS[self.quest.questID] = false;
-                RemoveQuestWatch(self.quest.index);
+                self.db.char.MANUALLY_TRACKED_QUESTS[self.contextMenu.quest.questID] = false;
+                RemoveQuestWatch(self.contextMenu.quest.index);
             end
         });
 
@@ -569,7 +569,7 @@ function BQT:ToggleContextMenu(quest)
             text = "View Quest",
             notCheckable = true,
             func = function()
-                QLH:ToggleQuest(self.quest.index);
+                QLH:ToggleQuest(self.contextMenu.quest.index);
             end
         });
 
@@ -577,16 +577,16 @@ function BQT:ToggleContextMenu(quest)
             text = "|cff33ff99Wowhead|r URL",
             notCheckable = true,
             func = function()
-                BQT:ShowWowheadPopup("quest", self.quest.questID);
+                BQT:ShowWowheadPopup("quest", self.contextMenu.quest.questID);
             end
         });
 
         UIDropDownMenu_AddButton({
             text = "Share Quest",
             notCheckable = true,
-            disabled = not UnitInParty("player") or not self.quest.sharable,
+            disabled = not UnitInParty("player") or not self.contextMenu.quest.sharable,
             func = function()
-                QLH:ShareQuest(self.quest.index);
+                QLH:ShareQuest(self.contextMenu.quest.index);
             end
         });
 
@@ -607,7 +607,7 @@ function BQT:ToggleContextMenu(quest)
             notCheckable = true,
             colorCode = "|cffff0000",
             func = function()
-                QLH:AbandonQuest(self.quest.index);
+                QLH:AbandonQuest(self.contextMenu.quest.index);
                 PlaySound(SOUNDKIT.IG_QUEST_LOG_ABANDON_QUEST);
             end
         });
@@ -624,7 +624,7 @@ end
 
 function BQT:ResetOverrides()
     self:LogInfo("Clearing Tracking Overrides...");
-    for questID, tracked in pairs(self.db.char.MANUALLY_TRACKED_QUESTS) do
+    for questID in pairs(self.db.char.MANUALLY_TRACKED_QUESTS) do
         local index = QLH:GetIndexFromQuestID(questID);
         if index then
             RemoveQuestWatch()

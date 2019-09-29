@@ -98,24 +98,45 @@ local options = {
                     order = order(),
 
                     values = function()
-                        return {
+                        local options = {
                             Disabled = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION'),
                             ByLevel = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION'),
                             ByLevelReversed = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'),
                             ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'),
                             ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
                         };
+
+                        if Questie then
+                            options['ByQuestProximity'] = BQTL:GetString('SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION');
+                        end
+
+                        return options;
                     end,
 
-                    sorting = {
-                        "Disabled",
-                        "ByLevel",
-                        "ByLevelReversed",
-                        "ByPercentCompleted",
-                        "ByRecentlyUpdated"
-                    },
+                    sorting = function()
+                        local options = {
+                            "Disabled",
+                            "ByLevel",
+                            "ByLevelReversed",
+                            "ByPercentCompleted",
+                            "ByRecentlyUpdated"
+                        };
 
-                    set = SetAndRefreshView
+                        if Questie then
+                            tinsert(options, "ByQuestProximity");
+                        end
+
+                        return options;
+                    end,
+
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        BQT:UpdateQuestProximityTimer();
+                        if value ~= "ByQuestProximity" then
+                            BQT:RefreshView();
+                        end
+                    end
                 },
 
                 spacer1 = Spacer(),
@@ -374,7 +395,7 @@ local options = {
                     type = "range",
                     width = 1.6,
                     min = 0,
-                    max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale());
+                    max = math.ceil(GetScreenHeight());
                     step = 0.01,
                     bigStep = 10,
                     order = order(),

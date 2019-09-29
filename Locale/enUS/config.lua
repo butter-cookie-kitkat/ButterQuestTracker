@@ -18,6 +18,7 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'] = "By Level (Reversed)",
     ['SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'] = "By %% Completed",
     ['SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION'] = "By Recently Updated",
+    ['SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION'] = "By Quest Proximity",
 
     -- Settings > Filters & Sorting > Filters
 

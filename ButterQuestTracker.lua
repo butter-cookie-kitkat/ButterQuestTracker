@@ -126,13 +126,21 @@ function BQT:OnInitialize()
     TH:SetDebugMode(self.db.global.DeveloperMode);
 
     self:RefreshQuestWatch();
-    self:RefreshView();
+    if self.db.global.Sorting == "ByQuestProximity" then
+        self:UpdateQuestProximityTimer();
+    else
+        self:RefreshView();
+    end
 
     self:LogInfo("Initialized");
 end
 
 function BQT:ShowWowheadPopup(type, id)
     StaticPopup_Show(NAME .. "_WowheadURL", type, id)
+end
+
+local function distance(x1, x2, y1, y2)
+    return math.sqrt(math.pow(x1 - x2, 2) + math.pow(y1 - y2, 2));
 end
 
 local function count(t)
@@ -169,12 +177,47 @@ local function spairs(t, order)
     end
 end
 
+local function getDistanceToClosestObjective(questID)
+    if not BQT.playerPosition then
+        BQT.playerPosition = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
+    end
+
+    local closestDistance;
+    if Questie then
+        local QQ = QuestieDB:GetQuest(questID);
+        if QQ and QQ.Objectives then
+            for _, objective in pairs(QQ.Objectives) do
+                for k, v in pairs(objective.AlreadySpawned) do
+                    for _, mapRef in pairs(v.mapRefs) do
+                        local distance = distance(BQT.playerPosition.x, mapRef.x, BQT.playerPosition.y, mapRef.y);
+                        if closestDistance == nil then
+                            closestDistance = distance;
+                        else
+                            closestDistance = math.min(closestDistance, distance)
+                        end
+                    end
+                end
+            end
+        end
+    else
+        closestDistance = 0;
+    end
+
+    return closestDistance;
+end
+
 local function sortQuestFallback(quest, otherQuest, field, comparator)
     local value = quest[field];
     local otherValue = otherQuest[field];
 
     if value == otherValue then
         return quest.index < otherQuest.index;
+    end
+
+    if not value and otherValue then
+        return false;
+    elseif value and not otherValue then
+        return true;
     end
 
     if comparator == ">" then
@@ -200,11 +243,46 @@ local function sortQuests(quest, otherQuest)
         return sortQuestFallback(quest, otherQuest, "completionPercent", ">");
     elseif sorting == "ByRecentlyUpdated" then
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
+    elseif sorting == "ByQuestProximity" then
+        if Questie then
+            quest.distanceToClosestObjective = getDistanceToClosestObjective(quest.questID);
+            otherQuest.distanceToClosestObjective = getDistanceToClosestObjective(otherQuest.questID);
+        else
+            quest.distanceToClosestObjective = 0;
+            otherQuest.distanceToClosestObjective = 0;
+        end
+
+        return sortQuestFallback(quest, otherQuest, "distanceToClosestObjective", "<")
     else
         self:LogError("Unknown Sorting value. (" .. sorting .. ")")
     end
 
     return false;
+end
+
+function BQT:UpdateQuestProximityTimer()
+    if self.db.global.Sorting == "ByQuestProximity" then
+        C_Timer.After(3.0, function()
+            self:RefreshView();
+
+            self.questProximityTimer = C_Timer.NewTicker(5.0, function()
+                self:LogTrace("-- Starting ByQuestProximity Checks --");
+                self:LogTrace("Checking if player has moved...");
+                local position = C_Map.GetPlayerMapPosition(C_Map.GetBestMapForUnit("player"), "player");
+                local distance = distance(position.x, self.playerPosition.x, position.y, self.playerPosition.y);
+
+                if not self.playerPosition or distance > 0.01 then
+                    self.playerPosition = position;
+                    self:RefreshView();
+                else
+                    self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
+                end
+                self:LogTrace("-- Ending ByQuestProximity Checks --");
+            end);
+        end);
+    elseif self.questProximityTimer then
+        self.questProximityTimer:Cancel();
+    end
 end
 
 function BQT:RefreshQuestWatch()
@@ -322,6 +400,7 @@ function BQT:RefreshView()
     end
 
     for i, quest in spairs(quests, sortQuests) do
+        -- /dump QuestieDB:GetQuest(5147).Objectives[1].AlreadySpawned[10896].mapRefs
         if i <= questLimit then
             local questContainer = TH:CreateContainer({
                 padding = {

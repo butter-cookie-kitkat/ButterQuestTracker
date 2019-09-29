@@ -375,7 +375,6 @@ function BQT:RefreshView()
                                 InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
                             end
                         end
-
                     end,
 
                     OnMouseUp = function()
@@ -409,7 +408,17 @@ function BQT:RefreshView()
                 events = {
                     OnMouseUp = function(target, button)
                         if button == "LeftButton" then
-                            QLH:ToggleQuest(quest.index);
+                            if IsShiftKeyDown() then
+                                self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] = false;
+                                RemoveQuestWatch(quest.index);
+                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                            elseif IsAltKeyDown() then
+                                self:ShowWowheadPopup("quest", quest.questID);
+                            elseif IsControlKeyDown() then
+                                ChatEdit_InsertLink("[" .. quest.title .. "]");
+                            else
+                                QLH:ToggleQuest(quest.index);
+                            end
                         else
                             self:ToggleContextMenu(quest);
                         end

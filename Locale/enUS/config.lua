@@ -13,6 +13,9 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_SORTING_NAME'] = "Sorting",
     ['SETTINGS_SORTING_DESC'] = "Dictate how quests are sorted in the tracker.",
 
+    ['SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_NAME'] = "Automatically Hide Quest Helper Icons",
+    ['SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC'] = "Enabling this will automatically hide icons from supported Quest Helper Addons.\n\n|c00FF9696Supported Addons: Questie",
+
     ['SETTINGS_SORTING_DISABLED_OPTION'] = "Don't Sort",
     ['SETTINGS_SORTING_BY_LEVEL_OPTION'] = "By Level",
     ['SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'] = "By Level (Reversed)",

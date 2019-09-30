@@ -29,6 +29,7 @@ CONSTANTS.DB_DEFAULTS = {
         HideCompletedQuests = false,
         QuestLimit = 10,
         AutoTrackUpdatedQuests = false,
+        AutoHideQuestHelperIcons = false,
 
         -- Visuals
 

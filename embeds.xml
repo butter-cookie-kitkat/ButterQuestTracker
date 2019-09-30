@@ -11,5 +11,6 @@
     <Include file="QuestLogHelper\QuestLogHelper.xml"/>
     <Include file="QuestWatchHelper\QuestWatchHelper.xml"/>
     <Include file="ZoneHelper\ZoneHelper.xml"/>
+    <Include file="LibQuestHelpers\LibQuestHelpers.xml"/>
     <Include file="TrackerHelper\TrackerHelper.xml"/>
 </Ui>

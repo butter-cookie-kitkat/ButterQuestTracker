@@ -31,30 +31,18 @@ local function updateListeners(index, watched)
     end);
 end
 
-local updatedQuestIDs = {};
-local function updateMapTrackerAddons(updatedQuestID, updatedWathed)
-    updatedQuestIDs[updatedQuestID] = updatedWathed;
-
-    debounce("mapAddons", function()
-        for questID, watched in pairs(updatedQuestIDs) do
-            if Questie then
-                local quest = QuestieDB:GetQuest(questID);
-
-                quest.HideIcons = not watched;
-            end
-        end
-
-        if Questie then
-            QuestieQuest:UpdateHiddenNotes();
-        end
-        updatedQuestIDs = {};
-    end);
-end
-
 local function count(t)
     local _count = 0;
     for _, _ in pairs(t) do _count = _count + 1 end
     return _count;
+end
+
+local function findIndex(t, element)
+    for index, value in pairs(t) do
+        if value == element then
+            return index;
+        end
+    end
 end
 
 function helper:GetFrame()
@@ -90,7 +78,6 @@ function helper:BypassWatchLimit(initialTrackedQuests)
             trackedQuests[questID] = true;
 
             updateListeners(index, true);
-            updateMapTrackerAddons(questID, true);
         end
     end
 
@@ -102,11 +89,11 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
         local questID = QLH:GetQuestIDFromIndex(index);
 
+        -- Ignore duplicates
         if questID and trackedQuests[questID] then
             trackedQuests[questID] = nil;
 
             updateListeners(index, false);
-            updateMapTrackerAddons(questID, false);
         end
     end);
 
@@ -151,17 +138,18 @@ function helper:BypassWatchLimit(initialTrackedQuests)
             end
         end
     end);
-
-    -- This is a massive hack to prevent questie from ignoring us.
-    C_Timer.After(0.1, function()
-        for questID in pairs(QLH:GetQuests()) do
-            updateMapTrackerAddons(questID, trackedQuests[questID] == true);
-        end
-    end);
 end
 
 function helper:OnQuestWatchUpdated(listener)
     tinsert(listeners, listener);
+end
+
+function helper:OffQuestWatchUpdated(listener)
+    local index = findIndex(listeners, listener);
+
+    if not index then return end
+
+    table.remove(listeners, index);
 end
 
 function helper:KeepHidden()

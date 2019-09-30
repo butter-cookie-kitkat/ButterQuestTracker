@@ -4,6 +4,7 @@ local QWH = LibStub("QuestWatchHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local ZH = LibStub("ZoneHelper-1.0");
 local TH = LibStub("TrackerHelper-1.0");
+local QH = LibStub("LibQuestHelpers-1.0");
 
 ButterQuestTracker = LibStub("AceAddon-3.0"):NewAddon("ButterQuestTracker");
 local BQT = ButterQuestTracker;
@@ -134,14 +135,19 @@ function BQT:OnInitialize()
 end
 
 function BQT:OnEnable()
-  self:RefreshQuestWatch();
-  if self.db.global.Sorting == "ByQuestProximity" then
-      self:UpdateQuestProximityTimer();
-  else
-      self:RefreshView();
-  end
+    self:RefreshQuestWatch();
+    if self.db.global.Sorting == "ByQuestProximity" then
+        self:UpdateQuestProximityTimer();
+    else
+        self:RefreshView();
+    end
 
-  self:LogInfo("Enabled");
+    -- This is a massive hack to prevent questie from ignoring us.
+    C_Timer.After(3.0, function()
+        QH:SetAutoHideQuestHelperIcons(self.db.global.AutoHideQuestHelperIcons);
+    end);
+
+    self:LogInfo("Enabled");
 end
 
 function BQT:ShowWowheadPopup(type, id)
@@ -194,66 +200,6 @@ local function getWorldPlayerPosition()
     return worldPosition;
 end
 
-local function getDistanceToClosestObjective(quest)
-    if not BQT.playerPosition then
-        BQT.playerPosition = getWorldPlayerPosition();
-    end
-
-    local closestDistance;
-    if Questie then
-        local QQ = QuestieDB:GetQuest(quest.questID);
-
-        if not QQ then return end;
-
-        if quest.isComplete or count(quest.objectives) == 0 then
-            local finisher;
-            if QQ.Finisher.Type == "monster" then
-                finisher = QuestieDB:GetNPC(QQ.Finisher.Id)
-            elseif QQ.Finisher.Type == "object" then
-                finisher = QuestieDB:GetObject(QQ.Finisher.Id)
-            end
-
-            if not finisher then return end;
-
-            for zoneID, spawns in pairs(finisher.spawns) do
-                for _, coords in pairs(spawns) do
-                    local uiMapID = ZH:GetUIMapID(zoneID);
-
-                    if uiMapID then
-                        local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, {
-                            x = coords[1] / 100,
-                            y = coords[2] / 100
-                        });
-
-                        local distance = getDistance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
-                        if closestDistance == nil or distance < closestDistance then
-                            closestDistance = distance;
-                        end
-                    end
-                end
-            end
-        elseif QQ.Objectives then
-            for _, objective in pairs(QQ.Objectives) do
-                for _, v in pairs(objective.AlreadySpawned) do
-                    for _, mapRef in pairs(v.mapRefs) do
-                        local _, worldPosition = C_Map.GetWorldPosFromMapPos(mapRef.data.UiMapID, {
-                            x = mapRef.x / 100,
-                            y = mapRef.y / 100
-                        });
-
-                        local distance = getDistance(BQT.playerPosition.x, BQT.playerPosition.y, worldPosition.x, worldPosition.y);
-                        if closestDistance == nil or distance < closestDistance then
-                            closestDistance = distance;
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    return closestDistance;
-end
-
 local function sortQuestFallback(quest, otherQuest, field, comparator)
     local value = quest[field];
     local otherValue = otherQuest[field];
@@ -293,8 +239,8 @@ local function sortQuests(quest, otherQuest)
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     elseif sorting == "ByQuestProximity" then
         if Questie then
-            quest.distanceToClosestObjective = getDistanceToClosestObjective(quest);
-            otherQuest.distanceToClosestObjective = getDistanceToClosestObjective(otherQuest);
+            quest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(quest.questID);
+            otherQuest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(otherQuest.questID);
         else
             quest.distanceToClosestObjective = 0;
             otherQuest.distanceToClosestObjective = 0;
@@ -382,9 +328,8 @@ function BQT:RefreshView()
     TH:Clear();
 
     local quests = QLH:GetWatchedQuests();
-    local questLimit = self.db.global.DisableFilters and MAX_WATCHABLE_QUESTS or self.db.global.QuestLimit;
     local questCount = QLH:GetQuestCount();
-    local visibleQuestCount = math.min(questLimit, count(quests));
+    local visibleQuestCount = math.min(self.db.global.QuestLimit, count(quests));
 
     self:LogTrace("Quest Count:", questCount);
     self:LogTrace("Visible Quest Count:", visibleQuestCount);
@@ -452,8 +397,7 @@ function BQT:RefreshView()
     end
 
     for i, quest in spairs(quests, sortQuests) do
-        -- /dump QuestieDB:GetQuest(5147).Objectives[1].AlreadySpawned[10896].mapRefs
-        if i <= questLimit then
+        if i <= self.db.global.QuestLimit then
             local questContainer = TH:CreateContainer({
                 padding = {
                     top = i == 1 and 0 or self.db.global.QuestPadding

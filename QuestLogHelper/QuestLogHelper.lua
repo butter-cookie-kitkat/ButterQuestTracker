@@ -188,6 +188,7 @@ function helper:GetDifficultyColor(difficulty)
 end
 
 function helper:Refresh()
+    local initialized = cache.quests and true;
     cache.quests = cache.quests or {};
 
     local numberOfEntries = GetNumQuestLogEntries();
@@ -198,6 +199,7 @@ function helper:Refresh()
             cache.lastUpdated[questID] = nil;
 
             updateListeners(questID, {
+                index = quest.index,
                 lastUpdated = quest.lastUpdated,
                 previousCompletionPercent = quest.completionPercent,
                 completionPercent = quest.completionPercent,
@@ -215,6 +217,8 @@ function helper:Refresh()
         if isHeader then
             zone = title;
         else
+            local accepted = initialized and not cache.quests[questID] and true;
+
             if not cache.quests[questID] then
                 cache.quests[questID] = {
                     title = title,
@@ -239,22 +243,28 @@ function helper:Refresh()
 
             local completionPercent = getCompletionPercent(quest.objectives);
 
-            if quest.completionPercent and quest.completionPercent ~= completionPercent then
+            local updated = quest.completionPercent and quest.completionPercent ~= completionPercent;
+            if updated then
                 quest.lastUpdated = GetTime();
 
                 updateListeners(questID, {
-                    lastUpdated = quest.lastUpdated,
-                    previousCompletionPercent = quest.completionPercent,
-                    completionPercent = completionPercent
-                });
-            elseif not cache.lastUpdated[questID] and not quest.lastUpdated then
-                quest.lastUpdated = GetTime();
-
-                updateListeners(questID, {
+                    index = quest.index,
                     lastUpdated = quest.lastUpdated,
                     previousCompletionPercent = quest.completionPercent,
                     completionPercent = completionPercent,
-                    initialUpdate = true
+                    accepted = accepted,
+                    updated = updated
+                });
+            elseif accepted then
+                quest.lastUpdated = GetTime();
+
+                updateListeners(questID, {
+                    index = quest.index,
+                    lastUpdated = quest.lastUpdated,
+                    previousCompletionPercent = quest.completionPercent,
+                    completionPercent = completionPercent,
+                    accepted = accepted,
+                    updated = updated
                 });
             else
                 quest.lastUpdated = quest.lastUpdated or cache.lastUpdated[questID];

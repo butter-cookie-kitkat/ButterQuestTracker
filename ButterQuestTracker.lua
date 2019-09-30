@@ -275,7 +275,7 @@ end
 local function sortQuests(quest, otherQuest)
     local sorting = BQT.db.global.Sorting or "nil";
     if sorting == "Disabled" then
-        return false;
+        return sortQuestFallback(quest, otherQuest);
     end
 
     if sorting == "ByLevel" then

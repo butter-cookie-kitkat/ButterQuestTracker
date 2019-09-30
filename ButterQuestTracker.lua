@@ -581,13 +581,6 @@ end
 
 function BQT:ResetOverrides()
     self:LogInfo("Clearing Tracking Overrides...");
-    for questID in pairs(self.db.char.MANUALLY_TRACKED_QUESTS) do
-        local index = QLH:GetIndexFromQuestID(questID);
-        if index then
-            RemoveQuestWatch()
-        end
-    end
-
     self.db.char.MANUALLY_TRACKED_QUESTS = {};
     self:RefreshQuestWatch();
 end

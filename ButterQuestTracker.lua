@@ -75,22 +75,27 @@ function BQT:OnInitialize()
         self:RefreshView();
     end);
 
-    QLH:OnQuestUpdated(function(updatedQuests)
+    QLH:OnQuestUpdated(function(quests)
         self:LogTrace("Event(OnQuestUpdated)");
-        for questID, updatedQuest in pairs(updatedQuests) do
-            if updatedQuest.abandoned then
+
+        local currentZone = GetRealZoneText();
+        local minimapZone = GetMinimapZoneText();
+
+        for questID, quest in pairs(quests) do
+            if quest.abandoned then
                 self.db.char.QUESTS_LAST_UPDATED[questID] = nil;
-            else
-                self.db.char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
+                self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
+            elseif quest.accepted or quest.updated then
+                self.db.char.QUESTS_LAST_UPDATED[questID] = quest.lastUpdated;
 
                 -- If the quest is updated then remove it from the manually tracked quests list.
-                if not updatedQuest.initialUpdate then
-                    if self.db.global.AutoTrackUpdatedQuests then
-                        self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
-                    elseif self.db.char.MANUALLY_TRACKED_QUESTS[questID] == false then
-                        self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
-                    end
+                if self.db.global.AutoTrackUpdatedQuests then
+                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
+                elseif self.db.char.MANUALLY_TRACKED_QUESTS[questID] == false then
+                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
                 end
+
+                self:UpdateQuestWatch(currentZone, minimapZone, QLH:GetQuest(questID));
             end
         end
 
@@ -343,29 +348,33 @@ function BQT:RefreshQuestWatch()
 end
 
 function BQT:UpdateQuestWatch(currentZone, minimapZone, quest)
+    if self:ShouldWatchQuest(currentZone, minimapZone, quest) then
+        AddQuestWatch(quest.index);
+    else
+        RemoveQuestWatch(quest.index);
+    end
+end
+
+function BQT:ShouldWatchQuest(currentZone, minimapZone, quest)
     local isCurrentZone = quest.zone == currentZone or quest.zone == minimapZone;
 
     if self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == true then
-        return AddQuestWatch(quest.index);
+        return true;
     elseif self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
-        return RemoveQuestWatch(quest.index);
+        return false;
     elseif self.db.global.DisableFilters then
-        return RemoveQuestWatch(quest.index);
+        return false;
     end
 
     if self.db.global.HideCompletedQuests and quest.isComplete then
-        return RemoveQuestWatch(quest.index);
+        return false;
     end
 
-    if self.db.global.CurrentZoneOnly then
-        if isCurrentZone or quest.isClassQuest or quest.isProfessionQuest then
-            AddQuestWatch(quest.index);
-        else
-            return RemoveQuestWatch(quest.index);
-        end
+    if self.db.global.CurrentZoneOnly and not isCurrentZone and not quest.isClassQuest and not quest.isProfessionQuest then
+        return false;
     end
 
-    AddQuestWatch(quest.index);
+    return true;
 end
 
 function BQT:RefreshView()

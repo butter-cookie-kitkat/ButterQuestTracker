@@ -138,6 +138,20 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
     MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
 
+    QLH:OnQuestUpdated(function(quests)
+        for questID, quest in pairs(quests) do
+            if quest.abandoned then
+                updateListeners(quest.index, false);
+
+                if trackedQuests[questID] then
+                    trackedQuests[questID] = nil;
+
+                    updateListeners(quest.index, false);
+                end
+            end
+        end
+    end);
+
     -- This is a massive hack to prevent questie from ignoring us.
     C_Timer.After(0.1, function()
         for questID in pairs(QLH:GetQuests()) do

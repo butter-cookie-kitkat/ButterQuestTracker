@@ -473,10 +473,6 @@ function BQT:RefreshView()
             hoverColor = HIGHLIGHT_FONT_COLOR,
 
             container = TH:CreateContainer({
-                padding = {
-                    bottom = visibleQuestCount > 0 and self.db.global.QuestPadding or 0
-                },
-
                 events = {
                     OnMouseDown = function(_, button)
                         local frame = TH:GetFrame();
@@ -515,11 +511,40 @@ function BQT:RefreshView()
         });
     end
 
+    local zoneContainers = {};
     for i, quest in spairs(watchedQuests, sortQuests) do
         if i <= self.db.global.QuestLimit then
+            if self.db.global.ZoneHeaderEnabled and not zoneContainers[quest.zone] then
+                TH:DrawFont({
+                    label = quest.zone,
+                    size = self.db.global.QuestHeaderFontSize,
+                    color = NORMAL_FONT_COLOR,
+                    hoverColor = HIGHLIGHT_FONT_COLOR,
+                    container = TH:CreateContainer({
+                        padding = {
+                            top = self.db.global.QuestPadding
+                        },
+
+                        events = {
+                            OnMouseUp = function(_, button)
+                                TH:ToggleContainerVisibility(zoneContainers[quest.zone]);
+                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                            end
+                        }
+                    })
+                });
+
+                zoneContainers[quest.zone] = TH:CreateContainer({
+                    padding = {
+                        left = 5
+                    }
+                });
+            end
+
             local questContainer = TH:CreateContainer({
+                container = self.db.global.ZoneHeaderEnabled and zoneContainers[quest.zone],
                 padding = {
-                    top = i == 1 and 0 or self.db.global.QuestPadding
+                    top = self.db.global.QuestPadding
                 },
                 events = {
                     OnMouseUp = function(target, button)

@@ -45,6 +45,7 @@ CONSTANTS.DB_DEFAULTS = {
         ColorHeadersByDifficultyLevel = false,
 
         TrackerHeaderFontSize = 12,
+        ZoneHeaderFontSize = 12,
         QuestHeaderFontSize = 12,
         ObjectiveFontSize = 12,
         QuestPadding = 10,

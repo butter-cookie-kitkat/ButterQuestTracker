@@ -6,6 +6,23 @@ local elements = {
     containers = {}
 };
 
+local timers = {};
+local function debounce(name, func)
+    if timers[name] then
+        timers[name]:Cancel();
+    end
+
+    timers[name] = C_Timer.NewTimer(0.01, func);
+end
+
+local function count(t)
+    local _count = 0;
+    if t then
+        for _, _ in pairs(t) do _count = _count + 1 end
+    end
+    return _count;
+end
+
 local function normalizePadding(padding)
     padding = padding or 0;
 
@@ -51,6 +68,7 @@ local function normalizeContainerOptions(options)
 
     options.events = options.events or {};
     options.padding = normalizePadding(options.padding);
+    options.container = options.container or helper:GetFrame().content;
 
     return options;
 end
@@ -95,6 +113,7 @@ function helper:UpdateFrame(options)
     end
 end
 
+-- /dump LibStub("TrackerHelper-1.0"):Clear()
 function helper:Clear()
     indexes = { containers = 1 };
 
@@ -103,6 +122,7 @@ function helper:Clear()
     frame.content:SetPoint("TOP", frame, 0, -5);
     frame.content:SetPoint("LEFT", frame, 5, 0);
     frame.content:SetPoint("RIGHT", frame, -5, 0);
+    frame.content.elements = {};
 
     for i, font in pairs(elements.fonts) do
         font:Hide();
@@ -110,6 +130,7 @@ function helper:Clear()
     end
 
     for _, container in pairs(elements.containers) do
+        container.elements = {};
         container:Hide();
     end
 end
@@ -117,7 +138,7 @@ end
 -- /dump LibStub("TrackerHelper-1.0"):GetFrame()
 function helper:GetFrame()
     if not _frame then
-        _frame = CreateFrame("Frame", nil, UIParent);
+        _frame = CreateFrame("Frame", "TrackerHelperFrame", UIParent);
         _frame:SetSize(1, 1);
         _frame:SetFrameStrata("BACKGROUND");
         _frame:SetMovable(true);
@@ -135,7 +156,7 @@ function helper:GetFrame()
             end
         end);
 
-        _frame.content = CreateFrame("Frame", nil, _frame);
+        _frame.content = CreateFrame("Frame", "TrackerHelperContentFrame", _frame);
         _frame.content.elements = {};
 
         _frame.content.SetRealHeight = _frame.content.SetHeight;
@@ -143,7 +164,7 @@ function helper:GetFrame()
             helper:UpdateHeight(height);
         end
 
-        _frame.backgroundFrame = CreateFrame("Frame", nil, _frame);
+        _frame.backgroundFrame = CreateFrame("Frame", "TrackerHelperBackgroundFrame", _frame);
         _frame.backgroundFrame:SetSize(1, 1);
         _frame.backgroundFrame:SetAllPoints();
 
@@ -161,7 +182,10 @@ function helper:GetFrame()
 end
 
 local function refreshElementSize(element, parent)
+    if not element:IsShown() then return end
+
     if element.elements then
+        element:SetHeight(0);
         element:SetSize(1, 1);
 
         for _, childElement in pairs(element.elements) do
@@ -171,6 +195,7 @@ local function refreshElementSize(element, parent)
         if parent then
             local parentHeight = parent:GetHeight();
 
+            element:ClearAllPoints();
             element:SetPoint("TOP", parent, 0, -parentHeight - element.metadata.padding.top);
             element:SetPoint("LEFT", parent, "LEFT", element.metadata.padding.left, 0);
             element:SetPoint("RIGHT", parent, "RIGHT", -element.metadata.padding.right, 0);
@@ -182,13 +207,20 @@ local function refreshElementSize(element, parent)
         local parentHeight = parent:GetHeight();
 
         element:ClearAllPoints();
-        element:SetPoint("TOP", parent, 0, -parentHeight - element.metadata.padding.top);
-        element:SetPoint("LEFT", parent, "LEFT", element.metadata.padding.left, 0);
+        element:SetPoint("TOPLEFT", parent, element.metadata.padding.left, -parentHeight - element.metadata.padding.top);
         element:SetPoint("RIGHT", parent, "RIGHT", -element.metadata.padding.right, 0);
 
-        local deltaHeight = element:GetHeight() + element.metadata.padding.top + element.metadata.padding.bottom;
+        element:GetHeight(); -- HACK: Why in the world does this make GetStringHeight calc correctly.. ?
+        local deltaHeight = element:GetStringHeight() + element.metadata.padding.top + element.metadata.padding.bottom;
         parent:SetHeight(parentHeight + deltaHeight);
     end
+end
+
+-- /dump LibStub("TrackerHelper-1.0"):Refresh()
+function helper:Refresh()
+    debounce("Refresh", function()
+        refreshElementSize(self:GetFrame().content);
+    end);
 end
 
 function helper:UpdateHeight(height)
@@ -211,7 +243,7 @@ function helper:UpdateWidth(width)
         frame:SetWidth(width);
 
         -- Refresh all of the text positions and sizes
-        refreshElementSize(frame.content);
+        self:Refresh();
     end
 end
 
@@ -286,125 +318,137 @@ function helper:SetDebugMode(debug)
     end
 end
 
+function helper:ToggleContainerVisibility(container)
+    if container:IsShown() then
+        container:Hide();
+    else
+        container:Show();
+    end
+
+    refreshElementSize(self:GetFrame().content);
+end
+
 function helper:CreateContainer(options)
     options = normalizeContainerOptions(options);
 
-    local frame = self:GetFrame();
-    local contentHeight = frame.content:GetHeight();
-
     if not elements.containers[indexes.containers] then
-        elements.containers[indexes.containers] = CreateFrame("Frame", nil, frame.content);
-        tinsert(frame.content.elements, elements.containers[indexes.containers]);
+        elements.containers[indexes.containers] = CreateFrame("Frame", "TrackerHelperContainer-" .. indexes.containers);
     end
 
     local container = elements.containers[indexes.containers];
+    container:SetParent(options.container);
+
     container.elements = {};
     container.metadata = {
         padding = options.padding
     };
-    container:SetHeight(0);
-    container:SetSize(1, 1);
-    container:ClearAllPoints();
-    container:SetPoint("TOP", frame.content, 0, -contentHeight - options.padding.top);
-    container:SetPoint("LEFT", frame.content, "LEFT", options.padding.left, 0);
-    container:SetPoint("RIGHT", frame.content, "RIGHT", -options.padding.right, 0);
+
     container:Show();
 
-    container:EnableMouse(true);
-    container:RegisterForDrag("LeftButton");
-    container:SetMovable(true);
+    container:SetScript("OnDragStart", nil);
+    container:SetScript("OnDragStop", nil);
+    container:SetScript("OnEnter", nil);
+    container:SetScript("OnLeave", nil);
+    container:SetScript("OnMouseUp", nil);
+    container:SetScript("OnMouseDown", nil);
+    container:SetBackdrop({ bgFile = nil });
+    container:EnableMouse(false);
+    container:SetMovable(false);
 
-    container:SetScript("OnDragStart", options.events.OnDragStart);
-    container:SetScript("OnDragStop", options.events.OnDragStop);
-    container:SetScript("OnEnter", options.events.OnEnter);
-    container:SetScript("OnLeave", options.events.OnLeave);
+    if count(options.events) > 0 then
+        container:EnableMouse(true);
+        container:RegisterForDrag("LeftButton");
+        container:SetMovable(true);
 
-    if options.events.OnMouseUp or options.events.OnMouseDown then
-        local originalPosition;
-        container:SetScript("OnMouseUp", function(...)
-            if originalPosition then
-                container:ClearAllPoints();
-                container:SetPoint("TOPLEFT", frame.content, originalPosition.left, originalPosition.top);
-                container:SetPoint("RIGHT", frame.content, "RIGHT", originalPosition.right, 0);
-                originalPosition = nil;
-            end
+        container:SetScript("OnDragStart", options.events.OnDragStart);
+        container:SetScript("OnDragStop", options.events.OnDragStop);
+        container:SetScript("OnEnter", options.events.OnEnter);
+        container:SetScript("OnLeave", options.events.OnLeave);
 
-            if options.events.OnMouseUp then
-                options.events.OnMouseUp(...);
-            end
-        end);
-
-        container:SetScript("OnMouseDown", function(...)
-            local _, _, _, left, top = container:GetPoint("TOPLEFT");
-            local _, _, _, right = container:GetPoint("RIGHT");
-            originalPosition = {
-                top = top,
-                left = left,
-                right = right
-            };
-
-            container:ClearAllPoints();
-            container:SetPoint("TOPLEFT", frame.content, originalPosition.left + 2, originalPosition.top - 2);
-            container:SetPoint("RIGHT", frame.content, "RIGHT", originalPosition.right + 2, 0);
-
-            if options.events.OnMouseDown then
-                options.events.OnMouseDown(...);
-            end
-        end);
-
-        container:SetScript("OnDragStop", function(...)
-            if originalPosition then
-                container:ClearAllPoints();
-                container:SetPoint("TOPLEFT", frame.content, originalPosition.left, originalPosition.top);
-                container:SetPoint("RIGHT", frame.content, "RIGHT", originalPosition.right, 0);
-                originalPosition = nil;
-            end
-
-            if options.events.OnDragStop then
-                options.events.OnDragStop(...);
-            end
-        end);
-
-        container:SetScript("OnEnter", function(...)
-            for _, element in pairs(container.elements) do
-                local hoverColor = element.metadata.hoverColor;
-
-                if hoverColor then
-                    element:SetTextColor(hoverColor.r, hoverColor.g, hoverColor.b);
+        if options.events.OnMouseUp or options.events.OnMouseDown then
+            local originalPosition;
+            container:SetScript("OnMouseUp", function(...)
+                if originalPosition then
+                    container:ClearAllPoints();
+                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
+                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
+                    originalPosition = nil;
                 end
-            end
 
-            if options.events.OnEnter then
-                options.events.OnEnter(...);
-            end
-        end);
-
-        container:SetScript("OnLeave", function(...)
-            if originalPosition then
-                container:ClearAllPoints();
-                container:SetPoint("TOPLEFT", frame.content, originalPosition.left, originalPosition.top);
-                container:SetPoint("RIGHT", frame.content, "RIGHT", originalPosition.right, 0);
-                originalPosition = nil;
-            end
-
-            for _, element in pairs(container.elements) do
-                local color = element.metadata.color;
-
-                if color then
-                    element:SetTextColor(color.r, color.g, color.b);
+                if options.events.OnMouseUp then
+                    options.events.OnMouseUp(...);
                 end
-            end
+            end);
 
-            if options.events.OnLeave then
-                options.events.OnLeave(...);
-            end
-        end);
-    else
-        container:SetScript("OnMouseUp", nil);
-        container:SetScript("OnMouseDown", nil);
+            container:SetScript("OnMouseDown", function(...)
+                local _, _, _, left, top = container:GetPoint("TOPLEFT");
+                local _, _, _, right = container:GetPoint("RIGHT");
+                originalPosition = {
+                    top = top,
+                    left = left,
+                    right = right
+                };
+
+                container:ClearAllPoints();
+                container:SetPoint("TOPLEFT", options.container, originalPosition.left + 2, originalPosition.top - 2);
+                container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right + 2, 0);
+
+                if options.events.OnMouseDown then
+                    options.events.OnMouseDown(...);
+                end
+            end);
+
+            container:SetScript("OnDragStop", function(...)
+                if originalPosition then
+                    container:ClearAllPoints();
+                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
+                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
+                    originalPosition = nil;
+                end
+
+                if options.events.OnDragStop then
+                    options.events.OnDragStop(...);
+                end
+            end);
+
+            container:SetScript("OnEnter", function(...)
+                for _, element in pairs(container.elements) do
+                    local hoverColor = element.metadata.hoverColor;
+
+                    if hoverColor then
+                        element:SetTextColor(hoverColor.r, hoverColor.g, hoverColor.b);
+                    end
+                end
+
+                if options.events.OnEnter then
+                    options.events.OnEnter(...);
+                end
+            end);
+
+            container:SetScript("OnLeave", function(...)
+                if originalPosition then
+                    container:ClearAllPoints();
+                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
+                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
+                    originalPosition = nil;
+                end
+
+                for _, element in pairs(container.elements) do
+                    local color = element.metadata.color;
+
+                    if color then
+                        element:SetTextColor(color.r, color.g, color.b);
+                    end
+                end
+
+                if options.events.OnLeave then
+                    options.events.OnLeave(...);
+                end
+            end);
+        end
+
+        container:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" });
     end
-
-    container:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" });
 
     if self.debug then
         container:SetBackdropColor(0, 1, 0, 0.5);
@@ -412,9 +456,10 @@ function helper:CreateContainer(options)
         container:SetBackdropColor(0, 0, 0, 0);
     end
 
-    frame.content:SetHeight(contentHeight + options.padding.top + options.padding.bottom);
+    self:Refresh();
 
     indexes.containers = indexes.containers + 1;
+    tinsert(options.container.elements, container);
     return container;
 end
 
@@ -422,12 +467,8 @@ end
 function helper:DrawFont(options)
     options = normalizeFontOptions(options);
 
-    local frame = self:GetFrame();
-
-    local font = frame.content:CreateFontString(nil, nil, "GameFontNormal");
+    local font = options.container:CreateFontString(nil, nil, "GameFontNormal");
     font:SetFont(font:GetFont(), options.size);
-
-    local containerHeight = options.container:GetHeight();
 
     font.metadata = {
         color = options.color,
@@ -441,18 +482,7 @@ function helper:DrawFont(options)
     font:SetWordWrap(true);
     font:SetNonSpaceWrap(true);
 
-    font:ClearAllPoints();
-    font:SetPoint("TOP", options.container, 0, -containerHeight - options.padding.top);
-    font:SetPoint("LEFT", options.container, "LEFT", options.padding.left, 0);
-    font:SetPoint("RIGHT", options.container, "RIGHT", -options.padding.right, 0);
-
-    local deltaHeight = font:GetHeight() + options.padding.top + options.padding.bottom;
-    options.container:SetHeight(containerHeight + deltaHeight);
-
-    if options.container ~= frame.content then
-        local contentHeight = frame.content:GetHeight();
-        frame.content:SetHeight(contentHeight + deltaHeight);
-    end
+    self:Refresh();
 
     tinsert(options.container.elements, font);
     tinsert(elements.fonts, font);

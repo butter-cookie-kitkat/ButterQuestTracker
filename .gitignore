@@ -1,3 +1,4 @@
 Libs/
-.release/
 release.sh
+.release/
+.DS_Store

@@ -84,7 +84,7 @@ function BQT:OnInitialize()
                 self.db.char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
                 -- If the quest is updated then remove it from the manually tracked quests list.
-                if not updatedQuests.initialUpdate then
+                if not updatedQuest.initialUpdate then
                     if self.db.global.AutoTrackUpdatedQuests then
                         self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
                     elseif self.db.char.MANUALLY_TRACKED_QUESTS[questID] == false then

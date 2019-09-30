@@ -657,7 +657,7 @@ function BQT:ADDON_LOADED(addon)
                     self.DB.Char.QUESTS_LAST_UPDATED[questID] = updatedQuest.lastUpdated;
 
                     -- If the quest is updated then remove it from the manually tracked quests list.
-                    if not updatedQuests.initialUpdate then
+                    if not updatedQuest.initialUpdate then
                         if self.DB.Global.AutoTrackUpdatedQuests then
                             self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] = true;
                         elseif self.DB.Char.MANUALLY_TRACKED_QUESTS[questID] == false then
@@ -673,7 +673,7 @@ function BQT:ADDON_LOADED(addon)
         ZH:OnZoneChanged(function(info)
             ns.Log.Info("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
             self:Refresh();
-        end)
+        end);
 
         self.DB.Char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.DB.Char.QUESTS_LAST_UPDATED);
 

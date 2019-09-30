@@ -100,13 +100,9 @@ function helper:GetQuestIDFromIndex(index)
 end
 
 function helper:GetIndexFromQuestID(questID)
-    for _, quest in pairs(cache.quests) do
-        if questID == quest.questID then
-            return quest.index;
-        end
-    end
+    local quest = self:GetQuest(questID);
 
-    return nil;
+    return quest and quest.index;
 end
 
 function helper:GetQuestFrame()
@@ -210,7 +206,7 @@ function helper:Refresh()
 
 	local zone;
     for index = 1, numberOfEntries, 1 do
-        local title, level, _, isHeader, _, isComplete, _, questID, _, _, _, _, _, _, _, _, _ = GetQuestLogTitle(index);
+        local title, level, _, isHeader, _, isComplete, _, questID = GetQuestLogTitle(index);
         local isClassQuest = zone == class;
         local isProfessionQuest = has_value(professions, zone);
 
@@ -328,40 +324,46 @@ function helper:GetObjectives(questID)
 end
 
 function helper:IsQuestSharable(index)
-    local currentSelection = GetQuestLogSelection();
-
-    SelectQuestLogEntry(index);
+    self:Select(index);
     local sharable = GetQuestLogPushable();
-    SelectQuestLogEntry(currentSelection);
+    self:RevertSelection();
 
     return sharable;
 end
 
 function helper:AbandonQuest(index)
-    local currentSelection = GetQuestLogSelection();
-
-    SelectQuestLogEntry(index);
+    self:Select(index);
     SetAbandonQuest();
     AbandonQuest();
-    SelectQuestLogEntry(currentSelection);
+    self:RevertSelection();
 end
 
 function helper:ShareQuest(index)
-    local currentSelection = GetQuestLogSelection();
 
-    SelectQuestLogEntry(index);
+    self:Select(index);
     QuestLogPushQuest();
-    SelectQuestLogEntry(currentSelection);
+    self:RevertSelection();
 end
 
 function helper:GetQuestSummary(index)
-    local currentSelection = GetQuestLogSelection();
-
-    SelectQuestLogEntry(index);
+    self:Select(index);
     local _, desc = GetQuestLogQuestText();
-    SelectQuestLogEntry(currentSelection);
+    self:RevertSelection();
 
     return desc;
+end
+
+local previousIndex;
+function helper:Select(index)
+    previousIndex = GetQuestLogSelection();
+    SelectQuestLogEntry(index);
+end
+
+function helper:RevertSelection()
+    if previousIndex then
+        SelectQuestLogEntry(previousIndex);
+        previousIndex = nil;
+    end
 end
 
 AceEvent.RegisterEvent(helper, "QUEST_LOG_UPDATE", "Refresh");

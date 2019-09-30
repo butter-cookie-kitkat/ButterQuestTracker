@@ -27,6 +27,9 @@ globals = {
     "IsQuestWatched",
     "GetNumQuestWatches",
     "GetNumQuestLeaderBoards",
+
+    -- Classic Codex Addon Frame / Functions
+    "CodexQuest",
 }
 
 read_globals = {
@@ -41,6 +44,10 @@ read_globals = {
     "Questie",
     "QuestieDB",
     "QuestieQuest",
+
+    -- Classic Codex Addon Frame / Functions
+    "CodexDatabase",
+    "CodexMap",
 
     -- Quest Log Addons
     "QuestGuru",

@@ -26,6 +26,7 @@
 ### Quest Helpers
 
 - [Questie](https://www.curseforge.com/wow/addons/questie) (Removes pins and allows sorting "By Quest Proximity")
+- [ClassicCodex](https://www.curseforge.com/wow/addons/ClassicCodex) (Removes pins and allows sorting "By Quest Proximity")
 
 ### Quest Logs
 

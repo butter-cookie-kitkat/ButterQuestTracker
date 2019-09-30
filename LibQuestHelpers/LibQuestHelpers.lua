@@ -33,11 +33,12 @@ local function getDistance(x1, y1, x2, y2)
 end
 
 function helper:IsSupported()
-    return (Questie) and true;
+    return (Questie or CodexQuest) and true;
 end
 
 local function OnQuestWatchUpdated(quests)
-    for questID, quest in pairs(quests) do
+    for index, quest in pairs(quests) do
+        local questID = QLH:GetQuestIDFromIndex(index);
         helper:SetIconsVisibility(questID, quest.watched);
     end
 end
@@ -59,7 +60,17 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
 end
 
 function helper:SetIconsVisibility(questID, visible)
-    if Questie then
+    if CodexQuest then
+        if visible then
+            CodexQuest.updateQuestLog = true
+            CodexQuest.updateQuestGivers = true
+        else
+            local index = QLH:GetIndexFromQuestID(questID);
+            QLH:Select(index);
+            CodexQuest:HideCurrentQuest();
+            QLH:RevertSelection();
+        end
+    elseif Questie then
         local quest = QuestieDB:GetQuest(questID);
 
         quest.HideIcons = not visible;
@@ -68,11 +79,35 @@ function helper:SetIconsVisibility(questID, visible)
     refresh();
 end
 
-function helper:GetDistanceToClosestObjective(questID)
-    local playerPosition = getWorldPlayerPosition();
+function helper:GetDestinationCoordinates(questID)
+    local coordinates = {};
+    if CodexQuest then
+        local quest = QLH:GetQuest(questID);
+        local maps = CodexDatabase:SearchQuestById(questID, {
+            questLogId = quest.index
+        });
 
-    local closestDistance;
-    if Questie then
+        for zone in pairs(maps) do
+            for _, quests in pairs(CodexMap.nodes["CODEX"][zone]) do
+                local node = quests[quest.title];
+                if node then
+                    -- TODO: Is there a better way to check if this is a completed node.. ?
+                    local completionNode = node.texture and (string.find(node.texture, "available") or string.find(node.texture, "complete"));
+                    if quest.isComplete and completionNode or not quest.isComplete and not completionNode then
+                        local _, worldPosition = C_Map.GetWorldPosFromMapPos(ZH:GetUIMapID(zone), {
+                            x = node.x / 100,
+                            y = node.y / 100
+                        });
+
+                        tinsert(coordinates, {
+                            x = worldPosition.x,
+                            y = worldPosition.y
+                        });
+                    end
+                end
+            end
+        end
+    elseif Questie then
         local quest = QuestieDB:GetQuest(questID);
 
         if not quest then return end;
@@ -97,10 +132,10 @@ function helper:GetDistanceToClosestObjective(questID)
                             y = coords[2] / 100
                         });
 
-                        local distance = getDistance(playerPosition.x, playerPosition.y, worldPosition.x, worldPosition.y);
-                        if closestDistance == nil or distance < closestDistance then
-                            closestDistance = distance;
-                        end
+                        tinsert(coordinates, {
+                            x = worldPosition.x,
+                            y = worldPosition.y
+                        });
                     end
                 end
             end
@@ -113,13 +148,28 @@ function helper:GetDistanceToClosestObjective(questID)
                             y = mapRef.y / 100
                         });
 
-                        local distance = getDistance(playerPosition.x, playerPosition.y, worldPosition.x, worldPosition.y);
-                        if closestDistance == nil or distance < closestDistance then
-                            closestDistance = distance;
-                        end
+                        tinsert(coordinates, {
+                            x = worldPosition.x,
+                            y = worldPosition.y
+                        });
                     end
                 end
             end
+        end
+    end
+
+    return coordinates;
+end
+
+function helper:GetDistanceToClosestObjective(questID)
+    local player = getWorldPlayerPosition();
+    local coords = self:GetDestinationCoordinates(questID);
+
+    local closestDistance;
+    for _, coordinates in pairs(coords) do
+        local distance = getDistance(player.x, player.y, coordinates.x, coordinates.y);
+        if closestDistance == nil or distance < closestDistance then
+            closestDistance = distance;
         end
     end
 

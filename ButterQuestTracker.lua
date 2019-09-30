@@ -238,7 +238,7 @@ local function sortQuests(quest, otherQuest)
     elseif sorting == "ByRecentlyUpdated" then
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     elseif sorting == "ByQuestProximity" then
-        if Questie then
+        if QH:IsSupported() then
             quest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(quest.questID);
             otherQuest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(otherQuest.questID);
         else

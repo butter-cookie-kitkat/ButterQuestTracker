@@ -678,9 +678,14 @@ function BQT:ADDON_LOADED(addon)
         self.DB.Char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.DB.Char.QUESTS_LAST_UPDATED);
 
         self:Initialize();
-        self:Refresh();
         self:UnregisterEvent("ADDON_LOADED");
     end
+end
+
+function BQT:PLAYER_LOGIN()
+    self:Refresh();
+
+    ns.Log.Info("PLAYER_LOGIN");
 end
 
 function BQT:ResetOverrides()
@@ -709,4 +714,5 @@ end
 
 BQT:RegisterEvent("ADDON_LOADED");
 BQT:RegisterEvent("MODIFIER_STATE_CHANGED");
+BQT:RegisterEvent("PLAYER_LOGIN");
 BQT:SetScript("OnEvent", BQT.OnEvent)

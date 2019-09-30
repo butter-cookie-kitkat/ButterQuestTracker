@@ -302,13 +302,11 @@ function BQT:UpdateQuestWatch(currentZone, minimapZone, quest)
 end
 
 function BQT:ShouldWatchQuest(currentZone, minimapZone, quest)
-    local isCurrentZone = quest.zone == currentZone or quest.zone == minimapZone;
+    quest.isCurrentZone = quest.zone == currentZone or quest.zone == minimapZone;
 
     if self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == true then
         return true;
-    elseif self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == false then
-        return false;
-    elseif self.db.global.DisableFilters then
+    elseif self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] == false or self.db.global.DisableFilters then
         return false;
     end
 
@@ -316,20 +314,142 @@ function BQT:ShouldWatchQuest(currentZone, minimapZone, quest)
         return false;
     end
 
-    if self.db.global.CurrentZoneOnly and not isCurrentZone and not quest.isClassQuest and not quest.isProfessionQuest then
+    if self.db.global.CurrentZoneOnly and not quest.isCurrentZone and not quest.isClassQuest and not quest.isProfessionQuest then
         return false;
     end
 
     return true;
 end
 
+function BQT:GetQuestInfo()
+    if self.db.global.DisplayDummyData and InterfaceOptionsFrame:IsShown() then
+        local quests = {
+            -- Partially Completed
+            [6563] = {
+                index = 1,
+                questID = 6563,
+                title = "The Essence of Aku'Mai",
+                zone = "Blackfathom Deeps",
+                isComplete = false,
+                isClassQuest = false,
+                isProfessionQuest = false,
+                sharable = true,
+                level = 22,
+                difficulty = QLH:GetDifficulty(22),
+                completionPercent = 0.25,
+
+                objectives = {
+                    [1] = {
+                        text = "Sapphire of Aku'Mai: 5/20",
+                        fulfilled = 5,
+                        required = 20,
+                        completed = false
+                    }
+                }
+            },
+
+            -- No objectives, summary only
+            [1196] = {
+                index = 2,
+                questID = 1196,
+                title = "The Sacred Flame",
+                summary = "Deliver the Filled Etched Phial to Rau Cliffrunner at the Freewind Post.",
+                zone = "Thunder Bluff",
+                isComplete = false,
+                isClassQuest = false,
+                isProfessionQuest = false,
+                sharable = true,
+                level = 29,
+                difficulty = QLH:GetDifficulty(29),
+                completionPercent = 1
+            },
+
+            -- Multiple Objectives, partially completed.
+            [4841] = {
+                index = 3,
+                questID = 4841,
+                title = "Pacify the Centaur",
+                zone = "Thousand Needles",
+                isComplete = false,
+                isClassQuest = false,
+                isProfessionQuest = false,
+                sharable = true,
+                level = 25,
+                difficulty = QLH:GetDifficulty(25),
+                completionPercent = 0.5714,
+
+                objectives = {
+                    [1] = {
+                        text = "Galak Scout slain: 0/12",
+                        fulfilled = 0,
+                        required = 12,
+                        completed = false
+                    },
+
+                    [2] = {
+                        text = "Galak Wrangler slain: 10/10",
+                        fulfilled = 10,
+                        required = 10,
+                        completed = true
+                    },
+
+                    [3] = {
+                        text = "Galak Windchaser slain: 6/6",
+                        fulfilled = 6,
+                        required = 6,
+                        completed = true
+                    }
+                }
+            },
+
+            -- Completed
+            [5147] = {
+                index = 4,
+                questID = 5147,
+                title = "Compendium of the Fallen",
+                zone = "Scarlet Monastery",
+                isComplete = true,
+                isClassQuest = false,
+                isProfessionQuest = false,
+                sharable = true,
+                level = 38,
+                difficulty = QLH:GetDifficulty(38),
+                completionPercent = 1,
+
+                objectives = {
+                    [1] = {
+                        text = "Compendium of the Fallen: 1/1",
+                        fulfilled = 1,
+                        required = 1,
+                        completed = true
+                    }
+                }
+            }
+        };
+
+        local currentZone = "Thunder Bluff";
+        local minimapZone = GetMinimapZoneText();
+
+        local watchedQuests = {};
+        for questID, quest in pairs(quests) do
+            if self:ShouldWatchQuest(currentZone, minimapZone, quest) then
+                watchedQuests[questID] = quest;
+            end
+        end
+
+        return watchedQuests, count(quests), true;
+    end
+
+    return QLH:GetWatchedQuests(), QLH:GetQuestCount(), false;
+end
+
 function BQT:RefreshView()
     self:LogInfo("Refresh Quests");
     TH:Clear();
 
-    local quests = QLH:GetWatchedQuests();
-    local questCount = QLH:GetQuestCount();
-    local visibleQuestCount = math.min(self.db.global.QuestLimit, count(quests));
+    local watchedQuests, questCount, isDummyData = self:GetQuestInfo();
+
+    local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
 
     self:LogTrace("Quest Count:", questCount);
     self:LogTrace("Visible Quest Count:", visibleQuestCount);
@@ -338,7 +458,6 @@ function BQT:RefreshView()
     if self.db.global.TrackerHeaderFormat == "Quests" then
         headerLabel = "Quests";
     elseif self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
-
         if visibleQuestCount < questCount then
             headerLabel = "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
         else
@@ -396,7 +515,7 @@ function BQT:RefreshView()
         });
     end
 
-    for i, quest in spairs(quests, sortQuests) do
+    for i, quest in spairs(watchedQuests, sortQuests) do
         if i <= self.db.global.QuestLimit then
             local questContainer = TH:CreateContainer({
                 padding = {
@@ -433,6 +552,10 @@ function BQT:RefreshView()
 
             headerText = headerText .. quest.title;
 
+            if isDummyData and quest.isCurrentZone then
+                headerText  = headerText .. " (CZ)";
+            end
+
             if self.db.global.DeveloperMode and quest.distanceToClosestObjective then
                 local precision = "%.".. 1 .."f";
                 headerText = headerText .. string.format(" ( " .. precision .. " )", quest.distanceToClosestObjective);
@@ -446,7 +569,7 @@ function BQT:RefreshView()
                 container = questContainer
             });
 
-            local objectiveCount = table.getn(quest.objectives);
+            local objectiveCount = count(quest.objectives);
 
             if objectiveCount == 0 then
                 TH:DrawFont({

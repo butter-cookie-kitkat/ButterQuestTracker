@@ -67,6 +67,16 @@ local options = {
     set = SetInDB,
 
     args = {
+        displayDummyData = {
+            name = BQTL:GetStringWrap('SETTINGS_DISPLAY_DUMMY_DATA_NAME'),
+            desc = BQTL:GetStringWrap('SETTINGS_DISPLAY_DUMMY_DATA_DESC'),
+            arg = "DisplayDummyData",
+            type = "toggle",
+            order = order(),
+
+            set = SetAndRefreshView
+        },
+
         filtersAndSorting = {
             name = BQTL:GetStringWrap('SETTINGS_FILTERS_AND_SORTING_TAB'),
             type = "group",
@@ -666,6 +676,18 @@ local options = {
 
 LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", options);
 ACD:AddToBlizOptions("ButterQuestTracker");
+
+InterfaceOptionsFrame:HookScript("OnShow", function()
+    if BQT.db.global.DisplayDummyData then
+        BQT:RefreshView();
+    end
+end);
+
+InterfaceOptionsFrame:HookScript("OnHide", function()
+    if BQT.db.global.DisplayDummyData then
+        BQT:RefreshView();
+    end
+end);
 
 -- Handling ButterQuestTracker's options.
 SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'

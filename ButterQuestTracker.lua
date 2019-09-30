@@ -125,14 +125,18 @@ function BQT:OnInitialize()
 
     TH:SetDebugMode(self.db.global.DeveloperMode);
 
-    self:RefreshQuestWatch();
-    if self.db.global.Sorting == "ByQuestProximity" then
-        self:UpdateQuestProximityTimer();
-    else
-        self:RefreshView();
-    end
-
     self:LogInfo("Initialized");
+end
+
+function BQT:OnEnable()
+  self:RefreshQuestWatch();
+  if self.db.global.Sorting == "ByQuestProximity" then
+      self:UpdateQuestProximityTimer();
+  else
+      self:RefreshView();
+  end
+
+  self:LogInfo("Enabled");
 end
 
 function BQT:ShowWowheadPopup(type, id)

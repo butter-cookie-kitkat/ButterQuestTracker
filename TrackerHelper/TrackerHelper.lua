@@ -35,7 +35,6 @@ local function normalizeFontOptions(options)
     options = options or {};
 
     options.size = options.size or 12;
-    options.style = "Fonts\\" .. (options.style or "FRIZQT__.TTF");
     options.padding = normalizePadding(options.padding);
     options.color = options.color or {
         r = 1.0,
@@ -426,7 +425,7 @@ function helper:DrawFont(options)
     local frame = self:GetFrame();
 
     local font = frame.content:CreateFontString(nil, nil, "GameFontNormal");
-    font:SetFont(options.style, options.size);
+    font:SetFont(font:GetFont(), options.size);
 
     local containerHeight = options.container:GetHeight();
 

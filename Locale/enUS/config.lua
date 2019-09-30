@@ -64,6 +64,11 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'] = "Quests (10/18)",
 
     ['SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'] = "Tracker Header Font Size",
+
+    ['SETTINGS_ZONE_HEADER_ENABLED_NAME'] = "Zone Header Enabled",
+    ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "Adds collapsible zone headers above the quests.\n\n|c00FF9696This functionality is extremely beta, use at your own risk!",
+    ['SETTINGS_ZONE_HEADER_FONT_SIZE_NAME'] = "Zone Header Font Size",
+
     ['SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'] = "Quest Header Font Size",
     ['SETTINGS_OBJECTIVE_FONT_SIZE_NAME'] = "Objective Font Size",
     ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",

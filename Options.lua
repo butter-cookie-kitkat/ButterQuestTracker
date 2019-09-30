@@ -341,6 +341,19 @@ local options = {
 
                 spacer2 = Spacer(),
 
+                zoneHeaderEnabled = {
+                    name = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_DESC'),
+                    arg = "ZoneHeaderEnabled",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
+
+                    set = SetAndRefreshView
+                },
+
+                spacer3 = Spacer(),
+
                 trackerHeaderFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
                     arg = "TrackerHeaderFontSize",
@@ -352,6 +365,22 @@ local options = {
 
                     set = SetAndRefreshView
                 },
+
+                zoneHeaderFontSize = {
+                    name = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_FONT_SIZE_NAME'),
+                    arg = "ZoneHeaderFontSize",
+                    type = "range",
+                    min = 4,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    disabled = function() return not BQT.db.global.ZoneHeaderEnabled end,
+
+                    set = SetAndRefreshView
+                },
+
+                spacer4 = Spacer(),
 
                 questHeaderFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
@@ -365,8 +394,6 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer3 = Spacer(),
-
                 objectiveFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
                     arg = "ObjectiveFontSize",
@@ -379,7 +406,7 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer4 = Spacer(),
+                spacer5 = Spacer(),
 
                 questPadding = {
                     name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),

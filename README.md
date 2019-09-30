@@ -11,16 +11,23 @@
 
 - Change tracker position
 - Manually track / untrack quests (see caveats below)
+- Quickly grab the Wowhead URL of a quest by alt clicking their name
 - Filter quests by your current zone / subzone
-- Sort your quests by level or by the completion percentage
+- Sort your quests by level, completion percentage, recently updated, or by quest proximity (only if you have a quest helper installed).
 - Change the quest watch limit or remove it entirely
 - Context menus to enable you to quickly share or abandon quests
 - Colored quest names based on their difficulty
-- Link quests in chat by shift clicking their name
-- Adjust the font-size of the tracker to your liking
+- Link quests in chat by ctrl clicking their name
+- Adjust the font-size or padding of the tracker to your liking
 - Type **/bqt** to quickly open the settings menu
 
 ## Supported Addons
+
+### Quest Helpers
+
+- [Questie](https://www.curseforge.com/wow/addons/questie) (Removes pins and allows sorting "By Quest Proximity")
+
+### Quest Logs
 
 - [Classic Quest Log](https://www.curseforge.com/wow/addons/classic-quest-log)
 - [QuestLogEx](https://www.wowinterface.com/downloads/info24980-QuestLogEx.html)
@@ -31,10 +38,6 @@
 If you manually track / untrack a quest and which to reset it so that filtering will impact it again you need to do the following.
 
 Open the BQT Settings menu (`/bqt`) > Filters & Sorting (Tab) > Reset Tracking Overrides
-
-## Known Issues
-
-_There are currently no known issues, thanks for checking!_
 
 ## Bugs or Feature requests
 

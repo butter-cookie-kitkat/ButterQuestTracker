@@ -1,8 +1,9 @@
 local _, ns = ...
 
 local ACD = LibStub("AceConfigDialog-3.0");
-local BQTL = ButterQuestTrackerLocale;
 local TH = LibStub("TrackerHelper-1.0");
+local QH = LibStub("LibQuestHelpers-1.0");
+local BQTL = ButterQuestTrackerLocale;
 
 local BQT = ButterQuestTracker
 
@@ -105,7 +106,7 @@ local options = {
                             ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
                         };
 
-                        if Questie then
+                        if QH:IsSupported() then
                             options['ByQuestProximity'] = BQTL:GetString('SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION');
                         end
 
@@ -121,7 +122,7 @@ local options = {
                             "ByRecentlyUpdated"
                         };
 
-                        if Questie then
+                        if QH:IsSupported() then
                             tinsert(options, "ByQuestProximity");
                         end
 
@@ -136,6 +137,39 @@ local options = {
                             BQT:RefreshView();
                         end
                     end
+                },
+
+                spacer0 = Spacer(),
+
+                autoHideQuestHelperIcons = {
+                    name = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC'),
+                    arg = "AutoHideQuestHelperIcons",
+                    type = "toggle",
+                    width = 2.4,
+                    order = order(),
+
+                    disabled = function() return not QH:IsSupported() end,
+
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        QH:SetAutoHideQuestHelperIcons(value);
+                    end
+                },
+
+                questLimit = {
+                    name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
+                    arg = "QuestLimit",
+                    type = "range",
+                    width = 1.0,
+                    min = 1,
+                    max = 20,
+                    step = 1,
+                    order = order(),
+
+                    set = SetAndRefreshView
                 },
 
                 spacer1 = Spacer(),
@@ -177,22 +211,6 @@ local options = {
                     disabled = function() return BQT.db.global.DisableFilters end,
 
                     set = SetAndRefreshQuestWatch
-                },
-
-                questLimit = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
-                    arg = "QuestLimit",
-                    type = "range",
-                    width = 1.0,
-                    min = 1,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    disabled = function() return BQT.db.global.DisableFilters end,
-
-                    set = SetAndRefreshView
                 },
 
                 spacer4 = Spacer(),

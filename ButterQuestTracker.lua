@@ -308,9 +308,9 @@ function BQT:UpdateQuestProximityTimer()
             self:LogTrace("-- Starting ByQuestProximity Checks --");
             self:LogTrace("Checking if player has moved...");
             local position = getWorldPlayerPosition();
-            local distance = getDistance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
+            local distance = self.playerPosition and getDistance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
 
-            if not initialized or distance > 0.01 then
+            if not initialized or not distance or distance > 0.01 then
                 initialized = true;
                 self.playerPosition = position;
                 self:RefreshView();

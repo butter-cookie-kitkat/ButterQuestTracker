@@ -21,6 +21,8 @@ CONSTANTS.PATHS.LOGO = "|T" .. CONSTANTS.PATHS.MEDIA .. "BQT_logo:24:24:0:-8" ..
 
 CONSTANTS.DB_DEFAULTS = {
     global = {
+        DisplayDummyData = false,
+
         -- Filters & Sorting
 
         DisableFilters = false,

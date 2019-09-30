@@ -3,6 +3,9 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_NAME'] = "Butter Quest Tracker v%s",
 
+    ['SETTINGS_DISPLAY_DUMMY_DATA_NAME'] = "Display Dummy Data",
+    ['SETTINGS_DISPLAY_DUMMY_DATA_DESC'] = "Displays dummy data in the tracker to allow you to tweak the visuals easier.\n\nThis also acts like your current zone is Thunder Bluff.",
+
     -- Settings > Filters & Sorting
 
     ['SETTINGS_FILTERS_AND_SORTING_TAB'] = "Filters & Sorting",

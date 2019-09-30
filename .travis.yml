@@ -14,8 +14,8 @@ jobs:
     - stage: release
       script:
         - curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh >> release.sh
+        - chmod +x ./release.sh
         - ./release.sh -g 1.13.2
-      if: branch = master AND type != pull_request
 
 notifications:
   email:

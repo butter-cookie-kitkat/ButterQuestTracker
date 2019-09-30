@@ -146,6 +146,8 @@ local options = {
                     order = order()
                 },
 
+                spacer2 = Spacer(),
+
                 disableFilters = {
                     name = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_DESC'),
@@ -162,7 +164,7 @@ local options = {
                     end
                 },
 
-                spacer2 = Spacer(),
+                spacer3 = Spacer(),
 
                 currentZoneOnly = {
                     name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
@@ -193,7 +195,7 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer3 = Spacer(),
+                spacer4 = Spacer(),
 
                 hideCompletedQuests = {
                     name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
@@ -207,7 +209,7 @@ local options = {
                     set = SetAndRefreshQuestWatch
                 },
 
-                spacer4 = Spacer(),
+                spacer5 = Spacer(),
 
                 reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
@@ -231,6 +233,8 @@ local options = {
             order = order(),
 
             args = {
+                spacerStart = Spacer(),
+
                 backgroundAlwaysVisible = {
                     name = BQTL:GetStringWrap('SETTINGS_BACKGROUND_ALWAYS_VISIBLE_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'),
@@ -270,6 +274,8 @@ local options = {
                     end
                 },
 
+                spacer1 = Spacer(),
+
                 colorHeadersByDifficultyLevel = {
                     name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
                     desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
@@ -305,6 +311,8 @@ local options = {
                     set = SetAndRefreshView
                 },
 
+                spacer2 = Spacer(),
+
                 trackerHeaderFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
                     arg = "TrackerHeaderFontSize",
@@ -329,7 +337,7 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer1 = Spacer(),
+                spacer3 = Spacer(),
 
                 objectiveFontSize = {
                     name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
@@ -343,7 +351,7 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer2 = Spacer(),
+                spacer4 = Spacer(),
 
                 questPadding = {
                     name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
@@ -619,6 +627,7 @@ local options = {
 
                         TH:SetDebugMode(BQT.db.global.DeveloperMode);
                         BQT:RefreshQuestWatch();
+                        BQT:RefreshView();
                     end
                 },
 

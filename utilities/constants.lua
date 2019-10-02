@@ -29,7 +29,7 @@ CONSTANTS.DB_DEFAULTS = {
         Sorting = "Disabled",
         CurrentZoneOnly = false,
         HideCompletedQuests = false,
-        QuestLimit = 10,
+        QuestLimit = 20,
         AutoTrackUpdatedQuests = false,
         AutoHideQuestHelperIcons = false,
 

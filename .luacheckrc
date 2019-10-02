@@ -4,11 +4,17 @@ exclude_files = {
     ".luacheckrc"
 }
 
+quiet = 1
+
+exclude_files = {
+    "Libs/*"
+}
+
 ignore = {
-    "11./HBD_.*", -- Setting an undefined (HBD Constants) global variable
     "211/_.*", -- Unused local variable starting with _
     "212", -- Unused argument
     "542", -- empty if branch
+    "432/self" -- shadowing upvalue self
 }
 
 globals = {
@@ -96,6 +102,7 @@ read_globals = {
     "GetLocale",
     "UnitInParty",
     "ToggleDropDownMenu",
+    "GetCursorPosition",
 
     -- FrameXML Frames
     "UIParent",

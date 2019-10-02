@@ -7,6 +7,8 @@
     <Include file="Libs\AceEvent-3.0\AceEvent-3.0.xml"/>
     <Include file="Libs\AceAddon-3.0\AceAddon-3.0.xml"/>
     <Include file="Libs\AceDB-3.0\AceDB-3.0.xml"/>
+    <Include file="Libs\Poncho-1.0\Poncho-1.0.xml"/>
+    <Include file="Libs\Sushi-3.0\Sushi-3.0.xml"/>
 
     <Include file="QuestLogHelper\QuestLogHelper.xml"/>
     <Include file="QuestWatchHelper\QuestWatchHelper.xml"/>

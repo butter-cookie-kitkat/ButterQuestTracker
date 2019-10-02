@@ -273,8 +273,9 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, value);
-                        TH:UpdateFrame({
-                            backgroundAlwaysVisible = BQT.db.global.BackgroundAlwaysVisible
+
+                        TH:UpdateSettings({
+                            backgroundVisible = BQT.db.global.DeveloperMode or value
                         });
                     end
                 },
@@ -291,7 +292,7 @@ local options = {
                     set = function(info, r, g, b, a)
                         SetColor(info, r, g, b, a);
 
-                        TH:UpdateFrame({
+                        TH:UpdateSettings({
                             backgroundColor = {
                                 r = r,
                                 g = g,
@@ -447,7 +448,12 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, -value);
-                        TH:UpdatePosition(-value);
+
+                        TH:UpdateSettings({
+                            position = {
+                                x = -value
+                            }
+                        });
                     end
                 },
 
@@ -468,7 +474,12 @@ local options = {
 
                     set = function(info, value)
                         SetInDB(info, -value);
-                        TH:UpdatePosition(nil, -value);
+
+                        TH:UpdateSettings({
+                            position = {
+                                y = -value
+                            }
+                        });
                     end
                 },
 
@@ -488,7 +499,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateFrame({
+                        TH:UpdateSettings({
                             width = value
                         });
                     end
@@ -508,7 +519,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateFrame({
+                        TH:UpdateSettings({
                             maxHeight = value
                         });
                     end
@@ -525,7 +536,13 @@ local options = {
                     func = function()
                         BQT.db.global.PositionX = ns.CONSTANTS.DB_DEFAULTS.global.PositionX;
                         BQT.db.global.PositionY = ns.CONSTANTS.DB_DEFAULTS.global.PositionY;
-                        TH:UpdatePosition(BQT.db.global.PositionX, BQT.db.global.PositionY);
+
+                        TH:UpdateSettings({
+                            position = {
+                                x = BQT.db.global.PositionX,
+                                y = BQT.db.global.PositionY
+                            }
+                        });
                     end
                 },
 
@@ -539,7 +556,7 @@ local options = {
                         BQT.db.global.Width = ns.CONSTANTS.DB_DEFAULTS.global.Width;
                         BQT.db.global.MaxHeight = ns.CONSTANTS.DB_DEFAULTS.global.MaxHeight;
 
-                        TH:UpdateFrame({
+                        TH:UpdateSettings({
                             width = BQT.db.global.Width,
                             maxHeight = BQT.db.global.MaxHeight
                         });
@@ -572,8 +589,11 @@ local options = {
                     order = order(),
 
                     set = function(info, value)
-                        SetInDB(info, value);
-                        TH:SetDebugMode(value);
+                        SetAndRefreshView(info, value);
+
+                        TH:UpdateSettings({
+                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible or value
+                        });
                     end
                 },
 
@@ -664,9 +684,12 @@ local options = {
                            BQT.db.char[k] = v
                         end
 
-                        TH:UpdateFrame({
-                            x = BQT.db.global.PositionX,
-                            y = BQT.db.global.PositionY,
+                        TH:UpdateSettings({
+                            position = {
+                                x = BQT.db.global.PositionX,
+                                y = BQT.db.global.PositionY
+                            },
+
                             width = BQT.db.global.Width,
                             maxHeight = BQT.db.global.MaxHeight,
 
@@ -677,10 +700,9 @@ local options = {
                                 a = BQT.db.global['BackgroundColor-A']
                             },
 
-                            backgroundAlwaysVisible = BQT.db.global.BackgroundAlwaysVisible
+                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible
                         });
 
-                        TH:SetDebugMode(BQT.db.global.DeveloperMode);
                         BQT:RefreshQuestWatch();
                         BQT:RefreshView();
                     end

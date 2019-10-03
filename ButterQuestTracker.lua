@@ -482,7 +482,7 @@ function BQT:RefreshView()
     self:LogInfo("Refresh Quests");
     TH:Clear();
 
-    local watchedQuests, questCount, isDummyData = self:GetQuestInfo();
+    local watchedQuests, questCount = self:GetQuestInfo();
     local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
 
     self:LogTrace("Quest Count:", questCount);

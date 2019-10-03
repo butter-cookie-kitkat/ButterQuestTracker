@@ -431,6 +431,24 @@ local options = {
             order = order(),
 
             args = {
+                lockFrame = {
+                    name = BQTL:GetStringWrap('SETTINGS_LOCK_FRAME_NAME'),
+                    desc = BQTL:GetStringWrap('SETTINGS_LOCK_FRAME_DESC'),
+                    arg = "LockFrame",
+                    type = "toggle",
+                    order = order(),
+
+                    set = function(info, value)
+                        SetInDB(info, value);
+
+                        TH:UpdateSettings({
+                            locked = value
+                        });
+                    end
+                },
+
+                spacer0 = Spacer(),
+
                 positionX = {
                     name = BQTL:GetStringWrap('SETTINGS_POSITIONX_NAME'),
                     arg = "PositionX",
@@ -700,7 +718,9 @@ local options = {
                                 a = BQT.db.global['BackgroundColor-A']
                             },
 
-                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible
+                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible,
+
+                            locked = BQT.db.global.LockFrame
                         });
 
                         BQT:RefreshQuestWatch();

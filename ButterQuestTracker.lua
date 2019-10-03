@@ -127,7 +127,9 @@ function BQT:OnInitialize()
             a = self.db.global['BackgroundColor-A']
         },
 
-        backgroundVisible = self.db.global.BackgroundAlwaysVisible
+        backgroundVisible = self.db.global.BackgroundAlwaysVisible,
+
+        locked = self.db.global.LockFrame
     });
 
     self:LogInfo("Initialized");
@@ -322,6 +324,7 @@ end
 
 function BQT:GetQuestInfo()
     if self.db.global.DisplayDummyData and InterfaceOptionsFrame:IsShown() then
+        -- TODO: Move this into QuestLogHelper
         local quests = {
             -- Partially Completed
             [6563] = {
@@ -487,13 +490,13 @@ function BQT:RefreshView()
 
                 events = {
                     OnMouseDown = function(_, button)
-                        if button ~= "LeftButton" then return end
+                        if button ~= "LeftButton" or self.db.global.LockFrame then return end
 
                         TH.frame:StartMoving();
                     end,
 
                     OnMouseUp = function(_, button)
-                        if button ~= "LeftButton" then return end
+                        if button ~= "LeftButton" or self.db.global.LockFrame then return end
 
                         TH.frame:StopMovingOrSizing();
                         TH.frame:SetUserPlaced(false);
@@ -546,6 +549,7 @@ function BQT:RefreshView()
         if i <= self.db.global.QuestLimit then
             if not zoneContainers[quest.zone] then
                 if self.db.global.ZoneHeaderEnabled then
+                    -- Zone Header
                     TH:Font({
                         label = quest.zone,
                         size = self.db.global.ZoneHeaderFontSize,
@@ -610,6 +614,7 @@ function BQT:RefreshView()
                 }
             });
 
+            -- Quest Header
             local headerText = "[" .. quest.level .. "] ";
 
             headerText = headerText .. quest.title;

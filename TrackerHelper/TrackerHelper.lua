@@ -14,7 +14,8 @@ helper.settings = {
         b = 0,
         a = 0.5
     },
-    backgroundVisible = false
+    backgroundVisible = false,
+    locked = false
 };
 
 helper.frame = class();
@@ -22,7 +23,6 @@ helper.frame:SetClipsChildren(true);
 helper.frame:SetClampedToScreen(true);
 helper.frame:SetFrameStrata("BACKGROUND");
 helper.frame:SetSize(1, 1);
-helper.frame:SetMovable(true);
 helper.frame:EnableMouseWheel(true);
 
 local function hex2rgb(hex)
@@ -209,6 +209,16 @@ function helper:UpdateSettings(settings)
     if settings.backgroundVisible ~= nil then
         self:SetBackgroundVisibility(settings.backgroundVisible);
     end
+
+    if settings.locked ~= nil then
+        self:SetLocked(settings.locked);
+    end
+end
+
+function helper:SetLocked(locked)
+    self.settings.locked = locked;
+
+    self.frame:SetMovable(not locked);
 end
 
 function helper:SetBackgroundColor(backgroundColor)
@@ -409,7 +419,7 @@ function helper:Container(options)
             end
 
             local _, button = ...;
-            if button == "LeftButton" then
+            if button == "LeftButton" and not helper.settings.locked then
                 dragTimer = C_Timer.NewTicker(0.1, function()
                     local cursorX, cursorY = GetCursorPosition();
                     local distance = getDistance(originalMouseLocation.x, originalMouseLocation.y, cursorX, cursorY);

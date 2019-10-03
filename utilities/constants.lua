@@ -44,6 +44,7 @@ CONSTANTS.DB_DEFAULTS = {
         TrackerHeaderFormat = "QuestsNumberVisible",
         ColorHeadersByDifficultyLevel = false,
 
+        ZoneHeaderEnabled = false,
         TrackerHeaderFontSize = 12,
         ZoneHeaderFontSize = 12,
         QuestHeaderFontSize = 12,
@@ -52,6 +53,7 @@ CONSTANTS.DB_DEFAULTS = {
 
         -- Frame Settings
 
+        LockFrame = false,
         PositionX = 0,
         PositionY = -240,
         Width = 250,

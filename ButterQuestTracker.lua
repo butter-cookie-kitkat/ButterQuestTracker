@@ -598,7 +598,7 @@ function BQT:RefreshView()
 
                 zoneContainers[quest.zone] = TH:Container({
                     container = questsContainer,
-                    hidden = self.hiddenContainers["Z-" .. quest.zone],
+                    hidden = self.db.global.ZoneHeaderEnabled and self.hiddenContainers["Z-" .. quest.zone],
 
                     padding = {
                         left = self.db.global.ZoneHeaderEnabled and 8 or 5

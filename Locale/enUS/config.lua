@@ -77,12 +77,13 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_FRAME_TAB'] = "Frame Settings",
 
-    ['SETTINGS_POSITIONX_NAME'] = "Position X",
+    ['SETTINGS_LOCK_FRAME_NAME'] = "Lock Frame",
+    ['SETTINGS_LOCK_FRAME_DESC'] = "Prevents the frame from being moved.",
 
+    ['SETTINGS_POSITIONX_NAME'] = "Position X",
     ['SETTINGS_POSITIONY_NAME'] = "Position Y",
 
     ['SETTINGS_WIDTH_NAME'] = "Width",
-
     ['SETTINGS_MAX_HEIGHT_NAME'] = "Max Height",
 
     ['SETTINGS_RESET_POSITION_NAME'] = "Reset Position",

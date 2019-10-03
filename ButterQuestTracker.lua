@@ -554,8 +554,6 @@ function BQT:RefreshView()
                         label = quest.zone,
                         size = self.db.global.ZoneHeaderFontSize,
 
-                        color = "48C9D5",
-
                         container = TH:Container({
                             container = questsContainer,
 

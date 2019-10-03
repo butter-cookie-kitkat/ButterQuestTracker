@@ -44,6 +44,15 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     hideOnEscape = true
 }
 
+local timers = {};
+local function debounce(name, func)
+    if timers[name] then
+        timers[name]:Cancel();
+    end
+
+    timers[name] = C_Timer.NewTimer(0.1, func);
+end
+
 function BQT:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
     self.hiddenContainers = {}
@@ -120,14 +129,9 @@ function BQT:OnInitialize()
         width = self.db.global.Width,
         maxHeight = self.db.global.MaxHeight,
 
-        backgroundColor = {
-            r = self.db.global['BackgroundColor-R'],
-            g = self.db.global['BackgroundColor-G'],
-            b = self.db.global['BackgroundColor-B'],
-            a = self.db.global['BackgroundColor-A']
-        },
+        backgroundColor = self.db.global.BackgroundColor,
 
-        backgroundVisible = self.db.global.BackgroundAlwaysVisible,
+        backgroundVisible = self.db.global.BackgroundAlwaysVisible or self.db.global.DeveloperMode,
 
         locked = self.db.global.LockFrame
     });
@@ -445,6 +449,35 @@ function BQT:GetQuestInfo()
     return QLH:GetWatchedQuests(), QLH:GetQuestCount(), false;
 end
 
+function BQT:GetTrackerHeader(questCount, visibleQuestCount)
+    if self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
+        if visibleQuestCount < questCount then
+            return "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
+        end
+    end
+
+    return "Quests";
+end
+
+function BQT:GetQuestHeader(quest)
+    local format = self.db.global.QuestHeaderFormat;
+
+    for match, key in format:gmatch("({{(%w+)}})" ) do
+        local value = quest[key];
+        if value then
+            format = format:gsub(match, value, 1);
+        end
+    end
+
+    return format;
+end
+
+function BQT:RefreshViewWithDebounce()
+    debounce("RefreshView", function()
+        self:RefreshView();
+    end);
+end
+
 function BQT:RefreshView()
     self:LogInfo("Refresh Quests");
     TH:Clear();
@@ -468,21 +501,11 @@ function BQT:RefreshView()
         }
     });
 
-    local headerLabel;
-    if self.db.global.TrackerHeaderFormat == "Quests" then
-        headerLabel = "Quests";
-    elseif self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
-        if visibleQuestCount < questCount then
-            headerLabel = "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
-        else
-            headerLabel = "Quests";
-        end
-    end
-
     local questsContainer;
-    if headerLabel ~= nil then
+    if self.db.global.TrackerHeaderEnabled then
         TH:Font({
-            label = headerLabel,
+            label = self:GetTrackerHeader(questCount, visibleQuestCount),
+            color = self.db.global.TrackerHeaderFontColor,
             size = self.db.global.TrackerHeaderFontSize,
 
             container = TH:Container({
@@ -552,13 +575,14 @@ function BQT:RefreshView()
                     -- Zone Header
                     TH:Font({
                         label = quest.zone,
+                        color = self.db.global.ZoneHeaderFontColor,
                         size = self.db.global.ZoneHeaderFontSize,
 
                         container = TH:Container({
                             container = questsContainer,
 
                             padding = {
-                                top = (i ~= 1 or headerLabel) and 10,
+                                top = (i ~= 1 or self.db.global.TrackerHeaderEnabled) and 10,
                                 left = 2
                             },
 
@@ -585,10 +609,13 @@ function BQT:RefreshView()
             local questContainer = TH:Container({
                 container = zoneContainers[quest.zone],
 
-                backgroundColor = self.db.global.DeveloperMode and "00FF00",
+                backgroundColor = self.db.global.DeveloperMode and {
+                    g = 1.0,
+                    a = 0.2
+                },
 
                 padding = {
-                    top = (i ~= 1 or self.db.global.ZoneHeaderEnabled or headerLabel) and self.db.global.QuestPadding
+                    top = (i ~= 1 or self.db.global.ZoneHeaderEnabled or self.db.global.TrackerHeaderEnabled) and self.db.global.QuestPadding
                 },
 
                 events = {
@@ -612,24 +639,10 @@ function BQT:RefreshView()
                 }
             });
 
-            -- Quest Header
-            local headerText = "[" .. quest.level .. "] ";
-
-            headerText = headerText .. quest.title;
-
-            if isDummyData and quest.isCurrentZone then
-                headerText  = headerText .. " (CZ)";
-            end
-
-            if self.db.global.DeveloperMode and quest.distanceToClosestObjective then
-                local precision = "%.".. 1 .."f";
-                headerText = headerText .. string.format(" ( " .. precision .. " )", quest.distanceToClosestObjective);
-            end
-
             TH:Font({
-                label = headerText,
+                label = self:GetQuestHeader(quest),
                 size = self.db.global.QuestHeaderFontSize,
-                color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or NORMAL_FONT_COLOR,
+                color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or self.db.global.QuestHeaderFontColor,
                 container = questContainer
             });
 
@@ -639,7 +652,7 @@ function BQT:RefreshView()
                 TH:Font({
                     label = ' - ' .. quest.summary,
                     size = self.db.global.ObjectiveFontSize,
-                    color = ns.CONSTANTS.COLORS.OBJECTIVE,
+                    color = self.db.global.ObjectiveFontColor,
                     container = questContainer,
                     padding = {
                         top = 2.5
@@ -660,7 +673,7 @@ function BQT:RefreshView()
                     TH:Font({
                         label = ' - ' .. objective.text,
                         size = self.db.global.ObjectiveFontSize,
-                        color = objective.completed and HIGHLIGHT_FONT_COLOR or ns.CONSTANTS.COLORS.OBJECTIVE,
+                        color = objective.completed and HIGHLIGHT_FONT_COLOR or self.db.global.ObjectiveFontColor,
                         container = questContainer,
                         padding = {
                             top = 2.5

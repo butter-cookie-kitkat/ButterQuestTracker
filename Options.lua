@@ -13,28 +13,22 @@ local function order()
     return _order;
 end
 
-local function Spacer(size)
-    size = size or "small";
+local function Spacer(options)
+    options = options or {};
+    options.size = options.size or "small";
+    options.width = options.width or "full";
 
     return {
         type = "description",
         order = order(),
         name = " ",
-        fontSize = size
+        fontSize = options.size,
+        width = options.width
     };
 end
 
 local function GetFromDB(info)
     return BQT.db.global[info.arg];
-end
-
-local function GetColor(info)
-    local r = BQT.db.global[info.arg .. "-R"];
-    local g = BQT.db.global[info.arg .. "-G"];
-    local b = BQT.db.global[info.arg .. "-B"];
-    local a = BQT.db.global[info.arg .. "-A"];
-
-    return r, g, b, a;
 end
 
 local function SetInDB(info, value)
@@ -51,11 +45,56 @@ local function SetAndRefreshView(info, value)
     BQT:RefreshView();
 end
 
-local function SetColor(info, r, g, b ,a)
-    BQT.db.global[info.arg .. "-R"] = r;
-    BQT.db.global[info.arg .. "-G"] = g;
-    BQT.db.global[info.arg .. "-B"] = b;
-    BQT.db.global[info.arg .. "-A"] = a;
+local function hex2rgb(hex)
+    hex = hex:gsub("#","")
+    if #hex == 8 then
+        return {
+            r = tonumber("0x" .. hex:sub(3,4)) / 255,
+            g = tonumber("0x" .. hex:sub(5,6)) / 255,
+            b = tonumber("0x" .. hex:sub(7,8)) / 255,
+            a = tonumber("0x" .. hex:sub(1,2)) / 255
+        };
+    end
+
+    return {
+        r = tonumber("0x" .. hex:sub(1,2)) / 255,
+        g = tonumber("0x" .. hex:sub(3,4)) / 255,
+        b = tonumber("0x" .. hex:sub(5,6)) / 255
+    };
+end
+
+local function rgb2hex(rgba)
+    local hex = "";
+
+    local index = 1;
+    for _, color in pairs(rgba) do
+        local segment = ('%02X'):format(tonumber(color * 255));
+
+        if index == 4 then
+            hex = segment .. hex;
+        else
+            hex = hex .. segment;
+        end
+
+        index = index + 1;
+	end
+
+	return hex;
+end
+
+local function GetColor(info)
+    local color = hex2rgb(BQT.db.global[info.arg]);
+
+    return color.r, color.g, color.b, color.a;
+end
+
+local function SetColor(info, r, g, b, a)
+    BQT.db.global[info.arg] = rgb2hex({
+        r,
+        g,
+        b,
+        a
+    });
 end
 
 local options = {
@@ -251,7 +290,9 @@ local options = {
                     end
                 },
 
-                spacerEnd = Spacer("large"),
+                spacerEnd = Spacer({
+                    size = "large"
+                }),
             }
         },
 
@@ -268,7 +309,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'),
                     arg = "BackgroundAlwaysVisible",
                     type = "toggle",
-                    width = 2.4,
+                    width = 2.3,
                     order = order(),
 
                     set = function(info, value)
@@ -293,135 +334,282 @@ local options = {
                         SetColor(info, r, g, b, a);
 
                         TH:UpdateSettings({
-                            backgroundColor = {
-                                r = r,
-                                g = g,
-                                b = b,
-                                a = a
-                            }
+                            backgroundColor = BQT.db.global.BackgroundColor
                         });
                     end
                 },
 
                 spacer1 = Spacer(),
 
-                colorHeadersByDifficultyLevel = {
-                    name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
-                    arg = "ColorHeadersByDifficultyLevel",
-                    type = "toggle",
-                    width = 2.4,
+                trackerHeaderSettings = {
+                    name = "Tracker Header Settings",
+                    type = "group",
+                    inline = true,
                     order = order(),
 
-                    set = SetAndRefreshView
+                    args = {
+                        enabled = {
+                            name = BQTL:GetStringWrap('SETTINGS_ENABLED_NAME'),
+                            desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_ENABLED_DESC'),
+                            arg = "TrackerHeaderEnabled",
+                            type = "toggle",
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+
+                        spacer1 = Spacer({
+                            width = 1.1
+                        }),
+
+                        format = {
+                            name = BQTL:GetStringWrap('SETTINGS_FORMAT_NAME'),
+                            desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
+                            arg = "TrackerHeaderFormat",
+                            type = "select",
+                            order = order(),
+
+                            values = function()
+                                return {
+                                    Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
+                                    QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
+                                };
+                            end,
+
+                            sorting = {
+                                "Quests",
+                                "QuestsNumberVisible"
+                            },
+
+                            set = SetAndRefreshView,
+
+                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
+                        },
+
+                        spacer2 = Spacer(),
+
+                        fontSize = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
+                            arg = "TrackerHeaderFontSize",
+                            type = "range",
+                            min = 4,
+                            max = 20,
+                            step = 1,
+                            order = order(),
+
+                            set = SetAndRefreshView,
+
+                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
+                        },
+
+                        spacer3 = Spacer({
+                            width = 1.6
+                        }),
+
+                        fontColor = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
+                            arg = "TrackerHeaderFontColor",
+                            type = "color",
+                            order = order(),
+                            hasAlpha = false,
+                            width = 0.5,
+
+                            get = GetColor,
+                            set = function(info, r, g, b)
+                                SetColor(info, r, g, b);
+
+                                BQT:RefreshViewWithDebounce();
+                            end,
+
+                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
+                        },
+                    }
                 },
 
-                trackerHeaderFormat = {
-                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
-                    arg = "TrackerHeaderFormat",
-                    type = "select",
+                zoneHeaderSettings = {
+                    name = "Zone Header Settings",
+                    type = "group",
+                    inline = true,
                     order = order(),
 
-                    values = function()
-                        return {
-                            Classic = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_CLASSIC_OPTION'),
-                            Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
-                            QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
-                        };
-                    end,
+                    args = {
+                        enabled = {
+                            name = BQTL:GetStringWrap('SETTINGS_ENABLED_NAME'),
+                            desc = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_DESC'),
+                            arg = "ZoneHeaderEnabled",
+                            type = "toggle",
+                            order = order(),
 
-                    sorting = {
-                        "Classic",
-                        "Quests",
-                        "QuestsNumberVisible"
-                    },
+                            set = SetAndRefreshView
+                        },
 
-                    set = SetAndRefreshView
+                        spacer2 = Spacer(),
+
+                        fontSize = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
+                            arg = "ZoneHeaderFontSize",
+                            type = "range",
+                            min = 4,
+                            max = 20,
+                            step = 1,
+                            order = order(),
+
+                            set = SetAndRefreshView,
+
+                            disabled = function() return not BQT.db.global.ZoneHeaderEnabled end
+                        },
+
+                        spacer3 = Spacer({
+                            width = 1.6
+                        }),
+
+                        zoneFontColor = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
+                            arg = "ZoneHeaderFontColor",
+                            type = "color",
+                            order = order(),
+                            hasAlpha = false,
+                            width = 0.5,
+
+                            get = GetColor,
+                            set = function(info, r, g, b)
+                                SetColor(info, r, g, b);
+
+                                BQT:RefreshViewWithDebounce();
+                            end,
+
+                            disabled = function() return not BQT.db.global.ZoneHeaderEnabled end
+                        },
+                    }
                 },
 
-                spacer2 = Spacer(),
-
-                zoneHeaderEnabled = {
-                    name = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_DESC'),
-                    arg = "ZoneHeaderEnabled",
-                    type = "toggle",
-                    width = 2.4,
+                questHeaderSettings = {
+                    name = "Quest Header Settings",
+                    type = "group",
+                    inline = true,
                     order = order(),
 
-                    set = SetAndRefreshView
+                    args = {
+                        questPadding = {
+                            name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
+                            arg = "QuestPadding",
+                            type = "range",
+                            min = 0,
+                            max = 20,
+                            step = 1,
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+
+                        spacer1 = Spacer({
+                            width = 1.1
+                        }),
+
+                        format = {
+                            name = BQTL:GetStringWrap('SETTINGS_FORMAT_NAME'),
+                            desc = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FORMAT_DESC'),
+                            arg = "QuestHeaderFormat",
+                            type = "input",
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+
+                        spacer2 = Spacer(),
+
+                        colorHeadersByDifficultyLevel = {
+                            name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
+                            desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
+                            arg = "ColorHeadersByDifficultyLevel",
+                            type = "toggle",
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+
+                        spacer3 = Spacer({
+                            width = 1.6
+                        }),
+
+                        fontColor = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
+                            arg = "QuestHeaderFontColor",
+                            type = "color",
+                            order = order(),
+                            hasAlpha = false,
+                            width = 0.5,
+
+                            get = GetColor,
+                            set = function(info, r, g, b)
+                                SetColor(info, r, g, b);
+
+                                BQT:RefreshViewWithDebounce();
+                            end,
+
+                            disabled = function() return BQT.db.global.ColorHeadersByDifficultyLevel end
+                        },
+
+                        spacer4 = Spacer(),
+
+                        fontSize = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
+                            arg = "QuestHeaderFontSize",
+                            type = "range",
+                            min = 4,
+                            max = 20,
+                            step = 1,
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+                    }
                 },
 
-                spacer3 = Spacer(),
-
-                trackerHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'),
-                    arg = "TrackerHeaderFontSize",
-                    type = "range",
-                    min = 4,
-                    max = 20,
-                    step = 1,
+                objectiveSettings = {
+                    name = "Objective Settings",
+                    type = "group",
+                    inline = true,
                     order = order(),
 
-                    set = SetAndRefreshView
+                    args = {
+                        fontSize = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
+                            arg = "ObjectiveFontSize",
+                            type = "range",
+                            min = 4,
+                            max = 20,
+                            step = 1,
+                            order = order(),
+
+                            set = SetAndRefreshView
+                        },
+
+                        spacer3 = Spacer({
+                            width = 1.6
+                        }),
+
+                        fontColor = {
+                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
+                            arg = "ObjectiveFontColor",
+                            type = "color",
+                            order = order(),
+                            hasAlpha = false,
+                            width = 0.5,
+
+                            get = GetColor,
+                            set = function(info, r, g, b)
+                                SetColor(info, r, g, b);
+
+                                BQT:RefreshViewWithDebounce();
+                            end
+                        },
+                    }
                 },
 
-                zoneHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_FONT_SIZE_NAME'),
-                    arg = "ZoneHeaderFontSize",
-                    type = "range",
-                    min = 4,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    disabled = function() return not BQT.db.global.ZoneHeaderEnabled end,
-
-                    set = SetAndRefreshView
-                },
-
-                spacer4 = Spacer(),
-
-                questHeaderFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'),
-                    arg = "QuestHeaderFontSize",
-                    type = "range",
-                    min = 4,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshView
-                },
-
-                objectiveFontSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_OBJECTIVE_FONT_SIZE_NAME'),
-                    arg = "ObjectiveFontSize",
-                    type = "range",
-                    min = 4,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshView
-                },
-
-                spacer5 = Spacer(),
-
-                questPadding = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
-                    arg = "QuestPadding",
-                    type = "range",
-                    min = 0,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshView
-                },
-
-                spacerEnd = Spacer("large"),
+                spacerEnd = Spacer({
+                    size = "large"
+                }),
             }
         },
 
@@ -581,7 +769,9 @@ local options = {
                     end
                 },
 
-                spacerEnd = Spacer("large"),
+                spacerEnd = Spacer({
+                    size = "large"
+                }),
             }
         },
 
@@ -711,12 +901,7 @@ local options = {
                             width = BQT.db.global.Width,
                             maxHeight = BQT.db.global.MaxHeight,
 
-                            backgroundColor = {
-                                r = BQT.db.global['BackgroundColor-R'],
-                                g = BQT.db.global['BackgroundColor-G'],
-                                b = BQT.db.global['BackgroundColor-B'],
-                                a = BQT.db.global['BackgroundColor-A']
-                            },
+                            backgroundColor = BQT.db.global.BackgroundColor,
 
                             backgroundVisible = BQT.db.global.BackgroundAlwaysVisible,
 
@@ -737,7 +922,9 @@ local options = {
                     order = order(),
                 },
 
-                spacerEnd = Spacer("large"),
+                spacerEnd = Spacer({
+                    size = "large"
+                }),
             }
         },
     },

@@ -2,6 +2,8 @@ ButterQuestTrackerLocale.locale['enUS'] = {
     -- Settings
 
     ['SETTINGS_NAME'] = "Butter Quest Tracker v%s",
+    ['SETTINGS_ENABLED_NAME'] = "Enabled",
+    ['SETTINGS_FORMAT_NAME'] = "Format",
 
     ['SETTINGS_DISPLAY_DUMMY_DATA_NAME'] = "Display Dummy Data",
     ['SETTINGS_DISPLAY_DUMMY_DATA_DESC'] = "Displays dummy data in the tracker to allow you to tweak the visuals easier.\n\nThis also acts like your current zone is Thunder Bluff.",
@@ -47,31 +49,39 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_VISUAL_TAB'] = "Visual Settings",
 
+    ['SETTINGS_FONT_SIZE_NAME'] = "Font Size",
+    ['SETTINGS_FONT_COLOR_NAME'] = "Font Color",
+
     ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_NAME'] = "Background Always Visible",
     ['SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'] = "The background for the tracker will always be visible.",
 
     ['SETTINGS_BACKGROUND_COLOR_NAME'] = "Background Color",
     ['SETTINGS_BACKGROUND_COLOR_DESC'] = "The background color of the tracker.",
 
-    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "Color Headers By Difficulty Level",
-    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "Color codes the quests by their difficulty level.",
+    ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",
 
-    ['SETTINGS_TRACKER_HEADER_FORMAT_NAME'] = "Tracker Header Format",
+    -- Settings > Visual Settings > Tracker Header Settings
+
+    ['SETTINGS_TRACKER_HEADER_ENABLED_DESC'] = "Whether the tracker header should be visible.",
+
     ['SETTINGS_TRACKER_HEADER_FORMAT_DESC'] = "How should we format the tracker header?",
-
-    ['SETTINGS_TRACKER_HEADER_FORMAT_CLASSIC_OPTION'] = "Classic (Disabled)",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'] = "Quests",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'] = "Quests (10/18)",
 
-    ['SETTINGS_TRACKER_HEADER_FONT_SIZE_NAME'] = "Tracker Header Font Size",
+    -- Settings > Visual Settings > Zone Header Settings
 
-    ['SETTINGS_ZONE_HEADER_ENABLED_NAME'] = "Zone Header Enabled",
     ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "Adds collapsible zone headers above the quests.\n\n|c00FF9696This functionality is extremely beta, use at your own risk!",
-    ['SETTINGS_ZONE_HEADER_FONT_SIZE_NAME'] = "Zone Header Font Size",
 
-    ['SETTINGS_QUEST_HEADER_FONT_SIZE_NAME'] = "Quest Header Font Size",
-    ['SETTINGS_OBJECTIVE_FONT_SIZE_NAME'] = "Objective Font Size",
-    ['SETTINGS_QUEST_PADDING_NAME'] = "Quest Padding",
+    -- Settings > Visual Settings > Quest Header Settings
+
+    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "Color by Difficulty Level",
+    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "Colors the headers by their difficulty level.",
+
+    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "Fine-grained control over the quest header formatting.\n\n{{title}} = Name of the quest.\n{{level}} = The level of the quest\n{{zone}} = The zone the quest belongs to",
+    ['SETTINGS_QUEST_HEADER_FORMAT_CLASSIC_OPTION'] = "Classic",
+    ['SETTINGS_QUEST_HEADER_FORMAT_LEVELS_OPTION'] = "Levels",
+
+    -- Settings > Visual Settings > Objective Settings
 
     -- Settings > Frame Settings
 

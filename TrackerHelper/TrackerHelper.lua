@@ -27,11 +27,21 @@ helper.frame:EnableMouseWheel(true);
 
 local function hex2rgb(hex)
     hex = hex:gsub("#","")
-    if #hex == 6 then
-        return tonumber("0x" .. hex:sub(1,2)) / 255, tonumber("0x" .. hex:sub(3,4)) / 255, tonumber("0x" .. hex:sub(5,6)) / 255;
+    if #hex == 8 then
+        return {
+            r = tonumber("0x" .. hex:sub(3,4)) / 255,
+            g = tonumber("0x" .. hex:sub(5,6)) / 255,
+            b = tonumber("0x" .. hex:sub(7,8)) / 255,
+            a = tonumber("0x" .. hex:sub(1,2)) / 255
+        };
     end
 
-    return tonumber("0x" .. hex:sub(3, 4)) / 255, tonumber("0x" .. hex:sub(5, 6)) / 255, tonumber("0x" .. hex:sub(7, 8)) / 255, tonumber("0x" .. hex:sub(1,2)) / 255;
+    return {
+        r = tonumber("0x" .. hex:sub(1,2)) / 255,
+        g = tonumber("0x" .. hex:sub(3,4)) / 255,
+        b = tonumber("0x" .. hex:sub(5,6)) / 255,
+        a = 1.0
+    };
 end
 
 local function getDistance(x1, y1, x2, y2)
@@ -87,26 +97,19 @@ local function findPriorElement(elements, predicateElement)
     end
 end
 
-local function normalizeColor(color, defaultValue)
-    color = color or defaultValue or {};
+local function normalizeColor(value, defaultValue)
+    value = value or defaultValue or {};
 
-    if type(color) == "string" then
-        local r, g, b, a = hex2rgb(color);
-
-        color = {
-            r = r,
-            g = g,
-            b = b,
-            a = a or 1.0
-        };
+    if type(value) == "string" then
+        value = hex2rgb(value);
     end
 
-    color.r = color.r or 0;
-    color.g = color.g or 0;
-    color.b = color.b or 0;
-    color.a = color.a or 0;
+    value.r = value.r or 0;
+    value.g = value.g or 0;
+    value.b = value.b or 0;
+    value.a = value.a or 0;
 
-    return color;
+    return value;
 end
 
 local function normalizeSharedOptions(options)
@@ -222,9 +225,9 @@ function helper:SetLocked(locked)
 end
 
 function helper:SetBackgroundColor(backgroundColor)
-    self.settings.backgroundColor = backgroundColor;
+    self.settings.backgroundColor = normalizeColor(backgroundColor);
 
-    helper.frame.background.texture:SetColorTexture(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+    helper.frame.background.texture:SetColorTexture(self.settings.backgroundColor.r, self.settings.backgroundColor.g, self.settings.backgroundColor.b, self.settings.backgroundColor.a);
 end
 
 function helper:SetBackgroundVisibility(visible)

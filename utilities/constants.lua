@@ -6,14 +6,7 @@ local CONSTANTS = {
     NAME_SQUASHED = "ButterQuestTracker",
     CURSEFORGE_SLUG = "butter-quest-tracker",
     BRAND_COLOR = "|c00FF9696",
-    PATHS = {},
-    COLORS = {
-        OBJECTIVE = {
-            r = 0.8,
-            g = 0.8,
-            b = 0.8
-        }
-    }
+    PATHS = {}
 };
 
 CONSTANTS.PATHS.MEDIA = "Interface\\AddOns\\" .. NAME .. "\\Media\\";
@@ -36,20 +29,34 @@ CONSTANTS.DB_DEFAULTS = {
         -- Visuals
 
         BackgroundAlwaysVisible = false,
-        ['BackgroundColor-R'] = 0.0,
-        ['BackgroundColor-G'] = 0.0,
-        ['BackgroundColor-B'] = 0.0,
-        ['BackgroundColor-A'] = 0.5,
+        BackgroundColor = "7F000000",
 
+        QuestPadding = 10,
+
+        -- Visuals > Tracker Header Font Settings
+
+        TrackerHeaderEnabled = true,
         TrackerHeaderFormat = "QuestsNumberVisible",
-        ColorHeadersByDifficultyLevel = false,
+        TrackerHeaderFontSize = 12,
+        TrackerHeaderFontColor = "FFD100",
+
+        -- Visuals > Zone Header Font Settings
 
         ZoneHeaderEnabled = false,
-        TrackerHeaderFontSize = 12,
         ZoneHeaderFontSize = 12,
+        ZoneHeaderFontColor = "FFD100",
+
+        -- Visuals > Quest Header Font Settings
+
+        ColorHeadersByDifficultyLevel = false,
+        QuestHeaderFormat = "{{title}}",
         QuestHeaderFontSize = 12,
+        QuestHeaderFontColor = "FFD100",
+
+        -- Visuals > Objective Font Settings
+
         ObjectiveFontSize = 12,
-        QuestPadding = 10,
+        ObjectiveFontColor = "CCCCCC",
 
         -- Frame Settings
 

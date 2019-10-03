@@ -46,6 +46,7 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
 
 function BQT:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
+    self.hiddenContainers = {}
 
     -- TODO: This is for backwards compatible support of the SavedVariables
     -- Remove this in v2.0.0
@@ -110,11 +111,11 @@ function BQT:OnInitialize()
 
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
-    TH:UpdateFrame({
-        clamp = true,
-
-        x = self.db.global.PositionX,
-        y = self.db.global.PositionY,
+    TH:UpdateSettings({
+        position = {
+            x = self.db.global.PositionX,
+            y = self.db.global.PositionY
+        },
 
         width = self.db.global.Width,
         maxHeight = self.db.global.MaxHeight,
@@ -126,10 +127,8 @@ function BQT:OnInitialize()
             a = self.db.global['BackgroundColor-A']
         },
 
-        backgroundAlwaysVisible = self.db.global.BackgroundAlwaysVisible
+        backgroundVisible = self.db.global.BackgroundAlwaysVisible
     });
-
-    TH:SetDebugMode(self.db.global.DeveloperMode);
 
     self:LogInfo("Initialized");
 end
@@ -448,11 +447,23 @@ function BQT:RefreshView()
     TH:Clear();
 
     local watchedQuests, questCount, isDummyData = self:GetQuestInfo();
-
     local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
 
     self:LogTrace("Quest Count:", questCount);
     self:LogTrace("Visible Quest Count:", visibleQuestCount);
+
+    local trackerContainer = TH:Container({
+        padding = {
+            x = 10,
+            y = 10
+        },
+
+        backgroundColor = self.db.global.DeveloperMode and {
+            r = 1.0,
+            g = 1.0,
+            a = 0.2
+        }
+    });
 
     local headerLabel;
     if self.db.global.TrackerHeaderFormat == "Quests" then
@@ -465,21 +476,53 @@ function BQT:RefreshView()
         end
     end
 
+    local questsContainer;
     if headerLabel ~= nil then
-        TH:DrawFont({
+        TH:Font({
             label = headerLabel,
             size = self.db.global.TrackerHeaderFontSize,
-            color = NORMAL_FONT_COLOR,
-            hoverColor = HIGHLIGHT_FONT_COLOR,
 
-            container = TH:CreateContainer({
+            container = TH:Container({
+                container = trackerContainer,
+
                 events = {
                     OnMouseDown = function(_, button)
-                        local frame = TH:GetFrame();
+                        if button ~= "LeftButton" then return end
 
+                        TH.frame:StartMoving();
+                    end,
+
+                    OnMouseUp = function(_, button)
+                        if button ~= "LeftButton" then return end
+
+                        TH.frame:StopMovingOrSizing();
+                        TH.frame:SetUserPlaced(false);
+                    end,
+
+                    OnButterDragStart = function()
+                        TH:SetBackgroundVisibility(true);
+                    end,
+
+                    -- This fires only if OnButterDragStart fires as well.
+                    OnButterDragStop = function()
+                        local x, y = TH:GetPosition();
+                        if not self.db.global.DeveloperMode and not self.db.global.BackgroundAlwaysVisible then
+                            TH:SetBackgroundVisibility(false);
+                        end
+
+                        self.db.global.PositionX = x;
+                        self.db.global.PositionY = y;
+
+                        TH:SetPosition(x, y);
+
+                        LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
+                    end,
+
+                    -- This fires only if OnButterDragStart doesn't fire.
+                    OnButterMouseUp = function(_, button)
                         if button == "LeftButton" then
-                            frame:StartMoving();
-                            TH:SetBackgroundVisibility(true);
+                            self.hiddenContainers["QUESTS"] = questsContainer:Toggle() or nil;
+                            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                         else
                             if InterfaceOptionsFrame:IsShown() then
                                 InterfaceOptionsFrame:Hide();
@@ -488,64 +531,64 @@ function BQT:RefreshView()
                                 InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
                             end
                         end
-                    end,
-
-                    OnMouseUp = function()
-                        local frame = TH:GetFrame();
-
-                        frame:StopMovingOrSizing();
-                        frame:SetUserPlaced(false);
-
-                        TH:SetDebugMode();
-                        local x, y = TH:GetPosition();
-
-                        self.db.global.PositionX = x;
-                        self.db.global.PositionY = y;
-
-                        TH:UpdatePosition(x, y);
-
-                        LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
                     end
                 }
             })
         });
     end
 
+    questsContainer = TH:Container({
+        container = trackerContainer,
+        hidden = self.hiddenContainers["QUESTS"]
+    });
     local zoneContainers = {};
     for i, quest in spairs(watchedQuests, sortQuests) do
         if i <= self.db.global.QuestLimit then
-            if self.db.global.ZoneHeaderEnabled and not zoneContainers[quest.zone] then
-                TH:DrawFont({
-                    label = quest.zone,
-                    size = self.db.global.QuestHeaderFontSize,
-                    color = NORMAL_FONT_COLOR,
-                    hoverColor = HIGHLIGHT_FONT_COLOR,
-                    container = TH:CreateContainer({
-                        padding = {
-                            top = self.db.global.QuestPadding
-                        },
+            if not zoneContainers[quest.zone] then
+                if self.db.global.ZoneHeaderEnabled then
+                    TH:Font({
+                        label = quest.zone,
+                        size = self.db.global.ZoneHeaderFontSize,
 
-                        events = {
-                            OnMouseUp = function(_, button)
-                                TH:ToggleContainerVisibility(zoneContainers[quest.zone]);
-                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                            end
-                        }
-                    })
-                });
+                        color = "48C9D5",
 
-                zoneContainers[quest.zone] = TH:CreateContainer({
+                        container = TH:Container({
+                            container = questsContainer,
+
+                            padding = {
+                                top = (i ~= 1 or headerLabel) and 10,
+                                left = 2
+                            },
+
+                            events = {
+                                OnMouseUp = function()
+                                    self.hiddenContainers["Z-" .. quest.zone] = zoneContainers[quest.zone]:Toggle() or nil;
+                                    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                                end
+                            }
+                        })
+                    });
+                end
+
+                zoneContainers[quest.zone] = TH:Container({
+                    container = questsContainer,
+                    hidden = self.hiddenContainers["Z-" .. quest.zone],
+
                     padding = {
-                        left = 5
+                        left = self.db.global.ZoneHeaderEnabled and 8 or 5
                     }
                 });
             end
 
-            local questContainer = TH:CreateContainer({
-                container = self.db.global.ZoneHeaderEnabled and zoneContainers[quest.zone],
+            local questContainer = TH:Container({
+                container = zoneContainers[quest.zone],
+
+                backgroundColor = self.db.global.DeveloperMode and "00FF00",
+
                 padding = {
-                    top = self.db.global.QuestPadding
+                    top = (i ~= 1 or self.db.global.ZoneHeaderEnabled or headerLabel) and self.db.global.QuestPadding
                 },
+
                 events = {
                     OnMouseUp = function(target, button)
                         if button == "LeftButton" then
@@ -569,12 +612,6 @@ function BQT:RefreshView()
 
             local headerText = "[" .. quest.level .. "] ";
 
-            if quest.isClassQuest then
-                headerText = headerText .. "[C] ";
-            elseif quest.isProfessionQuest then
-                headerText = headerText .. "[P] ";
-            end
-
             headerText = headerText .. quest.title;
 
             if isDummyData and quest.isCurrentZone then
@@ -586,56 +623,44 @@ function BQT:RefreshView()
                 headerText = headerText .. string.format(" ( " .. precision .. " )", quest.distanceToClosestObjective);
             end
 
-            TH:DrawFont({
+            TH:Font({
                 label = headerText,
                 size = self.db.global.QuestHeaderFontSize,
                 color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or NORMAL_FONT_COLOR,
-                hoverColor = HIGHLIGHT_FONT_COLOR,
                 container = questContainer
             });
 
             local objectiveCount = count(quest.objectives);
 
             if objectiveCount == 0 then
-                TH:DrawFont({
+                TH:Font({
                     label = ' - ' .. quest.summary,
                     size = self.db.global.ObjectiveFontSize,
-                    color = {
-                        r = 0.8,
-                        g = 0.8,
-                        b = 0.8
-                    },
-                    hoverColor = HIGHLIGHT_FONT_COLOR,
+                    color = ns.CONSTANTS.COLORS.OBJECTIVE,
                     container = questContainer,
                     padding = {
-                        y = 1.25
+                        top = 2.5
                     }
                 });
             elseif quest.isComplete then
-                TH:DrawFont({
+                TH:Font({
                     label = ' - Ready to turn in',
                     size = self.db.global.ObjectiveFontSize,
-                    color = {
-                        r = 0.0,
-                        g = 0.7,
-                        b = 0.0
-                    },
-                    hoverColor = HIGHLIGHT_FONT_COLOR,
+                    color = "00b205",
                     container = questContainer,
                     padding = {
-                        y = 1.25
+                        top = 2.5
                     }
                 });
             else
                 for _, objective in ipairs(quest.objectives) do
-                    TH:DrawFont({
+                    TH:Font({
                         label = ' - ' .. objective.text,
                         size = self.db.global.ObjectiveFontSize,
                         color = objective.completed and HIGHLIGHT_FONT_COLOR or ns.CONSTANTS.COLORS.OBJECTIVE,
-                        hoverColor = HIGHLIGHT_FONT_COLOR,
                         container = questContainer,
                         padding = {
-                            y = 1.25
+                            top = 2.5
                         }
                     });
                 end

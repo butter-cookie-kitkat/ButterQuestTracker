@@ -1,19 +1,73 @@
-local helper = LibStub:NewLibrary("TrackerHelper-1.0", 1);
 
-local _frame, indexes;
-local elements = {
-    fonts = {},
-    containers = {}
+
+local CreateClass = LibStub("Poncho-1.0");
+local helper = LibStub:NewLibrary("TrackerHelper-1.0", 2);
+
+local class = CreateClass("Frame", "ButterQuestTrackerFrame", UIParent);
+
+helper.settings = {
+    width = 200,
+    maxHeight = 500,
+    backgroundColor = {
+        r = 0,
+        g = 0,
+        b = 0,
+        a = 0.5
+    },
+    backgroundVisible = false
 };
 
-local timers = {};
-local function debounce(name, func)
-    if timers[name] then
-        timers[name]:Cancel();
+helper.frame = class();
+helper.frame:SetClipsChildren(true);
+helper.frame:SetClampedToScreen(true);
+helper.frame:SetFrameStrata("BACKGROUND");
+helper.frame:SetSize(1, 1);
+helper.frame:SetMovable(true);
+helper.frame:EnableMouseWheel(true);
+
+local function hex2rgb(hex)
+    hex = hex:gsub("#","")
+    if #hex == 6 then
+        return tonumber("0x" .. hex:sub(1,2)) / 255, tonumber("0x" .. hex:sub(3,4)) / 255, tonumber("0x" .. hex:sub(5,6)) / 255;
     end
 
-    timers[name] = C_Timer.NewTimer(0.01, func);
+    return tonumber("0x" .. hex:sub(3, 4)) / 255, tonumber("0x" .. hex:sub(5, 6)) / 255, tonumber("0x" .. hex:sub(7, 8)) / 255, tonumber("0x" .. hex:sub(1,2)) / 255;
 end
+
+local function getDistance(x1, y1, x2, y2)
+	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
+end
+
+local function clampScrollFrame(scrollFrame)
+    local parent = scrollFrame:GetParent();
+
+    if scrollFrame:GetTop() < parent:GetTop() then
+        scrollFrame:SetPoint("TOP", parent, 0, 0);
+    elseif scrollFrame:GetBottom() > parent:GetBottom() then
+        scrollFrame:SetPoint("TOP", parent, 0, scrollFrame:GetHeight() - parent:GetHeight());
+    end
+end
+
+helper.frame:SetScript("OnMouseWheel", function(_, value)
+    local _, _, _, _, y = helper.frame.content:GetPoint("TOP");
+    helper.frame.content:SetPoint("TOP", helper.frame, 0, y + 10 * -value);
+
+    clampScrollFrame(helper.frame.content);
+end);
+
+helper.frame.content = class();
+helper.frame.content:SetParent(helper.frame);
+helper.frame.content:SetSize(1, 1);
+helper.frame.content:SetPoint("TOP", 0, 0);
+helper.frame.content:SetPoint("LEFT", 0, 0);
+helper.frame.content:SetPoint("RIGHT", 0, 0);
+helper.frame.content.elements = {};
+
+helper.frame.background = class();
+helper.frame.background:SetParent(helper.frame);
+helper.frame.background:SetAllPoints();
+helper.frame.background.texture = helper.frame.background:CreateTexture(nil, "BACKGROUND");
+helper.frame.background.texture:SetAllPoints();
 
 local function count(t)
     local _count = 0;
@@ -23,273 +77,163 @@ local function count(t)
     return _count;
 end
 
-local function normalizePadding(padding)
-    padding = padding or 0;
-
-    if type(padding) == "number" then
-        padding = {
-            top = padding,
-            bottom = padding,
-            left = padding,
-            right = padding
-        };
-    elseif padding.x or padding.y then
-        padding.top = padding.top or padding.y;
-        padding.bottom = padding.bottom or padding.y;
-        padding.left = padding.left or padding.x;
-        padding.right = padding.right or padding.x;
+local function findPriorElement(elements, predicateElement)
+    local previousElement;
+    for _, element in pairs(elements) do
+        if element == predicateElement then
+            return previousElement;
+        end
+        previousElement = element;
     end
-
-    padding.top = padding.top or 0;
-    padding.bottom = padding.bottom or 0;
-    padding.left = padding.left or 0;
-    padding.right = padding.right or 0;
-
-    return padding;
 end
 
-local function normalizeFontOptions(options)
+local function normalizeColor(color, defaultValue)
+    color = color or defaultValue or {};
+
+    if type(color) == "string" then
+        local r, g, b, a = hex2rgb(color);
+
+        color = {
+            r = r,
+            g = g,
+            b = b,
+            a = a or 1.0
+        };
+    end
+
+    color.r = color.r or 0;
+    color.g = color.g or 0;
+    color.b = color.b or 0;
+    color.a = color.a or 0;
+
+    return color;
+end
+
+local function normalizeSharedOptions(options)
     options = options or {};
 
-    options.size = options.size or 12;
-    options.padding = normalizePadding(options.padding);
-    options.color = options.color or {
-        r = 1.0,
-        g = 1.0,
-        b = 1.0
-    };
-    options.container = options.container or helper:GetFrame().content;
+    options.container = options.container or helper.frame.content;
+    options.events = options.events or false;
+    options.padding = options.padding or {};
+    options.padding.top = options.padding.top or options.padding.y or 0;
+    options.padding.bottom = options.padding.bottom or options.padding.y or 0;
+    options.padding.left = options.padding.left or options.padding.x or 0;
+    options.padding.right = options.padding.right or options.padding.x or 0;
+
+    local numberOfSiblings = count(options.container.elements);
+    if numberOfSiblings > 0 then
+        options._previousElement = options.container.elements[numberOfSiblings];
+
+        options.padding.left = options.padding.left + options.container:GetLeft() - options._previousElement:GetLeft();
+    end
+
+    if options.events then
+        local noop = function() end;
+
+        options.events.OnEnter = options.events.OnEnter or noop;
+        options.events.OnLeave = options.events.OnLeave or noop;
+        options.events.OnMouseDown = options.events.OnMouseDown or noop;
+        options.events.OnMouseUp = options.events.OnMouseUp or noop;
+
+        options.events.OnButterMouseUp = options.events.OnButterMouseUp or noop;
+        options.events.OnButterDragStart = options.events.OnButterDragStart or noop;
+        options.events.OnButterDragStop = options.events.OnButterDragStop or noop;
+    end
 
     return options;
 end
 
 local function normalizeContainerOptions(options)
-    options = options or {};
+    options = normalizeSharedOptions(options);
 
-    options.events = options.events or {};
-    options.padding = normalizePadding(options.padding);
-    options.container = options.container or helper:GetFrame().content;
+    options.hidden = options.hidden or false;
+    options.backgroundColor = normalizeColor(options.backgroundColor);
 
     return options;
 end
 
--- {}
--- /dump LibStub("TrackerHelper-1.0"):UpdateFrame({
---
--- })
-function helper:UpdateFrame(options)
-    if not options then return end
+local function normalizeFontOptions(options)
+    options = normalizeSharedOptions(options);
 
-    local frame = self:GetFrame();
+    options.size = options.size or 12;
+    options.color = normalizeColor(options.color, NORMAL_FONT_COLOR);
+    options.hoverColor = normalizeColor(options.hoverColor, HIGHLIGHT_FONT_COLOR);
 
-    if options.clamp ~= nil then
-        frame:SetClampedToScreen(options.clamp);
-    end
-
-    if options.layer ~= nil then
-        frame:SetFrameStrata(options.layer);
-    end
-
-    if options.x ~= nil or options.y ~= nil then
-        self:UpdatePosition(options.x, options.y);
-    end
-
-    if options.width ~= nil then
-        self:UpdateWidth(options.width);
-    end
-
-    if options.maxHeight ~= nil then
-        self.maxHeight = options.maxHeight;
-        self:UpdateHeight();
-    end
-
-    if options.backgroundColor ~= nil then
-        frame.backgroundFrame.texture:SetColorTexture(options.backgroundColor.r, options.backgroundColor.g, options.backgroundColor.b, options.backgroundColor.a)
-    end
-
-    if options.backgroundAlwaysVisible ~= nil then
-        self.backgroundAlwaysVisible = options.backgroundAlwaysVisible;
-        self:SetBackgroundVisibility();
-    end
+    return options;
 end
 
--- /dump LibStub("TrackerHelper-1.0"):Clear()
-function helper:Clear()
-    indexes = { containers = 1 };
+local function UpdateParentsHeight(element, delta)
+    local x, y = helper:GetPosition();
 
-    local frame = self:GetFrame();
-    frame.content:SetSize(1, 1);
-    frame.content:SetPoint("TOP", frame, 0, -5);
-    frame.content:SetPoint("LEFT", frame, 5, 0);
-    frame.content:SetPoint("RIGHT", frame, -5, 0);
-    frame.content.elements = {};
+    local hidden = element.hidden or false;
+    local parent = element:GetParent();
+    while parent do
+        if parent.hidden then
+            hidden = true;
+        end
 
-    for i, font in pairs(elements.fonts) do
-        font:Hide();
-        elements.fonts[i] = nil;
-    end
-
-    for _, container in pairs(elements.containers) do
-        container.elements = {};
-        container:Hide();
-    end
-end
-
--- /dump LibStub("TrackerHelper-1.0"):GetFrame()
-function helper:GetFrame()
-    if not _frame then
-        _frame = CreateFrame("Frame", "TrackerHelperFrame", UIParent);
-        _frame:SetSize(1, 1);
-        _frame:SetFrameStrata("BACKGROUND");
-        _frame:SetMovable(true);
-        _frame:EnableMouseWheel(true);
-        _frame:SetClipsChildren(true);
-
-        _frame:SetScript("OnMouseWheel", function(_, value)
-            local _, _, _, _, y = _frame.content:GetPoint("TOP");
-            _frame.content:SetPoint("TOP", _frame, 0, y + 10 * -value);
-
-            if _frame.content:GetTop() + 5 < _frame:GetTop() then
-                _frame.content:SetPoint("TOP", _frame, 0, -5);
-            elseif _frame.content:GetBottom() - 5 > _frame:GetBottom() then
-                _frame.content:SetPoint("TOP", _frame, 0, _frame.content:GetHeight() - _frame:GetHeight() + 5);
+        if not hidden then
+            if parent == helper.frame then
+                parent:SetHeight(math.min(helper.frame.content:GetHeight(), helper.settings.maxHeight));
+            else
+                parent:SetHeight(parent:GetHeight() + delta);
             end
-        end);
-
-        _frame.content = CreateFrame("Frame", "TrackerHelperContentFrame", _frame);
-        _frame.content.elements = {};
-
-        _frame.content.SetRealHeight = _frame.content.SetHeight;
-        _frame.content.SetHeight = function(_, height)
-            helper:UpdateHeight(height);
         end
 
-        _frame.backgroundFrame = CreateFrame("Frame", "TrackerHelperBackgroundFrame", _frame);
-        _frame.backgroundFrame:SetSize(1, 1);
-        _frame.backgroundFrame:SetAllPoints();
-
-        _frame.backgroundFrame.texture = _frame.backgroundFrame:CreateTexture(nil, "BACKGROUND");
-        _frame.backgroundFrame.texture:SetAllPoints();
-        _frame.backgroundFrame.texture:SetColorTexture(0, 0, 0, 0.5);
-
-        self:SetDebugMode();
-        self:UpdateWidth(250);
-        self:UpdatePosition(0, 0);
-        self:Clear();
+        parent = parent:GetParent();
     end
 
-    return _frame;
+    clampScrollFrame(helper.frame.content);
+
+    -- Workaround to the frame from jumping around on sizing changes.
+    helper:SetPosition(x, y);
 end
 
-local function refreshElementSize(element, parent)
-    if not element:IsShown() then return end
+function helper:UpdateSettings(settings)
+    if settings.maxHeight ~= nil then
+        self:SetMaxHeight(settings.maxHeight);
+    end
 
-    if element.elements then
-        element:SetHeight(0);
-        element:SetSize(1, 1);
+    if settings.width ~= nil then
+        self:SetWidth(settings.width);
+    end
 
-        for _, childElement in pairs(element.elements) do
-            refreshElementSize(childElement, element);
-        end
+    if settings.backgroundColor ~= nil then
+        self:SetBackgroundColor(settings.backgroundColor);
+    end
 
-        if parent then
-            local parentHeight = parent:GetHeight();
+    if settings.position ~= nil then
+        self:SetPosition(settings.position.x, settings.position.y);
+    end
 
-            element:ClearAllPoints();
-            element:SetPoint("TOP", parent, 0, -parentHeight - element.metadata.padding.top);
-            element:SetPoint("LEFT", parent, "LEFT", element.metadata.padding.left, 0);
-            element:SetPoint("RIGHT", parent, "RIGHT", -element.metadata.padding.right, 0);
-
-            local deltaHeight = element:GetHeight() + element.metadata.padding.top + element.metadata.padding.bottom;
-            parent:SetHeight(parentHeight + deltaHeight);
-        end
-    else
-        local parentHeight = parent:GetHeight();
-
-        element:ClearAllPoints();
-        element:SetPoint("TOPLEFT", parent, element.metadata.padding.left, -parentHeight - element.metadata.padding.top);
-        element:SetPoint("RIGHT", parent, "RIGHT", -element.metadata.padding.right, 0);
-
-        element:GetHeight(); -- HACK: Why in the world does this make GetStringHeight calc correctly.. ?
-        local deltaHeight = element:GetStringHeight() + element.metadata.padding.top + element.metadata.padding.bottom;
-        parent:SetHeight(parentHeight + deltaHeight);
+    if settings.backgroundVisible ~= nil then
+        self:SetBackgroundVisibility(settings.backgroundVisible);
     end
 end
 
--- /dump LibStub("TrackerHelper-1.0"):Refresh()
-function helper:Refresh()
-    debounce("Refresh", function()
-        refreshElementSize(self:GetFrame().content);
-    end);
-end
+function helper:SetBackgroundColor(backgroundColor)
+    self.settings.backgroundColor = backgroundColor;
 
-function helper:UpdateHeight(height)
-    local frame = self:GetFrame();
-    height = height or frame.content:GetHeight();
-
-    if self.maxHeight then
-        frame:SetHeight(math.min(height + 10, self.maxHeight));
-    else
-        frame:SetHeight(height + 10);
-    end
-
-    frame.content:SetRealHeight(height);
-end
-
-function helper:UpdateWidth(width)
-    local frame = self:GetFrame();
-
-    if width ~= frame:GetWidth() then
-        frame:SetWidth(width);
-
-        -- Refresh all of the text positions and sizes
-        self:Refresh();
-    end
-end
-
-function helper:UpdatePosition(x, y)
-    if x == nil or y == nil then
-        local currentX, currentY = self:GetPosition();
-
-        x = x or currentX;
-        y = y or currentY;
-    end
-
-    local frame = self:GetFrame();
-    frame:ClearAllPoints();
-    frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", x, y);
-end
-
-function helper:GetPosition()
-    local frame = self:GetFrame();
-
-    local x = frame:GetRight();
-    local y = frame:GetTop();
-
-    local inversedX = x - GetScreenWidth();
-    local inversedY = y - GetScreenHeight();
-
-    return inversedX, inversedY;
+    helper.frame.background.texture:SetColorTexture(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 end
 
 function helper:SetBackgroundVisibility(visible)
+    -- TODO
     self.initial = self.initial == nil or self.initial;
-    local from = (self.backgroundAlwaysVisible or visible) and 0 or 1;
-    local to = (self.backgroundAlwaysVisible or visible) and 1 or 0;
-
-    local frame = self:GetFrame();
+    local from = visible and 0 or 1;
+    local to = visible and 1 or 0;
 
     if self.initial then
-        frame.backgroundFrame:SetAlpha(to);
+        self.frame.background:SetAlpha(to);
         self.initial = false;
-    elseif frame.backgroundFrame:GetAlpha() ~= to then
-        if not frame.backgroundFrame.group then
-            frame.backgroundFrame.group = frame.backgroundFrame:CreateAnimationGroup();
-            frame.backgroundFrame.group.fade = frame.backgroundFrame.group:CreateAnimation("Alpha");
-            frame.backgroundFrame.group.fade:SetDuration(0.125);
+    elseif self.frame.background:GetAlpha() ~= to then
+        if not self.frame.background.group then
+            self.frame.background.group = self.frame.background:CreateAnimationGroup();
+            self.frame.background.group.fade = self.frame.background.group:CreateAnimation("Alpha");
+            self.frame.background.group.fade:SetDuration(0.125);
         end
 
-        local group = frame.backgroundFrame.group;
+        local group = self.frame.background.group;
         local fade = group.fade;
 
         fade:SetFromAlpha(from);
@@ -297,194 +241,253 @@ function helper:SetBackgroundVisibility(visible)
         fade:SetSmoothing("OUT")
         fade:SetScript("OnFinished", function()
             group:Stop();
-            frame.backgroundFrame:SetAlpha(to);
+            self.frame.background:SetAlpha(to);
         end);
 
         group:Play();
     end
 end
 
-function helper:SetDebugMode(debug)
-    self.debug = debug == nil and self.debug or debug;
+-- /dump LibStub("TrackerHelper-1.0"):SetPosition()
+function helper:SetPosition(x, y)
+    if x == nil or y == nil then
+        local currentX, currentY = self:GetPosition();
 
-    self:SetBackgroundVisibility(self.debug);
+        x = x or currentX;
+        y = y or currentY;
+    end
 
-    for _, container in pairs(elements.containers) do
-        if self.debug then
-            container:SetBackdropColor(0, 1, 0, 0.5);
-        else
-            container:SetBackdropColor(0, 0, 0, 0);
+    self.frame:ClearAllPoints();
+    self.frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", x, y);
+end
+
+function helper:SetWidth(width)
+    self.settings.width = width;
+
+    self.frame:SetWidth(self.settings.width);
+    self:Refresh();
+end
+
+function helper:SetMaxHeight(maxHeight)
+    self.settings.maxHeight = maxHeight;
+
+    self.frame:SetHeight(math.min(self.settings.maxHeight, self.frame.content:GetHeight()));
+end
+
+function helper:GetPosition()
+    local x = self.frame:GetRight();
+    local y = self.frame:GetTop();
+
+    local inversedX = x - GetScreenWidth();
+    local inversedY = y - GetScreenHeight();
+
+    return inversedX, inversedY;
+end
+
+-- /dump LibStub("TrackerHelper-1.0"):Clear()
+function helper:Clear(element)
+    element = element or helper.frame.content;
+
+    for key, child in pairs(element.elements) do
+        if child.elements then
+            self:Clear(child);
         end
+        child:Hide();
+        element.elements[key] = nil;
     end
+
+    element.elements = {};
+    element:SetHeight(1);
 end
 
-function helper:ToggleContainerVisibility(container)
-    if container:IsShown() then
-        container:Hide();
+-- /dump LibStub("TrackerHelper-1.0"):Refresh()
+function helper:Refresh(element)
+    element = element or self.frame.content;
+
+    if element.elements then
+        element:SetHeight(1);
+
+        if element.metadata then
+            UpdateParentsHeight(element, element:GetHeight() + element.metadata.padding.top + element.metadata.padding.bottom);
+        end
+
+        for _, child in pairs(element.elements) do
+            self:Refresh(child);
+        end
     else
-        container:Show();
+        UpdateParentsHeight(element, element:GetHeight() + element.metadata.padding.top + element.metadata.padding.bottom);
     end
-
-    refreshElementSize(self:GetFrame().content);
 end
 
-function helper:CreateContainer(options)
+function helper:Container(options)
     options = normalizeContainerOptions(options);
 
-    if not elements.containers[indexes.containers] then
-        elements.containers[indexes.containers] = CreateFrame("Frame", "TrackerHelperContainer-" .. indexes.containers);
-    end
-
-    local container = elements.containers[indexes.containers];
-    container:SetParent(options.container);
-
-    container.elements = {};
+    local container = class();
     container.metadata = {
         padding = options.padding
     };
 
-    container:Show();
+    container:SetParent(options.container);
+    if options._previousElement then
+        container:SetPoint("TOPLEFT", options._previousElement, "BOTTOMLEFT", options.padding.left, -options.padding.top - options._previousElement.metadata.padding.bottom);
+        container:SetPoint("RIGHT", options._previousElement, -options.padding.right, 0);
+    else
+        container:SetPoint("TOPLEFT", options.container, options.padding.left, -options.padding.top);
+        container:SetPoint("RIGHT", options.container, -options.padding.right, 0);
+    end
 
-    container:SetScript("OnDragStart", nil);
-    container:SetScript("OnDragStop", nil);
-    container:SetScript("OnEnter", nil);
-    container:SetScript("OnLeave", nil);
-    container:SetScript("OnMouseUp", nil);
-    container:SetScript("OnMouseDown", nil);
-    container:SetBackdrop({ bgFile = nil });
-    container:EnableMouse(false);
-    container:SetMovable(false);
+    container:SetHeight(1);
+    container.hidden = false;
+    container.texture = container:CreateTexture(nil, "BACKGROUND");
+    container.texture:SetAllPoints();
+    container.texture:SetColorTexture(options.backgroundColor.r, options.backgroundColor.g, options.backgroundColor.b, options.backgroundColor.a);
+    container.elements = {};
 
-    if count(options.events) > 0 then
-        container:EnableMouse(true);
-        container:RegisterForDrag("LeftButton");
-        container:SetMovable(true);
+    function container:SetHidden(hidden)
+        local previouslyHidden = self.hidden;
+        self.hidden = hidden;
+        local previousElement = findPriorElement(options.container.elements, self);
 
-        container:SetScript("OnDragStart", options.events.OnDragStart);
-        container:SetScript("OnDragStop", options.events.OnDragStop);
-        container:SetScript("OnEnter", options.events.OnEnter);
-        container:SetScript("OnLeave", options.events.OnLeave);
+        if hidden and not previouslyHidden then -- If we're hiding this element and it's not already hidden
+            if previousElement then
+                self:SetPoint("TOPLEFT", previousElement, "BOTTOMLEFT", options.padding.left, -previousElement.metadata.padding.bottom);
+            else
+                self:SetPoint("TOPLEFT", self.metadata.container, options.padding.left, 0);
+            end
 
-        if options.events.OnMouseUp or options.events.OnMouseDown then
-            local originalPosition;
-            container:SetScript("OnMouseUp", function(...)
-                if originalPosition then
-                    container:ClearAllPoints();
-                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
-                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
-                    originalPosition = nil;
-                end
+            self:Hide();
+            helper:Refresh();
+        elseif not hidden and previouslyHidden then -- If we're showing this element and it's not already shown
+            if previousElement then
+                self:SetPoint("TOPLEFT", previousElement, "BOTTOMLEFT", self.metadata.padding.left, -self.metadata.padding.top - previousElement.metadata.padding.bottom);
+            else
+                self:SetPoint("TOPLEFT", self.metadata.container, self.metadata.padding.left, -self.metadata.padding.top);
+            end
 
-                if options.events.OnMouseUp then
-                    options.events.OnMouseUp(...);
-                end
-            end);
-
-            container:SetScript("OnMouseDown", function(...)
-                local _, _, _, left, top = container:GetPoint("TOPLEFT");
-                local _, _, _, right = container:GetPoint("RIGHT");
-                originalPosition = {
-                    top = top,
-                    left = left,
-                    right = right
-                };
-
-                container:ClearAllPoints();
-                container:SetPoint("TOPLEFT", options.container, originalPosition.left + 2, originalPosition.top - 2);
-                container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right + 2, 0);
-
-                if options.events.OnMouseDown then
-                    options.events.OnMouseDown(...);
-                end
-            end);
-
-            container:SetScript("OnDragStop", function(...)
-                if originalPosition then
-                    container:ClearAllPoints();
-                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
-                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
-                    originalPosition = nil;
-                end
-
-                if options.events.OnDragStop then
-                    options.events.OnDragStop(...);
-                end
-            end);
-
-            container:SetScript("OnEnter", function(...)
-                for _, element in pairs(container.elements) do
-                    local hoverColor = element.metadata.hoverColor;
-
-                    if hoverColor then
-                        element:SetTextColor(hoverColor.r, hoverColor.g, hoverColor.b);
-                    end
-                end
-
-                if options.events.OnEnter then
-                    options.events.OnEnter(...);
-                end
-            end);
-
-            container:SetScript("OnLeave", function(...)
-                if originalPosition then
-                    container:ClearAllPoints();
-                    container:SetPoint("TOPLEFT", options.container, originalPosition.left, originalPosition.top);
-                    container:SetPoint("RIGHT", options.container, "RIGHT", originalPosition.right, 0);
-                    originalPosition = nil;
-                end
-
-                for _, element in pairs(container.elements) do
-                    local color = element.metadata.color;
-
-                    if color then
-                        element:SetTextColor(color.r, color.g, color.b);
-                    end
-                end
-
-                if options.events.OnLeave then
-                    options.events.OnLeave(...);
-                end
-            end);
+            self:Show();
+            helper:Refresh();
         end
 
-        container:SetBackdrop({ bgFile = "Interface/Tooltips/UI-Tooltip-Background" });
     end
 
-    if self.debug then
-        container:SetBackdropColor(0, 1, 0, 0.5);
+    function container:Toggle()
+        local hidden = not self.hidden;
+
+        self:SetHidden(hidden);
+
+        return hidden;
+    end
+
+    if options.events then
+        container:EnableMouse(true);
+        container:SetScript('OnEnter', function(...)
+            for _, element in pairs(container.elements) do
+                element:SetTextColor(element.metadata.hoverColor.r, element.metadata.hoverColor.g, element.metadata.hoverColor.b);
+            end
+
+            options.events.OnEnter(...);
+        end);
+
+        container:SetScript('OnLeave', function(...)
+            for _, element in pairs(container.elements) do
+                element:SetTextColor(element.metadata.color.r, element.metadata.color.g, element.metadata.color.b);
+            end
+
+            options.events.OnLeave(...);
+        end);
+
+        local originalMouseLocation = {};
+        local dragTimer, dragged;
+        container:SetScript('OnMouseDown', function(...)
+            originalMouseLocation.x, originalMouseLocation.y = GetCursorPosition();
+            dragged = false;
+
+            if count(container.elements) > 0 then
+                local firstElement = container.elements[1];
+                firstElement:SetPoint("TOPLEFT", 2, -2);
+                firstElement:SetPoint("RIGHT", 2, 0);
+            end
+
+            local _, button = ...;
+            if button == "LeftButton" then
+                dragTimer = C_Timer.NewTicker(0.1, function()
+                    local cursorX, cursorY = GetCursorPosition();
+                    local distance = getDistance(originalMouseLocation.x, originalMouseLocation.y, cursorX, cursorY);
+
+                    if distance ~= 0 then
+                        dragged = true;
+                        dragTimer:Cancel();
+                        options.events.OnButterDragStart();
+                    end
+                end);
+            end
+
+            options.events.OnMouseDown(...);
+        end);
+
+        container:SetScript('OnMouseUp', function(...)
+            if dragTimer then
+                dragTimer:Cancel();
+            end
+
+            if count(container.elements) > 0 then
+                local firstElement = container.elements[1];
+                firstElement:SetPoint("TOPLEFT", 0, 0);
+                firstElement:SetPoint("RIGHT", 0, 0);
+            end
+
+            if dragged then
+                options.events.OnButterDragStop();
+            else
+                options.events.OnButterMouseUp(...);
+            end
+            options.events.OnMouseUp(...);
+        end);
     else
-        container:SetBackdropColor(0, 0, 0, 0);
+        container:EnableMouse(false);
     end
 
-    self:Refresh();
+    local deltaHeight = container:GetHeight() + options.padding.top + options.padding.bottom;
+    UpdateParentsHeight(container, deltaHeight);
 
-    indexes.containers = indexes.containers + 1;
     tinsert(options.container.elements, container);
+    container:SetHidden(options.hidden);
     return container;
 end
 
--- /dump LibStub("TrackerHelper-1.0"):DrawFont({ label = "Hello World!", padding = 10 })
-function helper:DrawFont(options)
+function helper:Font(options)
     options = normalizeFontOptions(options);
 
-    local font = options.container:CreateFontString(nil, nil, "GameFontNormal");
-    font:SetFont(font:GetFont(), options.size);
+    local font = self.frame:CreateFontString(nil, nil, "GameFontNormal");
 
     font.metadata = {
+        padding = options.padding,
         color = options.color,
-        hoverColor = options.hoverColor,
-        padding = options.padding
+        hoverColor = options.hoverColor
     };
 
+    font:SetParent(options.container);
     font:SetText(options.label);
     font:SetJustifyH("LEFT");
-    font:SetTextColor(options.color.r, options.color.g, options.color.b);
-    font:SetWordWrap(true);
-    font:SetNonSpaceWrap(true);
 
-    self:Refresh();
+    if count(options.container.elements) > 0 then
+        local previousElement = options.container.elements[count(options.container.elements)];
+        font:SetPoint("TOPLEFT", previousElement, "BOTTOMLEFT", options.padding.left, -options.padding.top - previousElement.metadata.padding.bottom);
+        font:SetPoint("RIGHT", previousElement, -options.padding.right, 0);
+    else
+        font:SetPoint("TOPLEFT", options.container, options.padding.left, -options.padding.top);
+        font:SetPoint("RIGHT", options.container, -options.padding.right, 0);
+    end
+
+    font:SetTextColor(font.metadata.color.r, font.metadata.color.g, font.metadata.color.b);
+    font:SetFont(font:GetFont(), options.size);
+
+    local deltaHeight = font:GetHeight() + options.padding.top + options.padding.bottom;
+    UpdateParentsHeight(font, deltaHeight);
 
     tinsert(options.container.elements, font);
-    tinsert(elements.fonts, font);
+
     return font;
 end
+
+helper:UpdateSettings(helper.settings);

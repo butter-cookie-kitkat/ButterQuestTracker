@@ -170,7 +170,7 @@ local function UpdateParentsHeight(element, delta)
 
     local hidden = element.hidden or false;
     local parent = element:GetParent();
-    while parent do
+    while parent ~= UIParent do
         if parent.hidden then
             hidden = true;
         end

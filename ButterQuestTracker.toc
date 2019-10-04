@@ -1,6 +1,6 @@
 ## Interface: 11302
-## Title: Butter Quest Tracker
-## Author: Butter Cookie Kitkat |cFFFFFFFFv@project-version@|r
+## Title: Butter Quest Tracker |cFFFFFFFFv@project-version@|r
+## Author: Butter Cookie Kitkat
 ## Notes: A butter smooth quest tracker with that Vanilla feel!
 ## Version: @project-version@
 ## RequiredDeps:

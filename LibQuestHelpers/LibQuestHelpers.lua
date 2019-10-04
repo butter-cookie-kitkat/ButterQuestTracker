@@ -32,6 +32,20 @@ local function getDistance(x1, y1, x2, y2)
 	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
 end
 
+function helper:GetActiveSupportedAddons()
+    local supportedAddons = {};
+
+    if Questie then
+        tinsert(supportedAddons, "Questie");
+    end
+
+    if CodexQuest then
+        tinsert(supportedAddons, "ClassicCodex");
+    end
+
+    return supportedAddons;
+end
+
 function helper:IsSupported()
     return (Questie or CodexQuest) and true;
 end
@@ -70,7 +84,10 @@ function helper:SetIconsVisibility(questID, visible)
             CodexQuest:HideCurrentQuest();
             QLH:RevertSelection();
         end
-    elseif Questie then
+    end
+    
+        
+    if Questie then
         local quest = QuestieDB:GetQuest(questID);
 
         quest.HideIcons = not visible;
@@ -79,10 +96,14 @@ function helper:SetIconsVisibility(questID, visible)
     refresh();
 end
 
-function helper:GetDestinationCoordinates(questID)
+function helper:GetDestinationCoordinates(questID, overrideAddon)
     local coordinates = {};
-    if CodexQuest then
+    if CodexQuest and (not overrideAddon or overrideAddon == "ClassicCodex") then
         local quest = QLH:GetQuest(questID);
+
+        -- TODO: Find a way to avoid needing the quest object from the log...
+        if not quest then return end
+
         local maps = CodexDatabase:SearchQuestById(questID, {
             questLogId = quest.index
         });
@@ -107,7 +128,7 @@ function helper:GetDestinationCoordinates(questID)
                 end
             end
         end
-    elseif Questie then
+    elseif Questie and (not overrideAddon or overrideAddon == "Questie") then
         local quest = QuestieDB:GetQuest(questID);
 
         if not quest then return end;
@@ -161,9 +182,12 @@ function helper:GetDestinationCoordinates(questID)
     return coordinates;
 end
 
-function helper:GetDistanceToClosestObjective(questID)
+function helper:GetDistanceToClosestObjective(questID, overrideAddon)
     local player = getWorldPlayerPosition();
-    local coords = self:GetDestinationCoordinates(questID);
+    local coords = self:GetDestinationCoordinates(questID, overrideAddon);
+
+    -- TODO: Find a way to avoid needing the quest object from the log...
+    if not coords then return end
 
     local closestDistance;
     for _, coordinates in pairs(coords) do

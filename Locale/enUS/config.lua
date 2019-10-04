@@ -70,14 +70,14 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     -- Settings > Visual Settings > Zone Header Settings
 
-    ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "Adds collapsible zone headers above the quests.\n\n|c00FF9696This functionality is extremely beta, use at your own risk!",
+    ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "Adds collapsible zone headers above the quests.",
 
     -- Settings > Visual Settings > Quest Header Settings
 
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "Color by Difficulty Level",
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "Colors the headers by their difficulty level.",
 
-    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "Fine-grained control over the quest header formatting.\n\n{{title}} = Name of the quest.\n{{level}} = The level of the quest\n{{zone}} = The zone the quest belongs to",
+    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "Fine-grained control over the quest header formatting.\n\n|c00FF9696{{title}}|r\nName of the quest.\n\n|c00FF9696{{level}}|r\nThe level of the quest\n\n|c00FF9696{{zone}}|r\nThe zone the quest belongs to\n\n|c00FF9696{{distance}}|r\nThe distance to the closest objective.\n|c00FF9696Quest Helper Addon Required|r",
     ['SETTINGS_QUEST_HEADER_FORMAT_CLASSIC_OPTION'] = "Classic",
     ['SETTINGS_QUEST_HEADER_FORMAT_LEVELS_OPTION'] = "Levels",
 

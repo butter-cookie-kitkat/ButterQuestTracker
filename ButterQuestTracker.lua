@@ -232,14 +232,14 @@ local function sortQuests(quest, otherQuest)
         return sortQuestFallback(quest, otherQuest, "lastUpdated", ">");
     elseif sorting == "ByQuestProximity" then
         if QH:IsSupported() then
-            quest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(quest.questID);
-            otherQuest.distanceToClosestObjective = QH:GetDistanceToClosestObjective(otherQuest.questID);
+            quest.distance = QH:GetDistanceToClosestObjective(quest.questID);
+            otherQuest.distance = QH:GetDistanceToClosestObjective(otherQuest.questID);
         else
-            quest.distanceToClosestObjective = 0;
-            otherQuest.distanceToClosestObjective = 0;
+            quest.distance = 0;
+            otherQuest.distance = 0;
         end
 
-        return sortQuestFallback(quest, otherQuest, "distanceToClosestObjective", "<")
+        return sortQuestFallback(quest, otherQuest, "distance", "<")
     else
         BQT:LogError("Unknown Sorting value. (" .. sorting .. ")")
     end
@@ -452,7 +452,12 @@ function BQT:GetQuestHeader(quest)
 
     for match, key in format:gmatch("({{(%w+)}})" ) do
         local value = quest[key];
+
         if value then
+            if type(value) == "number" and math.floor(value) ~= value then
+                value = string.format("%.1f", value);
+            end
+
             format = format:gsub(match, value, 1);
         end
     end

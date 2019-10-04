@@ -139,7 +139,7 @@ function helper:GetDestinationCoordinates(questID, overrideAddon)
                 if node then
                     -- TODO: Is there a better way to check if this is a completed node.. ?
                     local completionNode = node.texture and (string.find(node.texture, "available") or string.find(node.texture, "complete"));
-                    if quest.isComplete and completionNode or not quest.isComplete and not completionNode then
+                    if quest.completed and completionNode or not quest.completed and not completionNode then
                         local _, worldPosition = C_Map.GetWorldPosFromMapPos(ZH:GetUIMapID(zone), {
                             x = node.x / 100,
                             y = node.y / 100

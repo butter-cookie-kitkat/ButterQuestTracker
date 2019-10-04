@@ -77,15 +77,16 @@ end
 function helper:SetQuestsLastUpdated(questsLastUpdated)
     if not questsLastUpdated then return end
 
+    local quests = self:GetQuests();
+
     for questID, lastUpdated in pairs(questsLastUpdated) do
-        if C_QuestLog.IsOnQuest(questID) then
-            cache.lastUpdated[questID] = lastUpdated;
+        if quests[questID] then
+            quests[questID].lastUpdated = lastUpdated;
         else
             questsLastUpdated[questID] = nil;
         end
     end
 
-    self:Refresh();
     return questsLastUpdated;
 end
 

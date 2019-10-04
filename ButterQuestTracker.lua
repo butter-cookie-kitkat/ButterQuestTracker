@@ -616,6 +616,35 @@ function BQT:RefreshView()
                         else
                             self:ToggleContextMenu(quest);
                         end
+                    end,
+
+                    OnEnter = function(_, target)
+                        GameTooltip:SetOwner(target, "ANCHOR_NONE");
+                        -- GameTooltip:SetPoint("TOPRIGHT", target, "TOPLEFT");
+                        GameTooltip:SetPoint("RIGHT", target, "LEFT");
+                        GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+                        GameTooltip:AddLine(quest.summary, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, true);
+
+                        if self.db.global.DeveloperMode then
+                            GameTooltip:AddDoubleLine("\nQuest ID:", quest.questID, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                            GameTooltip:AddDoubleLine("Quest Index:", quest.index, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                            
+                            for _, addon in ipairs(QH:GetActiveSupportedAddons()) do
+                                local distance = QH:GetDistanceToClosestObjective(quest.questID, addon);
+                                if distance then
+                                    GameTooltip:AddDoubleLine(addon .. " (distance):", string.format("%.1fm", distance), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                                else
+                                    GameTooltip:AddDoubleLine(addon .. " (distance):", "N/A", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                                end
+                            end
+                        end
+
+                        GameTooltip:Show();
+                    end,
+
+                    OnLeave = function()
+                        GameTooltip:ClearLines();
+                        GameTooltip:Hide();
                     end
                 }
             });

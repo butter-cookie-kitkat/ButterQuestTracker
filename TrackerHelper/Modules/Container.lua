@@ -238,6 +238,6 @@ function Container:_invoke(listeners, ...)
     if not listeners then return end
 
     for _, listener in pairs(listeners) do
-        listener(...);
+        listener(..., self);
     end
 end

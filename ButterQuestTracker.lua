@@ -631,7 +631,7 @@ function BQT:RefreshView()
                             GameTooltip:AddDoubleLine("\nQuest ID:", quest.questID, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
                             GameTooltip:AddDoubleLine("Quest Index:", quest.index, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
 
-                            for _, addon in ipairs(QH:GetActiveSupportedAddons()) do
+                            for _, addon in ipairs(QH:GetActiveAddons()) do
                                 local distance = QH:GetDistanceToClosestObjective(quest.questID, addon);
                                 if distance then
                                     GameTooltip:AddDoubleLine(addon .. " (distance):", string.format("%.1fm", distance), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);

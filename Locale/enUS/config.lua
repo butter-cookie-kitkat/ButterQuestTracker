@@ -1,7 +1,7 @@
 ButterQuestTrackerLocale.locale['enUS'] = {
     -- Settings
 
-    ['SETTINGS_NAME'] = "Butter Quest Tracker v%s",
+    ['SETTINGS_NAME'] = "Butter Quest Tracker |cFFFFFFFFv%s|r",
     ['SETTINGS_ENABLED_NAME'] = "Enabled",
     ['SETTINGS_FORMAT_NAME'] = "Format",
 

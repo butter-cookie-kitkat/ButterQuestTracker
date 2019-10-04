@@ -10,8 +10,9 @@ labels: "bug"
 
 ## Screenshots
 
-<!-- If possible, please provide a screenshot to help us troubleshoot your issue! -->
+<!-- 
+  If possible, please provide a screenshot to help us troubleshoot your issue! 
+  You can easily upload images to GitHub by pasting it into this text box.
+-->
 
-## Butter Quest Tracker Version
-
-<!-- Which version of Butter Quest Tracker are you using? -->
+**Butter Quest Tracker Version:** <!-- Which version are you using? -->

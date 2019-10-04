@@ -52,8 +52,8 @@ function BQT:OnInitialize()
     if ButterQuestTrackerCharacterConfig then
         for key, value in pairs(ButterQuestTrackerCharacterConfig) do
             self.db.char[key] = value;
-            ButterQuestTrackerCharacterConfig[key] = nil;
         end
+        ButterQuestTrackerCharacterConfig = nil;
     end
     -- END TODO
 
@@ -106,9 +106,7 @@ function BQT:OnInitialize()
     ZH:OnZoneChanged(function(info)
         self:LogInfo("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
         self:RefreshQuestWatch();
-    end)
-
-    self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
+    end);
 
     TH:UpdateFrame({
         clamp = true,
@@ -134,7 +132,10 @@ function BQT:OnInitialize()
     self:LogInfo("Initialized");
 end
 
+-- Read from any Blizzard APIs at this stage to prevent empty data
 function BQT:OnEnable()
+    self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
+
     self:RefreshQuestWatch();
     if self.db.global.Sorting == "ByQuestProximity" then
         self:UpdateQuestProximityTimer();

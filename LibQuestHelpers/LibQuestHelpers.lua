@@ -37,7 +37,9 @@ function helper:IsSupported()
 end
 
 local function OnQuestWatchUpdated(quests)
-    for questID, quest in pairs(quests) do
+    for index, quest in pairs(quests) do
+        local questID = QLH:GetQuestIDFromIndex(index);
+
         helper:SetIconsVisibility(questID, quest.watched);
     end
 end

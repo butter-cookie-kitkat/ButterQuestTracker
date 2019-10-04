@@ -126,7 +126,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
                     arg = "AutoTrackUpdatedQuests",
                     type = "toggle",
-                    width = 2.4,
+                    width = 1.4,
                     order = order(),
 
                     set = function(info, value)
@@ -137,6 +137,10 @@ local options = {
                         end
                     end
                 },
+
+                spacer0 = Spacer({
+                    width = 1.0
+                }),
 
                 sorting = {
                     name = BQTL:GetStringWrap('SETTINGS_SORTING_NAME'),
@@ -187,14 +191,14 @@ local options = {
                     end
                 },
 
-                spacer0 = Spacer(),
+                spacer1 = Spacer(),
 
                 autoHideQuestHelperIcons = {
                     name = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC'),
+                    desc = function() return BQTL:GetString('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC', table.concat(QH:GetActiveAddons(), ", ")) end,
                     arg = "AutoHideQuestHelperIcons",
                     type = "toggle",
-                    width = 2.4,
+                    width = 1.5,
                     order = order(),
 
                     disabled = function() return not QH:IsSupported() end,
@@ -205,6 +209,10 @@ local options = {
                         QH:SetAutoHideQuestHelperIcons(value);
                     end
                 },
+
+                spacer2 = Spacer({
+                    width = 0.9
+                }),
 
                 questLimit = {
                     name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
@@ -220,15 +228,13 @@ local options = {
                     set = SetAndRefreshView
                 },
 
-                spacer1 = Spacer(),
-
                 filtersHeader = {
                     name = "Filters",
                     type = "header",
                     order = order()
                 },
 
-                spacer2 = Spacer(),
+                spacer3 = Spacer(),
 
                 disableFilters = {
                     name = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_NAME'),
@@ -246,7 +252,7 @@ local options = {
                     end
                 },
 
-                spacer3 = Spacer(),
+                spacer4 = Spacer(),
 
                 currentZoneOnly = {
                     name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
@@ -261,7 +267,7 @@ local options = {
                     set = SetAndRefreshQuestWatch
                 },
 
-                spacer4 = Spacer(),
+                spacer5 = Spacer(),
 
                 hideCompletedQuests = {
                     name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
@@ -275,7 +281,7 @@ local options = {
                     set = SetAndRefreshQuestWatch
                 },
 
-                spacer5 = Spacer(),
+                spacer6 = Spacer(),
 
                 reset = {
                     name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),

@@ -32,22 +32,37 @@ local function getDistance(x1, y1, x2, y2)
 	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
 end
 
-function helper:GetActiveSupportedAddons()
-    local supportedAddons = {};
+function helper:GetAddons()
+    return {
+        ClassicCodex = CodexQuest,
+        Questie = Questie
+    };
+end
 
-    if Questie then
-        tinsert(supportedAddons, "Questie");
+function helper:GetAddonNames()
+    local names = {};
+
+    for name in pairs(self:GetAddons()) do
+        tinsert(names, name);
     end
 
-    if CodexQuest then
-        tinsert(supportedAddons, "ClassicCodex");
+    return names;
+end
+
+function helper:GetActiveAddons()
+    local activeAddons = {};
+
+    for name, active in pairs(self:GetAddons()) do
+        if active then
+            tinsert(activeAddons, name);
+        end
     end
 
-    return supportedAddons;
+    return activeAddons;
 end
 
 function helper:IsSupported()
-    return (Questie or CodexQuest) and true;
+    return table.getn(self:GetActiveAddons()) > 0;
 end
 
 local function OnQuestWatchUpdated(quests)

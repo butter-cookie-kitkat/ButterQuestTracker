@@ -1,7 +1,7 @@
 ![Game Version](https://img.shields.io/badge/Game%20Version-1.13.2-informational)
 [![CurseForge](https://img.shields.io/badge/CurseForge-Published-success)](https://www.curseforge.com/wow/addons/butter-quest-tracker)
 
-[![Build Status](https://img.shields.io/travis/com/butter-cookie-kitkat/ButterQuestTracker)](https://travis-ci.com/butter-cookie-kitkat/ButterQuestTracker)
+[![Build Status](https://img.shields.io/travis/com/butter-cookie-kitkat/ButterQuestTracker/master)](https://travis-ci.com/butter-cookie-kitkat/ButterQuestTracker)
 
 # Butter Quest Tracker
 

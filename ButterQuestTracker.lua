@@ -106,9 +106,7 @@ function BQT:OnInitialize()
     ZH:OnZoneChanged(function(info)
         self:LogInfo("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
         self:RefreshQuestWatch();
-    end)
-
-    self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
+    end);
 
     self.tracker = LibStub("TrackerHelper-1.0"):New({
         position = {
@@ -130,6 +128,8 @@ function BQT:OnInitialize()
 end
 
 function BQT:OnEnable()
+    self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
+
     self:RefreshQuestWatch();
     if self.db.global.Sorting == "ByQuestProximity" then
         self:UpdateQuestProximityTimer();
@@ -628,7 +628,7 @@ function BQT:RefreshView()
                         if self.db.global.DeveloperMode then
                             GameTooltip:AddDoubleLine("\nQuest ID:", quest.questID, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
                             GameTooltip:AddDoubleLine("Quest Index:", quest.index, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-                            
+
                             for _, addon in ipairs(QH:GetActiveSupportedAddons()) do
                                 local distance = QH:GetDistanceToClosestObjective(quest.questID, addon);
                                 if distance then

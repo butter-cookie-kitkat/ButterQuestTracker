@@ -51,9 +51,12 @@ function helper:IsSupported()
 end
 
 local function OnQuestWatchUpdated(quests)
-    for index, quest in pairs(quests) do
-        local questID = QLH:GetQuestIDFromIndex(index);
-        helper:SetIconsVisibility(questID, quest.watched);
+    for _, quest in pairs(quests) do
+        helper:SetIconsVisibility({
+            index = quest.index,
+            questID = quest.questID,
+            visible = quest.watched
+        });
     end
 end
 
@@ -63,34 +66,41 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
     if self.autoHideIcons then
         QWH:OnQuestWatchUpdated(OnQuestWatchUpdated);
         for questID, quest in pairs(QLH:GetQuests()) do
-            self:SetIconsVisibility(questID, IsQuestWatched(quest.index));
+            self:SetIconsVisibility({
+                index = quest.index,
+                questID = questID,
+                visible = IsQuestWatched(quest.index)
+            });
         end
     else
         QWH:OffQuestWatchUpdated(OnQuestWatchUpdated);
-        for questID in pairs(QLH:GetQuests()) do
-            self:SetIconsVisibility(questID, true);
+        for questID, quest in pairs(QLH:GetQuests()) do
+            self:SetIconsVisibility({
+                index = quest.index,
+                questID = questID,
+                visible = true
+            });
         end
     end
 end
 
-function helper:SetIconsVisibility(questID, visible)
+function helper:SetIconsVisibility(updatedQuest)
     if CodexQuest then
-        if visible then
+        if updatedQuest.visible then
             CodexQuest.updateQuestLog = true
             CodexQuest.updateQuestGivers = true
         else
-            local index = QLH:GetIndexFromQuestID(questID);
-            QLH:Select(index);
+            QLH:Select(updatedQuest.index);
             CodexQuest:HideCurrentQuest();
             QLH:RevertSelection();
         end
     end
-    
-        
-    if Questie then
-        local quest = QuestieDB:GetQuest(questID);
 
-        quest.HideIcons = not visible;
+
+    if Questie then
+        local quest = QuestieDB:GetQuest(updatedQuest.questID);
+
+        quest.HideIcons = not updatedQuest.visible;
     end
 
     refresh();

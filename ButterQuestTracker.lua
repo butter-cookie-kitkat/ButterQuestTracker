@@ -506,7 +506,6 @@ function BQT:RefreshView()
                         if button ~= "LeftButton" or self.db.global.LockFrame then return end
 
                         self.tracker:StopMovingOrSizing();
-                        self.tracker:SetUserPlaced(false);
                     end,
 
                     OnButterDragStart = function()
@@ -522,8 +521,6 @@ function BQT:RefreshView()
 
                         self.db.global.PositionX = x;
                         self.db.global.PositionY = y;
-
-                        self.tracker:SetPosition(x, y);
 
                         LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
                     end,

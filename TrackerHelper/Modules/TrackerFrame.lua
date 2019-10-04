@@ -13,13 +13,13 @@ function Frame:OnAcquire()
     self:SetSize(1, 1);
     self:EnableMouseWheel(true);
     self:SetMovable(true);
-    self:SetMaxHeight(500);
     self:SetBackgroundColor({
         r = 0.0,
         g = 0.0,
         b = 0.0,
         a = 0.5
     });
+    self:SetPosition(0, 400);
 
     self:SetBackgroundVisibility(false);
     self:SetLocked(false);
@@ -30,15 +30,33 @@ function Frame:OnAcquire()
     function self:SetWidth(width)
         setWidth(self, width);
         self.content:RefreshSize();
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
     end
 
     local setHeight = self.SetHeight;
     function self:SetHeight(height)
-        setHeight(self, math.min(self.content:GetHeight(), self.maxHeight));
+        if not self.maxHeight then
+            setHeight(self, self.content:GetFullHeight());
+        else
+            setHeight(self, math.min(self.content:GetFullHeight(), self.maxHeight));
+        end
+
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
+    end
+
+    local stopMovingOrSizing = self.StopMovingOrSizing;
+    function self:StopMovingOrSizing()
+        stopMovingOrSizing(self);
+        self:SetUserPlaced(false);
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
     end
 
     self:Clear();
     self:SetWidth(200);
+    self:SetMaxHeight(500);
 end
 
 function Frame:Clear()
@@ -65,8 +83,6 @@ function Frame:Container(options)
             container:AddListener(event, listener);
         end
     end
-
-    container:AddListener("OnHidden", function() self:SetPosition() end);
 
     container:UpdateParentsHeight(container:GetFullHeight());
     container:SetHidden(options.hidden);
@@ -136,16 +152,6 @@ function Frame:GetPosition()
 end
 
 function Frame:SetPosition(x, y)
-    if x == nil then
-        -- If no x was provided, utilize the last-known good x position.
-        x = self.position.x;
-    end
-
-    if y == nil then
-        -- If no y was provided, utilize the last-known good y position.
-        y = self.position.y;
-    end
-
     self:ClearAllPoints();
     self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", x, y);
 
@@ -154,6 +160,8 @@ end
 
 function Frame:SetMaxHeight(maxHeight)
     self.maxHeight = maxHeight;
+
+    self:SetHeight(self:GetHeight());
 end
 
 function Frame:SetLocked(locked)
@@ -184,15 +192,4 @@ function Frame:_clampScroll()
     elseif self.content:GetBottom() > parent:GetBottom() then
         self.content:SetPoint("TOP", parent, 0, self.content:GetHeight() - parent:GetHeight());
     end
-end
-
--- TODO: Revisit this...
-function Frame:_updateParentsHeight(element, delta)
-    local x, y = self:GetPosition();
-    element:UpdateParentsHeight(delta);
-
-    self:_clampScroll();
-
-    -- Workaround to the frame from jumping around on sizing changes.
-    self:SetPosition(x, y);
 end

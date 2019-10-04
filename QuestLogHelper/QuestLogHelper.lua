@@ -11,6 +11,10 @@ local cache = {
     lastUpdated = {}
 };
 
+local function trim(s)
+  return (s:gsub("^%s*(.-)%s*$", "%1"));
+end
+
 local function count(t)
     local _count = 0;
     if t then
@@ -323,13 +327,19 @@ function helper:GetObjectives(questID)
     local formattedObjectives = {};
 
     for i, objective in ipairs(objectives) do
-        formattedObjectives[i] = {
-            text = objective.text,
-            type = objective.type,
-            completed = objective.finished,
-            fulfilled = objective.numFulfilled,
-            required = objective.numRequired
-        };
+        -- Some quests will return blank objectives.
+        --
+        -- Examples
+        -- - https://classic.wowhead.com/quest=1149
+        if objective.text and trim(objective.text) ~= "" then
+            formattedObjectives[i] = {
+                text = objective.text,
+                type = objective.type,
+                completed = objective.finished,
+                fulfilled = objective.numFulfilled,
+                required = objective.numRequired
+            };
+        end
     end
 
     return formattedObjectives;

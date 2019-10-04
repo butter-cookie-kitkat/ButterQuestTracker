@@ -1,7 +1,6 @@
 local _, ns = ...
 
 local ACD = LibStub("AceConfigDialog-3.0");
-local TH = LibStub("TrackerHelper-1.0");
 local QH = LibStub("LibQuestHelpers-1.0");
 local BQTL = ButterQuestTrackerLocale;
 
@@ -315,7 +314,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             backgroundVisible = BQT.db.global.DeveloperMode or value
                         });
                     end
@@ -333,7 +332,7 @@ local options = {
                     set = function(info, r, g, b, a)
                         SetColor(info, r, g, b, a);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             backgroundColor = BQT.db.global.BackgroundColor
                         });
                     end
@@ -418,7 +417,7 @@ local options = {
                             set = function(info, r, g, b)
                                 SetColor(info, r, g, b);
 
-                                BQT:RefreshViewWithDebounce();
+                                BQT:RefreshView();
                             end,
 
                             disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
@@ -475,7 +474,7 @@ local options = {
                             set = function(info, r, g, b)
                                 SetColor(info, r, g, b);
 
-                                BQT:RefreshViewWithDebounce();
+                                BQT:RefreshView();
                             end,
 
                             disabled = function() return not BQT.db.global.ZoneHeaderEnabled end
@@ -544,7 +543,7 @@ local options = {
                             set = function(info, r, g, b)
                                 SetColor(info, r, g, b);
 
-                                BQT:RefreshViewWithDebounce();
+                                BQT:RefreshView();
                             end,
 
                             disabled = function() return BQT.db.global.ColorHeadersByDifficultyLevel end
@@ -601,7 +600,7 @@ local options = {
                             set = function(info, r, g, b)
                                 SetColor(info, r, g, b);
 
-                                BQT:RefreshViewWithDebounce();
+                                BQT:RefreshView();
                             end
                         },
                     }
@@ -629,7 +628,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             locked = value
                         });
                     end
@@ -655,7 +654,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, -value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             position = {
                                 x = -value
                             }
@@ -681,7 +680,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, -value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             position = {
                                 y = -value
                             }
@@ -705,7 +704,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             width = value
                         });
                     end
@@ -725,7 +724,7 @@ local options = {
                     set = function(info, value)
                         SetInDB(info, value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             maxHeight = value
                         });
                     end
@@ -743,7 +742,7 @@ local options = {
                         BQT.db.global.PositionX = ns.CONSTANTS.DB_DEFAULTS.global.PositionX;
                         BQT.db.global.PositionY = ns.CONSTANTS.DB_DEFAULTS.global.PositionY;
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             position = {
                                 x = BQT.db.global.PositionX,
                                 y = BQT.db.global.PositionY
@@ -762,7 +761,7 @@ local options = {
                         BQT.db.global.Width = ns.CONSTANTS.DB_DEFAULTS.global.Width;
                         BQT.db.global.MaxHeight = ns.CONSTANTS.DB_DEFAULTS.global.MaxHeight;
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             width = BQT.db.global.Width,
                             maxHeight = BQT.db.global.MaxHeight
                         });
@@ -799,7 +798,7 @@ local options = {
                     set = function(info, value)
                         SetAndRefreshView(info, value);
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             backgroundVisible = BQT.db.global.BackgroundAlwaysVisible or value
                         });
                     end
@@ -892,7 +891,7 @@ local options = {
                            BQT.db.char[k] = v
                         end
 
-                        TH:UpdateSettings({
+                        BQT.tracker:UpdateSettings({
                             position = {
                                 x = BQT.db.global.PositionX,
                                 y = BQT.db.global.PositionY

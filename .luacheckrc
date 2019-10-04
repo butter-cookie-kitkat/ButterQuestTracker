@@ -24,6 +24,14 @@ globals = {
     "SLASH_BUTTER_QUEST_TRACKER_COMMAND1",
     "SlashCmdList",
 
+    -- Tracker Helper
+    "TrackerHelperBase",
+    "TrackerHelperBaseElement",
+    "TrackerHelperContainer",
+    "TrackerHelperFont",
+    "TrackerHelperBackgroundFrame",
+    "TrackerHelperFrame",
+
     "StaticPopupDialogs",
 
     -- Constants

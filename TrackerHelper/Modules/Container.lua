@@ -83,7 +83,6 @@ function Container:SetHidden(hidden)
     if hidden then -- If we're hiding this element and it's not already hidden
         if not previousHidden then
             self:RefreshSize();
-            self:_invoke("OnHidden", hidden);
         end
 
         self:Hide();
@@ -92,7 +91,6 @@ function Container:SetHidden(hidden)
 
         if previousHidden then
             self:RefreshSize();
-            self:_invoke("OnHidden", hidden);
         end
     end
 end

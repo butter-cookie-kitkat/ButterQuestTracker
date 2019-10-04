@@ -7,6 +7,7 @@ local class = UnitClass("player");
 local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
 
 local cache = {
+    indexToQuestID = {},
     lastUpdated = {}
 };
 
@@ -93,11 +94,11 @@ end
 function helper:GetQuestIDFromIndex(index)
     if not index then return nil end
 
-    local _, _, _, _, _, _, _, questID = GetQuestLogTitle(index);
+    if cache.indexToQuestID and cache.quests then
+        return cache.indexToQuestID[index];
+    end
 
-    if not questID or questID == 0 then return nil end
-
-    return questID;
+    return nil;
 end
 
 function helper:GetIndexFromQuestID(questID)
@@ -194,9 +195,11 @@ function helper:Refresh()
         if not C_QuestLog.IsOnQuest(questID) then
             cache.quests[questID] = nil;
             cache.lastUpdated[questID] = nil;
+            cache.indexToQuestID[quest.index] = nil;
 
             updateListeners(questID, {
                 index = quest.index,
+                questID = quest.questID,
                 lastUpdated = quest.lastUpdated,
                 previousCompletionPercent = quest.completionPercent,
                 completionPercent = quest.completionPercent,
@@ -233,6 +236,12 @@ function helper:Refresh()
             end
 
             local quest = cache.quests[questID];
+
+            if quest.index and cache.indexToQuestID[quest.index] == questID then
+                cache.indexToQuestID[quest.index] = nil;
+            end
+            cache.indexToQuestID[index] = questID;
+
             quest.index = index;
             quest.isComplete = isComplete;
             quest.difficulty = self:GetDifficulty(level);
@@ -246,6 +255,7 @@ function helper:Refresh()
 
                 updateListeners(questID, {
                     index = quest.index,
+                    questID = quest.questID,
                     lastUpdated = quest.lastUpdated,
                     previousCompletionPercent = quest.completionPercent,
                     completionPercent = completionPercent,
@@ -257,6 +267,7 @@ function helper:Refresh()
 
                 updateListeners(questID, {
                     index = quest.index,
+                    questID = quest.questID,
                     lastUpdated = quest.lastUpdated,
                     previousCompletionPercent = quest.completionPercent,
                     completionPercent = completionPercent,

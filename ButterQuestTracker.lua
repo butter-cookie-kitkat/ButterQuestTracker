@@ -61,14 +61,12 @@ function BQT:OnInitialize()
     QWH:KeepHidden();
 
     QWH:OnQuestWatchUpdated(function(questWatchUpdates)
-        for index, updateInfo in pairs(questWatchUpdates) do
-            local questID = QLH:GetQuestIDFromIndex(index);
-
+        for _, updateInfo in pairs(questWatchUpdates) do
             if updateInfo.byUser then
                 if updateInfo.watched then
-                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[updateInfo.questID] = true;
                 else
-                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = false;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[updateInfo.questID] = false;
                 end
             end
         end
@@ -620,7 +618,6 @@ function BQT:RefreshView()
 
                     OnEnter = function(_, target)
                         GameTooltip:SetOwner(target, "ANCHOR_NONE");
-                        -- GameTooltip:SetPoint("TOPRIGHT", target, "TOPLEFT");
                         GameTooltip:SetPoint("RIGHT", target, "LEFT");
                         GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
                         GameTooltip:AddLine(quest.summary, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, true);

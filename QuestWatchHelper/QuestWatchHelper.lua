@@ -16,12 +16,9 @@ end
 
 local listeners = {};
 local updatedQuestIndexes = {};
-local function updateListeners(index, watched)
-    updatedQuestIndexes[index] = {
-        watched = watched,
-        -- This is a massive hack, is there a better way to see if a quest log was manually watched by the user.. ?
-        byUser = IsShiftKeyDown() and QLH:IsShown()
-    };
+local function updateListeners(updatedQuest)
+    updatedQuest.byUser = IsShiftKeyDown() and QLH:IsShown();
+    updatedQuestIndexes[updatedQuest.index] = updatedQuest;
 
     debounce("listeners", function()
         for _, listener in ipairs(listeners) do
@@ -77,7 +74,11 @@ function helper:BypassWatchLimit(initialTrackedQuests)
         if questID and not trackedQuests[questID] then
             trackedQuests[questID] = true;
 
-            updateListeners(index, true);
+            updateListeners({
+                index = index,
+                questID = questID,
+                watched = true
+            });
         end
     end
 
@@ -93,7 +94,11 @@ function helper:BypassWatchLimit(initialTrackedQuests)
         if questID and trackedQuests[questID] then
             trackedQuests[questID] = nil;
 
-            updateListeners(index, false);
+            updateListeners({
+                index = index,
+                questID = questID,
+                watched = false
+            });
         end
     end);
 
@@ -128,12 +133,14 @@ function helper:BypassWatchLimit(initialTrackedQuests)
     QLH:OnQuestUpdated(function(quests)
         for questID, quest in pairs(quests) do
             if quest.abandoned then
-                updateListeners(quest.index, false);
-
                 if trackedQuests[questID] then
                     trackedQuests[questID] = nil;
 
-                    updateListeners(quest.index, false);
+                    updateListeners({
+                        index = quest.index,
+                        questID = quest.questID,
+                        watched = false
+                    });
                 end
             end
         end
@@ -163,7 +170,12 @@ if not isWoWClassic then
     AceEvent.RegisterEvent(helper, "QUEST_WATCH_LIST_CHANGED", function(event, questID, added)
         if questID then
             local index = QLH:GetIndexFromQuestID(questID);
-            updateListeners(index, added);
+
+            updateListeners({
+                index = index,
+                questID = questID,
+                watched = added
+            });
         end
     end);
 end

@@ -111,6 +111,7 @@ read_globals = {
     "UnitInParty",
     "ToggleDropDownMenu",
     "GetCursorPosition",
+    "GameTooltip",
 
     -- FrameXML Frames
     "UIParent",

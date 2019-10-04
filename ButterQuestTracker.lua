@@ -3,7 +3,6 @@ local NAME, ns = ...
 local QWH = LibStub("QuestWatchHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local ZH = LibStub("ZoneHelper-1.0");
-local TH = LibStub("TrackerHelper-1.0");
 local QH = LibStub("LibQuestHelpers-1.0");
 
 ButterQuestTracker = LibStub("AceAddon-3.0"):NewAddon("ButterQuestTracker");
@@ -43,15 +42,6 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     whileDead = true,
     hideOnEscape = true
 }
-
-local timers = {};
-local function debounce(name, func)
-    if timers[name] then
-        timers[name]:Cancel();
-    end
-
-    timers[name] = C_Timer.NewTimer(0.1, func);
-end
 
 function BQT:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
@@ -120,7 +110,7 @@ function BQT:OnInitialize()
 
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
-    TH:UpdateSettings({
+    self.tracker = LibStub("TrackerHelper-1.0"):New({
         position = {
             x = self.db.global.PositionX,
             y = self.db.global.PositionY
@@ -160,7 +150,7 @@ function BQT:ShowWowheadPopup(type, id)
 end
 
 local function getDistance(x1, y1, x2, y2)
-	return math.sqrt( (x2-x1)^2 + (y2-y1)^2 );
+	return math.min( (x2-x1)^2 + (y2-y1)^2 );
 end
 
 local function count(t)
@@ -472,15 +462,9 @@ function BQT:GetQuestHeader(quest)
     return format;
 end
 
-function BQT:RefreshViewWithDebounce()
-    debounce("RefreshView", function()
-        self:RefreshView();
-    end);
-end
-
 function BQT:RefreshView()
     self:LogInfo("Refresh Quests");
-    TH:Clear();
+    self.tracker:Clear();
 
     local watchedQuests, questCount = self:GetQuestInfo();
     local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
@@ -488,8 +472,8 @@ function BQT:RefreshView()
     self:LogTrace("Quest Count:", questCount);
     self:LogTrace("Visible Quest Count:", visibleQuestCount);
 
-    local trackerContainer = TH:Container({
-        padding = {
+    local trackerContainer = self.tracker:Container({
+        margin = {
             x = 10,
             y = 10
         },
@@ -503,51 +487,51 @@ function BQT:RefreshView()
 
     local questsContainer;
     if self.db.global.TrackerHeaderEnabled then
-        TH:Font({
+        self.tracker:Font({
             label = self:GetTrackerHeader(questCount, visibleQuestCount),
             color = self.db.global.TrackerHeaderFontColor,
             size = self.db.global.TrackerHeaderFontSize,
 
-            container = TH:Container({
+            container = self.tracker:Container({
                 container = trackerContainer,
 
                 events = {
-                    OnMouseDown = function(_, button)
+                    OnMouseDown = function(button)
                         if button ~= "LeftButton" or self.db.global.LockFrame then return end
 
-                        TH.frame:StartMoving();
+                        self.tracker:StartMoving();
                     end,
 
-                    OnMouseUp = function(_, button)
+                    OnMouseUp = function(button)
                         if button ~= "LeftButton" or self.db.global.LockFrame then return end
 
-                        TH.frame:StopMovingOrSizing();
-                        TH.frame:SetUserPlaced(false);
+                        self.tracker:StopMovingOrSizing();
+                        self.tracker:SetUserPlaced(false);
                     end,
 
                     OnButterDragStart = function()
-                        TH:SetBackgroundVisibility(true);
+                        self.tracker:SetBackgroundVisibility(true);
                     end,
 
                     -- This fires only if OnButterDragStart fires as well.
                     OnButterDragStop = function()
-                        local x, y = TH:GetPosition();
+                        local x, y = self.tracker:GetPosition();
                         if not self.db.global.DeveloperMode and not self.db.global.BackgroundAlwaysVisible then
-                            TH:SetBackgroundVisibility(false);
+                            self.tracker:SetBackgroundVisibility(false);
                         end
 
                         self.db.global.PositionX = x;
                         self.db.global.PositionY = y;
 
-                        TH:SetPosition(x, y);
+                        self.tracker:SetPosition(x, y);
 
                         LibStub("AceConfigRegistry-3.0"):NotifyChange("ButterQuestTracker");
                     end,
 
                     -- This fires only if OnButterDragStart doesn't fire.
-                    OnButterMouseUp = function(_, button)
+                    OnButterMouseUp = function(button)
                         if button == "LeftButton" then
-                            self.hiddenContainers["QUESTS"] = questsContainer:Toggle() or nil;
+                            self.hiddenContainers["QUESTS"] = questsContainer:ToggleHidden() or nil;
                             PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                         else
                             if InterfaceOptionsFrame:IsShown() then
@@ -563,7 +547,7 @@ function BQT:RefreshView()
         });
     end
 
-    questsContainer = TH:Container({
+    questsContainer = self.tracker:Container({
         container = trackerContainer,
         hidden = self.hiddenContainers["QUESTS"]
     });
@@ -573,22 +557,22 @@ function BQT:RefreshView()
             if not zoneContainers[quest.zone] then
                 if self.db.global.ZoneHeaderEnabled then
                     -- Zone Header
-                    TH:Font({
+                    self.tracker:Font({
                         label = quest.zone,
                         color = self.db.global.ZoneHeaderFontColor,
                         size = self.db.global.ZoneHeaderFontSize,
 
-                        container = TH:Container({
+                        container = self.tracker:Container({
                             container = questsContainer,
 
-                            padding = {
+                            margin = {
                                 top = (i ~= 1 or self.db.global.TrackerHeaderEnabled) and 10,
                                 left = 2
                             },
 
                             events = {
                                 OnMouseUp = function()
-                                    self.hiddenContainers["Z-" .. quest.zone] = zoneContainers[quest.zone]:Toggle() or nil;
+                                    self.hiddenContainers["Z-" .. quest.zone] = zoneContainers[quest.zone]:ToggleHidden() or nil;
                                     PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                                 end
                             }
@@ -596,17 +580,17 @@ function BQT:RefreshView()
                     });
                 end
 
-                zoneContainers[quest.zone] = TH:Container({
+                zoneContainers[quest.zone] = self.tracker:Container({
                     container = questsContainer,
                     hidden = self.db.global.ZoneHeaderEnabled and self.hiddenContainers["Z-" .. quest.zone],
 
-                    padding = {
+                    margin = {
                         left = self.db.global.ZoneHeaderEnabled and 8 or 5
                     }
                 });
             end
 
-            local questContainer = TH:Container({
+            local questContainer = self.tracker:Container({
                 container = zoneContainers[quest.zone],
 
                 backgroundColor = self.db.global.DeveloperMode and {
@@ -614,12 +598,12 @@ function BQT:RefreshView()
                     a = 0.2
                 },
 
-                padding = {
+                margin = {
                     top = (i ~= 1 or self.db.global.ZoneHeaderEnabled or self.db.global.TrackerHeaderEnabled) and self.db.global.QuestPadding
                 },
 
                 events = {
-                    OnMouseUp = function(target, button)
+                    OnMouseUp = function(button)
                         if button == "LeftButton" then
                             if IsShiftKeyDown() then
                                 self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] = false;
@@ -639,7 +623,7 @@ function BQT:RefreshView()
                 }
             });
 
-            TH:Font({
+            self.tracker:Font({
                 label = self:GetQuestHeader(quest),
                 size = self.db.global.QuestHeaderFontSize,
                 color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or self.db.global.QuestHeaderFontColor,
@@ -649,33 +633,33 @@ function BQT:RefreshView()
             local objectiveCount = count(quest.objectives);
 
             if objectiveCount == 0 then
-                TH:Font({
+                self.tracker:Font({
                     label = ' - ' .. quest.summary,
                     size = self.db.global.ObjectiveFontSize,
                     color = self.db.global.ObjectiveFontColor,
                     container = questContainer,
-                    padding = {
+                    margin = {
                         top = 2.5
                     }
                 });
             elseif quest.isComplete then
-                TH:Font({
+                self.tracker:Font({
                     label = ' - Ready to turn in',
                     size = self.db.global.ObjectiveFontSize,
                     color = "00b205",
                     container = questContainer,
-                    padding = {
+                    margin = {
                         top = 2.5
                     }
                 });
             else
                 for _, objective in ipairs(quest.objectives) do
-                    TH:Font({
+                    self.tracker:Font({
                         label = ' - ' .. objective.text,
                         size = self.db.global.ObjectiveFontSize,
                         color = objective.completed and HIGHLIGHT_FONT_COLOR or self.db.global.ObjectiveFontColor,
                         container = questContainer,
-                        padding = {
+                        margin = {
                             top = 2.5
                         }
                     });

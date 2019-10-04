@@ -303,7 +303,7 @@ function BQT:ShouldWatchQuest(currentZone, minimapZone, quest)
         return false;
     end
 
-    if self.db.global.HideCompletedQuests and quest.isComplete then
+    if self.db.global.HideCompletedQuests and quest.completed then
         return false;
     end
 
@@ -324,7 +324,8 @@ function BQT:GetQuestInfo()
                 questID = 6563,
                 title = "The Essence of Aku'Mai",
                 zone = "Blackfathom Deeps",
-                isComplete = false,
+                completed = false,
+                failed = false,
                 isClassQuest = false,
                 isProfessionQuest = false,
                 sharable = true,
@@ -349,7 +350,8 @@ function BQT:GetQuestInfo()
                 title = "The Sacred Flame",
                 summary = "Deliver the Filled Etched Phial to Rau Cliffrunner at the Freewind Post.",
                 zone = "Thunder Bluff",
-                isComplete = false,
+                completed = false,
+                failed = false,
                 isClassQuest = false,
                 isProfessionQuest = false,
                 sharable = true,
@@ -364,7 +366,8 @@ function BQT:GetQuestInfo()
                 questID = 4841,
                 title = "Pacify the Centaur",
                 zone = "Thousand Needles",
-                isComplete = false,
+                completed = false,
+                failed = false,
                 isClassQuest = false,
                 isProfessionQuest = false,
                 sharable = true,
@@ -402,7 +405,8 @@ function BQT:GetQuestInfo()
                 questID = 5147,
                 title = "Compendium of the Fallen",
                 zone = "Scarlet Monastery",
-                isComplete = true,
+                completed = true,
+                failed = false,
                 isClassQuest = false,
                 isProfessionQuest = false,
                 sharable = true,
@@ -416,6 +420,32 @@ function BQT:GetQuestInfo()
                         fulfilled = 1,
                         required = 1,
                         completed = true
+                    }
+                }
+            },
+
+            -- Failed
+            [4904] = {
+                index = 5,
+                questID = 4904,
+                title = "Free at Last",
+                zone = "Thousand Needles",
+                completed = false,
+                failed = true,
+                isClassQuest = false,
+                isProfessionQuest = false,
+                sharable = false,
+                level = 29,
+                difficulty = QLH:GetDifficulty(29),
+                completionPercent = 0,
+
+                objectives = {
+                    [1] = {
+                        text = "Escort Lakota Windsong from the Darkcloud Pinnacle.",
+                        type = "event",
+                        fulfilled = 0,
+                        required = 1,
+                        completed = false
                     }
                 }
             }
@@ -670,11 +700,21 @@ function BQT:RefreshView()
                         top = 2.5
                     }
                 });
-            elseif quest.isComplete then
+            elseif quest.completed then
                 self.tracker:Font({
                     label = ' - Ready to turn in',
                     size = self.db.global.ObjectiveFontSize,
                     color = "00b205",
+                    container = questContainer,
+                    margin = {
+                        top = 2.5
+                    }
+                });
+            elseif quest.failed then
+                self.tracker:Font({
+                    label = ' - Quest failed, abandon to restart.',
+                    size = self.db.global.ObjectiveFontSize,
+                    color = { r = 1, g = 0.1, b = 0.1 },
                     container = questContainer,
                     margin = {
                         top = 2.5

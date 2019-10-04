@@ -247,7 +247,8 @@ function helper:Refresh()
             cache.indexToQuestID[index] = questID;
 
             quest.index = index;
-            quest.isComplete = isComplete;
+            quest.completed = isComplete == 1;
+            quest.failed = isComplete == -1;
             quest.difficulty = self:GetDifficulty(level);
             quest.objectives = self:GetObjectives(questID);
 

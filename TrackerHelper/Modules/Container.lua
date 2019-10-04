@@ -137,25 +137,34 @@ end
 function Container:OnEnter(...)
     if not self:_hasAnyMouseListeners() then return end
 
+    -- Take a snapshot of the listeners just encase...
+    local listeners = self.listeners;
+
     self:_updateFontElementsRecursively(self, function(font)
         font:SetHovering(true);
     end);
 
-    self:_invoke("OnEnter", ...);
+    self:_invoke(listeners.OnEnter, ...);
 end
 
 function Container:OnLeave(...)
     if not self:_hasAnyMouseListeners() then return end
 
+    -- Take a snapshot of the listeners just encase...
+    local listeners = self.listeners;
+
     self:_updateFontElementsRecursively(self, function(font)
         font:SetHovering(false);
     end);
 
-    self:_invoke("OnLeave", ...);
+    self:_invoke(listeners.OnLeave, ...);
 end
 
 function Container:OnMouseDown(...)
     if not self:_hasAnyMouseListeners() then return end
+
+    -- Take a snapshot of the listeners just encase...
+    local listeners = self.listeners;
 
     local previousCursorX, previousCursorY = GetCursorPosition();
     self.dragged = false;
@@ -173,16 +182,19 @@ function Container:OnMouseDown(...)
             if distance ~= 0 then
                 self.dragged = true;
                 self.dragTimer:Cancel();
-                self:_invoke("OnButterDragStart");
+                self:_invoke(listeners.OnButterDragStart);
             end
         end);
     end
 
-    self:_invoke("OnMouseDown", ...);
+    self:_invoke(listeners.OnMouseDown, ...);
 end
 
 function Container:OnMouseUp(...)
     if not self:_hasAnyMouseListeners() then return end
+
+    -- Take a snapshot of the listeners, to prevent them getting blown away...
+    local listeners = self.listeners;
 
     if self.dragTimer then
         self.dragTimer:Cancel();
@@ -193,12 +205,12 @@ function Container:OnMouseUp(...)
     end
 
     if self.dragged then
-        self:_invoke("OnButterDragStop");
+        self:_invoke(listeners.OnButterDragStop);
     else
-        self:_invoke("OnButterMouseUp", ...);
+        self:_invoke(listeners.OnButterMouseUp, ...);
     end
 
-    self:_invoke("OnMouseUp", ...);
+    self:_invoke(listeners.OnMouseUp, ...);
 end
 
 -- Helpers
@@ -222,10 +234,10 @@ function Container:_hasAnyMouseListeners()
         self.listeners.OnButterDragEnd;
 end
 
-function Container:_invoke(event, ...)
-    if not self.listeners or not self.listeners[event] then return end
+function Container:_invoke(listeners, ...)
+    if not listeners then return end
 
-    for _, listener in pairs(self.listeners[event]) do
+    for _, listener in pairs(listeners) do
         listener(...);
     end
 end

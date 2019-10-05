@@ -104,7 +104,6 @@ read_globals = {
     "GetTime",
     "HideUIPanel",
     "ShowUIPanel",
-    "QuestLog_SetSelection",
     "UnitLevel",
     "GetNumQuestLogEntries",
     "GetLocale",
@@ -112,6 +111,10 @@ read_globals = {
     "ToggleDropDownMenu",
     "GetCursorPosition",
     "GameTooltip",
+
+    -- Retail WoW APIs
+    "C_TaskQuest",
+    "GetQuestLink",
 
     -- FrameXML Frames
     "UIParent",

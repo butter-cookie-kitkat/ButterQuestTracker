@@ -169,13 +169,25 @@ end
 if not isWoWClassic then
     AceEvent.RegisterEvent(helper, "QUEST_WATCH_LIST_CHANGED", function(event, questID, added)
         if questID then
-            local index = QLH:GetIndexFromQuestID(questID);
+            if added then
+                C_Timer.After(0.1, function()
+                    local index = QLH:GetIndexFromQuestID(questID);
 
-            updateListeners({
-                index = index,
-                questID = questID,
-                watched = added
-            });
+                    updateListeners({
+                        index = index,
+                        questID = questID,
+                        watched = added
+                    });
+                end);
+            else
+                local index = QLH:GetIndexFromQuestID(questID);
+
+                updateListeners({
+                    index = index,
+                    questID = questID,
+                    watched = added
+                });
+            end
         end
     end);
 end

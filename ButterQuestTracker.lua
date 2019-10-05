@@ -1,5 +1,7 @@
 local NAME, ns = ...
 
+local isWoWClassic = select(4, GetBuildInfo()) < 20000;
+
 local QWH = LibStub("QuestWatchHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local ZH = LibStub("ZoneHelper-1.0");
@@ -23,18 +25,12 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     end,
 
     OnShow = function(self)
-        local type = self.text.text_arg1;
-        local id = self.text.text_arg2;
-        local name = "...";
-
-        if type == "quest" then
-            local quest = QLH:GetQuest(id);
-
-            name = quest.title;
-        end
+        local questID = self.text.text_arg1;
+        local quest = QLH:GetQuest(questID);
+        local name = quest.title;
 
         self.text:SetText(self.text:GetText() .. "\n\n|cffff7f00" .. name .. "|r");
-        self.editBox:SetText("https://classic.wowhead.com/" .. type .. "=" .. id);
+        self.editBox:SetText(QLH:GetWowheadURL(questID));
         self.editBox:SetFocus();
         self.editBox:HighlightText();
     end,
@@ -143,8 +139,8 @@ function BQT:OnEnable()
     self:LogInfo("Enabled");
 end
 
-function BQT:ShowWowheadPopup(type, id)
-    StaticPopup_Show(NAME .. "_WowheadURL", type, id)
+function BQT:ShowWowheadPopup(id)
+    StaticPopup_Show(NAME .. "_WowheadURL", id)
 end
 
 local function getDistance(x1, y1, x2, y2)
@@ -481,15 +477,13 @@ function BQT:GetQuestHeader(quest)
     local format = self.db.global.QuestHeaderFormat;
 
     for match, key in format:gmatch("({{(%w+)}})" ) do
-        local value = quest[key];
+        local value = quest[key] or "";
 
-        if value then
-            if type(value) == "number" and math.floor(value) ~= value then
-                value = string.format("%.1f", value);
-            end
-
-            format = format:gsub(match, value, 1);
+        if type(value) == "number" and math.floor(value) ~= value then
+            value = string.format("%.1f", value);
         end
+
+        format = format:gsub(match, value, 1);
     end
 
     return format;
@@ -640,9 +634,13 @@ function BQT:RefreshView()
                                 RemoveQuestWatch(quest.index);
                                 PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                             elseif IsAltKeyDown() then
-                                self:ShowWowheadPopup("quest", quest.questID);
+                                self:ShowWowheadPopup(quest.questID);
                             elseif IsControlKeyDown() then
-                                ChatEdit_InsertLink("[" .. quest.title .. "]");
+                                if isWoWClassic then
+                                    ChatEdit_InsertLink("[" .. quest.title .. "]");
+                                else
+                                    ChatEdit_InsertLink(GetQuestLink(quest.questID));
+                                end
                             else
                                 QLH:ToggleQuest(quest.index);
                             end
@@ -654,7 +652,7 @@ function BQT:RefreshView()
                     OnEnter = function(_, target)
                         GameTooltip:SetOwner(target, "ANCHOR_NONE");
                         GameTooltip:SetPoint("RIGHT", target, "LEFT");
-                        GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
+                        GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true);
                         GameTooltip:AddLine(quest.summary, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, true);
 
                         if self.db.global.DeveloperMode then
@@ -775,7 +773,7 @@ function BQT:ToggleContextMenu(quest)
             text = "|cff33ff99Wowhead|r URL",
             notCheckable = true,
             func = function()
-                BQT:ShowWowheadPopup("quest", self.contextMenu.quest.questID);
+                BQT:ShowWowheadPopup(self.contextMenu.quest.questID);
             end
         });
 

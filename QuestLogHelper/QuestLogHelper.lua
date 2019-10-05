@@ -1,5 +1,6 @@
 local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local helper = LibStub:NewLibrary("QuestLogHelper-1.0", 1);
+local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 -- /dump LibStub("QuestLogHelper-1.0"):GetQuests();
 -- /dump LibStub("QuestLogHelper-1.0"):GetWatchedQuests();
 
@@ -139,6 +140,14 @@ function helper:IsQuestSelected(index)
     return GetQuestLogSelection() == index;
 end
 
+function helper:GetWowheadURL(questID)
+    if isWoWClassic then
+        return "https://classic.wowhead.com/quest=" .. questID;
+    end
+
+    return "https://wowhead.com/quest=" .. questID;
+end
+
 function helper:ToggleQuest(index)
     local isQuestAlreadyOpen = self:IsShown() and self:IsQuestSelected(index);
     local questFrame = self:GetQuestFrame();
@@ -147,7 +156,7 @@ function helper:ToggleQuest(index)
         HideUIPanel(questFrame);
     else
         ShowUIPanel(questFrame);
-        QuestLog_SetSelection(index);
+        self:Select(index);
 
         if questFrame.addon == 'QuestLogEx' then
             QuestLogEx:Maximize();
@@ -362,7 +371,6 @@ function helper:AbandonQuest(index)
 end
 
 function helper:ShareQuest(index)
-
     self:Select(index);
     QuestLogPushQuest();
     self:RevertSelection();

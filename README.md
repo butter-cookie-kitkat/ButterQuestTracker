@@ -10,8 +10,10 @@
 ## Features
 
 - Change tracker position
+- Collapsible zone headers
+- Format the quest headers to your liking
 - Manually track / untrack quests (see caveats below)
-- Quickly grab the Wowhead URL of a quest by alt clicking their name
+- Quickly grab the Wowhead URL of a quest by alt clicking the quests
 - Filter quests by your current zone / subzone
 - Sort your quests by level, completion percentage, recently updated, or by quest proximity (only if you have a quest helper installed).
 - Change the quest watch limit or remove it entirely

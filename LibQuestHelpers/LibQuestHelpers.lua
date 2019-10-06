@@ -56,9 +56,9 @@ end
 
 function helper:GetAddons()
     return {
+        ["Built-In"] = not isWoWClassic,
         ClassicCodex = CodexQuest,
-        Questie = Questie,
-        Retail = not isWoWClassic
+        Questie = Questie
     };
 end
 
@@ -149,8 +149,10 @@ function helper:SetIconsVisibility(updatedQuest)
 end
 
 function helper:GetDestinationCoordinates(questID, overrideAddon)
+    local addons = self:GetAddons();
+
     local coordinates = {};
-    if CodexQuest and (not overrideAddon or overrideAddon == "ClassicCodex") then
+    if addons.ClassicCodex and (not overrideAddon or overrideAddon == "ClassicCodex") then
         local quest = QLH:GetQuest(questID);
 
         -- TODO: Find a way to avoid needing the quest object from the log...
@@ -180,7 +182,7 @@ function helper:GetDestinationCoordinates(questID, overrideAddon)
                 end
             end
         end
-    elseif Questie and (not overrideAddon or overrideAddon == "Questie") then
+    elseif addons.Questie and (not overrideAddon or overrideAddon == "Questie") then
         local quest = QuestieDB:GetQuest(questID);
 
         if not quest then return end;
@@ -229,25 +231,24 @@ function helper:GetDestinationCoordinates(questID, overrideAddon)
                 end
             end
         end
-    elseif not isWoWClassic and (not overrideAddon or overrideAddon == "Retail") then
-        local quest = QLH:GetQuest(questID);
-        local uiMapID = C_TaskQuest.GetQuestZoneID(questID) or zoneNameToUIMapID(quest.zone);
+    elseif addons["Built-In"] and (not overrideAddon or overrideAddon == "Built-In") then
+        local uiMapID = C_Map.GetBestMapForUnit("player");
 
-        if uiMapID then
-            local pois = C_QuestLog.GetQuestsOnMap(uiMapID);
+        -- TODO: This function will only return POIs for the current map. :(
+        -- Is there any way to workaround this limitation.. ?
+        local pois = C_QuestLog.GetQuestsOnMap(uiMapID);
 
-            for _, poi in pairs(pois) do
-                if poi.questID == questID then
-                    local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, {
-                        x = poi.x,
-                        y = poi.y
-                    });
+        for _, poi in pairs(pois) do
+            if poi.questID == questID then
+                local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, {
+                    x = poi.x,
+                    y = poi.y
+                });
 
-                    tinsert(coordinates, {
-                        x = worldPosition.x,
-                        y = worldPosition.y
-                    });
-                end
+                tinsert(coordinates, {
+                    x = worldPosition.x,
+                    y = worldPosition.y
+                });
             end
         end
     end

@@ -5,7 +5,27 @@ local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 -- /dump LibStub("QuestLogHelper-1.0"):GetWatchedQuests();
 
 local class = UnitClass("player");
-local professions = {'Herbalism', 'Mining', 'Skinning', 'Alchemy', 'Blacksmithing', 'Enchanting', 'Engineering', 'Leatherworking', 'Tailoring', 'Cooking', 'Fishing', 'First Aid'};
+local professions = {
+    'Herbalism',
+    'Mining',
+    'Skinning',
+    'Alchemy',
+    'Blacksmithing',
+    'Enchanting',
+    'Engineering',
+    'Leatherworking',
+    'Tailoring',
+    'Cooking',
+    'Fishing',
+
+    -- Classic Only Professions
+    'First Aid',
+
+    -- Retail Only Professions
+    'Inscription',
+    'Jewelcrafting',
+    'Archaeology'
+};
 
 local cache = {
     indexToQuestID = {},

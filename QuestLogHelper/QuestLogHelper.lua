@@ -407,14 +407,18 @@ end
 local previousIndex;
 function helper:Select(index)
     previousIndex = GetQuestLogSelection();
-    SelectQuestLogEntry(index);
+    if isWoWClassic then
+        QuestLog_SetSelection(index);
+    else
+        SelectQuestLogEntry(index);
+    end
 end
 
 function helper:RevertSelection()
-    if previousIndex then
-        SelectQuestLogEntry(previousIndex);
-        previousIndex = nil;
-    end
+    if not previousIndex then return end
+
+    self:Select(previousIndex);
+    previousIndex = nil;
 end
 
 AceEvent.RegisterEvent(helper, "QUEST_LOG_UPDATE", "Refresh");

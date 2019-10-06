@@ -112,6 +112,9 @@ read_globals = {
     "GetCursorPosition",
     "GameTooltip",
 
+    -- Classic WoW APIs
+    "QuestLog_SetSelection",
+
     -- Retail WoW APIs
     "C_TaskQuest",
     "GetQuestLink",

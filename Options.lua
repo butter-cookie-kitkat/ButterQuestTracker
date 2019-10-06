@@ -126,7 +126,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
                     arg = "AutoTrackUpdatedQuests",
                     type = "toggle",
-                    width = 1.4,
+                    width = 1.6,
                     order = order(),
 
                     set = function(info, value)
@@ -139,7 +139,7 @@ local options = {
                 },
 
                 spacer0 = Spacer({
-                    width = 1.0
+                    width = 0.8
                 }),
 
                 sorting = {
@@ -198,7 +198,7 @@ local options = {
                     desc = function() return BQTL:GetString('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC', table.concat(QH:GetActiveAddons(), ", ")) end,
                     arg = "AutoHideQuestHelperIcons",
                     type = "toggle",
-                    width = 1.5,
+                    width = 1.6,
                     order = order(),
 
                     disabled = function() return not QH:IsSupported() end,
@@ -211,7 +211,7 @@ local options = {
                 },
 
                 spacer2 = Spacer({
-                    width = 0.9
+                    width = 0.8
                 }),
 
                 questLimit = {
@@ -241,7 +241,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_DESC'),
                     arg = "DisableFilters",
                     type = "toggle",
-                    width = 2.4,
+                    width = 1.6,
                     order = order(),
 
                     set = function(info, value)
@@ -259,7 +259,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
                     arg = "CurrentZoneOnly",
                     type = "toggle",
-                    width = 2.4,
+                    width = 1.6,
                     order = order(),
 
                     disabled = function() return BQT.db.global.DisableFilters end,
@@ -274,6 +274,7 @@ local options = {
                     desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
                     arg = "HideCompletedQuests",
                     type = "toggle",
+                    width = 1.6,
                     order = order(),
 
                     disabled = function() return BQT.db.global.DisableFilters end,
@@ -408,7 +409,7 @@ local options = {
                         },
 
                         spacer3 = Spacer({
-                            width = 1.6
+                            width = 1.1
                         }),
 
                         fontColor = {
@@ -417,7 +418,6 @@ local options = {
                             type = "color",
                             order = order(),
                             hasAlpha = false,
-                            width = 0.5,
 
                             get = GetColor,
                             set = function(info, r, g, b)
@@ -465,16 +465,15 @@ local options = {
                         },
 
                         spacer3 = Spacer({
-                            width = 1.6
+                            width = 1.1
                         }),
 
-                        zoneFontColor = {
+                        fontColor = {
                             name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
                             arg = "ZoneHeaderFontColor",
                             type = "color",
                             order = order(),
                             hasAlpha = false,
-                            width = 0.5,
 
                             get = GetColor,
                             set = function(info, r, g, b)
@@ -528,13 +527,14 @@ local options = {
                             desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
                             arg = "ColorHeadersByDifficultyLevel",
                             type = "toggle",
+                            width = 1.4,
                             order = order(),
 
                             set = SetAndRefreshView
                         },
 
                         spacer3 = Spacer({
-                            width = 1.6
+                            width = 0.7
                         }),
 
                         fontColor = {
@@ -543,7 +543,6 @@ local options = {
                             type = "color",
                             order = order(),
                             hasAlpha = false,
-                            width = 0.5,
 
                             get = GetColor,
                             set = function(info, r, g, b)
@@ -591,7 +590,7 @@ local options = {
                         },
 
                         spacer3 = Spacer({
-                            width = 1.6
+                            width = 1.1
                         }),
 
                         fontColor = {
@@ -600,7 +599,6 @@ local options = {
                             type = "color",
                             order = order(),
                             hasAlpha = false,
-                            width = 0.5,
 
                             get = GetColor,
                             set = function(info, r, g, b)

@@ -53,16 +53,21 @@ function BQT:OnInitialize()
     end
     -- END TODO
 
+    self:LogInfo("Initialized");
+end
+
+function BQT:OnEnable()
+
     QWH:BypassWatchLimit(self.db.char.MANUALLY_TRACKED_QUESTS);
     QWH:KeepHidden();
 
-    QWH:OnQuestWatchUpdated(function(questWatchUpdates)
-        for _, updateInfo in pairs(questWatchUpdates) do
-            if updateInfo.byUser then
-                if updateInfo.watched then
-                    self.db.char.MANUALLY_TRACKED_QUESTS[updateInfo.questID] = true;
+    QWH:On("QUEST_WATCH_UPDATED", function(updates)
+        for _, update in pairs(updates) do
+            if update.byUser then
+                if update.watched then
+                    self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] = true;
                 else
-                    self.db.char.MANUALLY_TRACKED_QUESTS[updateInfo.questID] = false;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] = false;
                 end
             end
         end
@@ -70,34 +75,34 @@ function BQT:OnInitialize()
         self:RefreshView();
     end);
 
-    QLH:OnQuestUpdated(function(quests)
-        self:LogTrace("Event(OnQuestUpdated)");
+    QLH:On("QUESTS_UPDATED", function(updates)
+        self:LogTrace("Event(QUESTS_UPDATED)");
 
         local currentZone = GetRealZoneText();
         local minimapZone = GetMinimapZoneText();
 
-        for questID, quest in pairs(quests) do
-            if quest.abandoned then
-                self.db.char.QUESTS_LAST_UPDATED[questID] = nil;
-                self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
-            elseif quest.accepted or quest.updated then
-                self.db.char.QUESTS_LAST_UPDATED[questID] = quest.lastUpdated;
+        for _, update in pairs(updates) do
+            if update.abandoned then
+                self.db.char.QUESTS_LAST_UPDATED[update.questID] = nil;
+                self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] = nil;
+            elseif update.accepted or quest.updated then
+                self.db.char.QUESTS_LAST_UPDATED[update.questID] = update.lastUpdated;
 
                 -- If the quest is updated then remove it from the manually tracked quests list.
                 if self.db.global.AutoTrackUpdatedQuests then
-                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = true;
-                elseif self.db.char.MANUALLY_TRACKED_QUESTS[questID] == false then
-                    self.db.char.MANUALLY_TRACKED_QUESTS[questID] = nil;
+                    self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] = true;
+                elseif self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] == false then
+                    self.db.char.MANUALLY_TRACKED_QUESTS[update.questID] = nil;
                 end
 
-                self:UpdateQuestWatch(currentZone, minimapZone, QLH:GetQuest(questID));
+                self:UpdateQuestWatch(currentZone, minimapZone, QLH:GetQuest(update.questID));
             end
         end
 
         self:RefreshView();
     end);
 
-    ZH:OnZoneChanged(function(info)
+    ZH:On("ZONE_CHANGED", function(info)
         self:LogInfo("Changed Zones: (" .. info.zone .. ", " .. info.subZone .. ")");
         self:RefreshQuestWatch();
     end);
@@ -118,17 +123,11 @@ function BQT:OnInitialize()
         locked = self.db.global.LockFrame
     });
 
-    self:LogInfo("Initialized");
-end
-
-function BQT:OnEnable()
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
     self:RefreshQuestWatch();
     if self.db.global.Sorting == "ByQuestProximity" then
         self:UpdateQuestProximityTimer();
-    else
-        self:RefreshView();
     end
 
     -- This is a massive hack to prevent questie from ignoring us.
@@ -490,6 +489,7 @@ function BQT:GetQuestHeader(quest)
 end
 
 function BQT:RefreshView()
+    self.initialRefreshView = true;
     self:LogInfo("Refresh Quests");
     self.tracker:Clear();
 

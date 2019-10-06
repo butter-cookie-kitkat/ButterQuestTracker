@@ -81,7 +81,7 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
     self.autoHideIcons = autoHideIcons;
 
     if self.autoHideIcons then
-        QWH:OnQuestWatchUpdated(OnQuestWatchUpdated);
+        QWH:On("QUEST_WATCH_UPDATED", OnQuestWatchUpdated);
         for questID, quest in pairs(QLH:GetQuests()) do
             self:SetIconsVisibility({
                 index = quest.index,
@@ -90,7 +90,7 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
             });
         end
     else
-        QWH:OffQuestWatchUpdated(OnQuestWatchUpdated);
+        QWH:Off("QUEST_WATCH_UPDATED", OnQuestWatchUpdated);
         for questID, quest in pairs(QLH:GetQuests()) do
             self:SetIconsVisibility({
                 index = quest.index,

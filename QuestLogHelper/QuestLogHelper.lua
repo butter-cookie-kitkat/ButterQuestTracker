@@ -78,26 +78,39 @@ local function getCompletionPercent(objectives)
     return completionPercent / table.getn(objectives);
 end
 
-local listeners = {};
-local updateListenersTimer;
-local updatedQuests = {};
-local function updateListeners(questID, info)
-    if updateListenersTimer then
-        updateListenersTimer:Cancel();
+function helper:_findIndex(t, value)
+    for i, element in ipairs(t) do
+        if element == value then
+            return i;
+        end
     end
 
-    updatedQuests[questID] = info;
-
-    updateListenersTimer = C_Timer.NewTimer(0.1, function()
-        for _, listener in ipairs(listeners) do
-            listener(updatedQuests);
-        end
-        updatedQuests = {};
-    end)
+    return nil;
 end
 
-function helper:OnQuestUpdated(listener)
-    tinsert(listeners, listener);
+local listeners = {};
+function helper:_invoke(event, ...)
+    if not listeners[event] then return end
+
+    for _, listener in pairs(listeners[event]) do
+        listener(...);
+    end
+end
+
+function helper:Off(event, listener)
+    if not listeners[event] then return end
+
+    local index = self:_findIndex(listeners[event], listener);
+
+    if not index then return end
+
+    table.remove(listeners[event], index);
+end
+
+function helper:On(event, listener)
+    listeners[event] = listeners[event] or {};
+
+    tinsert(listeners[event], listener);
 end
 
 function helper:SetQuestsLastUpdated(questsLastUpdated)
@@ -224,13 +237,14 @@ function helper:Refresh()
 
     local numberOfEntries = GetNumQuestLogEntries();
 
+    local updates = {};
     for questID, quest in pairs(cache.quests) do
         if not C_QuestLog.IsOnQuest(questID) then
             cache.quests[questID] = nil;
             cache.lastUpdated[questID] = nil;
             cache.indexToQuestID[quest.index] = nil;
 
-            updateListeners(questID, {
+            tinsert(updates, {
                 index = quest.index,
                 questID = quest.questID,
                 lastUpdated = quest.lastUpdated,
@@ -287,7 +301,7 @@ function helper:Refresh()
             if updated then
                 quest.lastUpdated = GetTime();
 
-                updateListeners(questID, {
+                tinsert(updates, {
                     index = quest.index,
                     questID = quest.questID,
                     lastUpdated = quest.lastUpdated,
@@ -299,7 +313,7 @@ function helper:Refresh()
             elseif accepted then
                 quest.lastUpdated = GetTime();
 
-                updateListeners(questID, {
+                tinsert(updates, {
                     index = quest.index,
                     questID = quest.questID,
                     lastUpdated = quest.lastUpdated,
@@ -314,6 +328,10 @@ function helper:Refresh()
 
             quest.completionPercent = getCompletionPercent(quest.objectives);
         end
+    end
+
+    if #updates > 0 then
+        self:_invoke("QUESTS_UPDATED", updates);
     end
 
     return cache.quests;

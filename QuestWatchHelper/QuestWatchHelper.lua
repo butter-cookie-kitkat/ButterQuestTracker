@@ -14,32 +14,58 @@ local function debounce(name, func)
     timers[name] = C_Timer.NewTimer(0.1, func);
 end
 
-local listeners = {};
-local updatedQuestIndexes = {};
-local function updateListeners(updatedQuest)
-    updatedQuest.byUser = IsShiftKeyDown() and QLH:IsShown();
-    updatedQuestIndexes[updatedQuest.index] = updatedQuest;
-
-    debounce("listeners", function()
-        for _, listener in ipairs(listeners) do
-            listener(updatedQuestIndexes);
-        end
-        updatedQuestIndexes = {};
-    end);
-end
-
 local function count(t)
     local _count = 0;
     for _, _ in pairs(t) do _count = _count + 1 end
     return _count;
 end
 
-local function findIndex(t, element)
-    for index, value in pairs(t) do
-        if value == element then
-            return index;
+function helper:_findIndex(t, value)
+    for i, element in ipairs(t) do
+        if element == value then
+            return i;
         end
     end
+
+    return nil;
+end
+
+local listeners = {};
+function helper:_invoke(event, value)
+    if not listeners[event] then return end
+
+    for _, listener in pairs(listeners[event]) do
+        listener(value);
+    end
+end
+
+local invokeCache = {};
+function helper:_invokeDebounce(event, value)
+    if not listeners[event] then return end
+
+    invokeCache[event] = invokeCache[event] or {};
+    tinsert(invokeCache[event], value);
+
+    debounce(event, function()
+        self:_invoke(event, invokeCache[event]);
+        invokeCache[event] = nil;
+    end);
+end
+
+function helper:Off(event, listener)
+    if not listeners[event] then return end
+
+    local index = self:_findIndex(listeners[event], listener);
+
+    if not index then return end
+
+    table.remove(listeners[event], index);
+end
+
+function helper:On(event, listener)
+    listeners[event] = listeners[event] or {};
+
+    tinsert(listeners[event], listener);
 end
 
 function helper:GetFrame()
@@ -74,7 +100,8 @@ function helper:BypassWatchLimit(initialTrackedQuests)
         if questID and not trackedQuests[questID] then
             trackedQuests[questID] = true;
 
-            updateListeners({
+            helper:_invokeDebounce("QUEST_WATCH_UPDATED", {
+                byUser = IsShiftKeyDown() and QLH:IsShown(),
                 index = index,
                 questID = questID,
                 watched = true
@@ -94,7 +121,8 @@ function helper:BypassWatchLimit(initialTrackedQuests)
         if questID and trackedQuests[questID] then
             trackedQuests[questID] = nil;
 
-            updateListeners({
+            helper:_invokeDebounce("QUEST_WATCH_UPDATED", {
+                byUser = IsShiftKeyDown() and QLH:IsShown(),
                 index = index,
                 questID = questID,
                 watched = false
@@ -130,13 +158,14 @@ function helper:BypassWatchLimit(initialTrackedQuests)
 
     MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
 
-    QLH:OnQuestUpdated(function(quests)
+    QLH:On("QUESTS_UPDATED", function(quests)
         for questID, quest in pairs(quests) do
             if quest.abandoned then
                 if trackedQuests[questID] then
                     trackedQuests[questID] = nil;
 
-                    updateListeners({
+                    helper:_invokeDebounce("QUEST_WATCH_UPDATED", {
+                        byUser = IsShiftKeyDown() and QLH:IsShown(),
                         index = quest.index,
                         questID = quest.questID,
                         watched = false
@@ -145,18 +174,6 @@ function helper:BypassWatchLimit(initialTrackedQuests)
             end
         end
     end);
-end
-
-function helper:OnQuestWatchUpdated(listener)
-    tinsert(listeners, listener);
-end
-
-function helper:OffQuestWatchUpdated(listener)
-    local index = findIndex(listeners, listener);
-
-    if not index then return end
-
-    table.remove(listeners, index);
 end
 
 function helper:KeepHidden()
@@ -173,7 +190,8 @@ if not isWoWClassic then
                 C_Timer.After(0.1, function()
                     local index = QLH:GetIndexFromQuestID(questID);
 
-                    updateListeners({
+                    helper:_invokeDebounce("QUEST_WATCH_UPDATED", {
+                        byUser = IsShiftKeyDown() and QLH:IsShown(),
                         index = index,
                         questID = questID,
                         watched = added
@@ -182,7 +200,8 @@ if not isWoWClassic then
             else
                 local index = QLH:GetIndexFromQuestID(questID);
 
-                updateListeners({
+                helper:_invokeDebounce("QUEST_WATCH_UPDATED", {
+                    byUser = IsShiftKeyDown() and QLH:IsShown(),
                     index = index,
                     questID = questID,
                     watched = added

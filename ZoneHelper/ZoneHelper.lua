@@ -6,27 +6,57 @@ local zoneIDToUiMapID = {};
 local listeners = {};
 local previousSubZone = GetMinimapZoneText();
 local previousZone = GetRealZoneText();
-local function updateListeners()
+
+function helper:_onZoneUpdated()
     local subZone = GetMinimapZoneText();
     local zone = GetRealZoneText();
 
     if previousSubZone == subZone and previousZone == zone then return end
 
-    for _, listener in ipairs(listeners) do
-        listener({
-            previousSubZone = previousSubZone,
-            previousZone = previousZone,
-            subZone = subZone,
-            zone = zone
-        });
-    end
+    self:_invoke("ZONE_CHANGED", {
+        previousSubZone = previousSubZone,
+        previousZone = previousZone,
+        subZone = subZone,
+        zone = zone
+    });
 
     previousSubZone = subZone;
     previousZone = zone;
 end
 
-function helper:OnZoneChanged(listener)
-    tinsert(listeners, listener);
+function helper:_findIndex(t, value)
+    for i, element in ipairs(t) do
+        if element == value then
+            return i;
+        end
+    end
+
+    return nil;
+end
+
+local listeners = {};
+function helper:_invoke(event, ...)
+    if not listeners[event] then return end
+
+    for _, listener in pairs(listeners[event]) do
+        listener(...);
+    end
+end
+
+function helper:Off(event, listener)
+    if not listeners[event] then return end
+
+    local index = self:_findIndex(listeners[event], listener);
+
+    if not index then return end
+
+    table.remove(listeners[event], index);
+end
+
+function helper:On(event, listener)
+    listeners[event] = listeners[event] or {};
+
+    tinsert(listeners[event], listener);
 end
 
 -- TODO: Remove this code once Questie adds UiMapIDs to their objects. :(
@@ -34,9 +64,9 @@ function helper:GetUIMapID(zoneID)
     return zoneIDToUiMapID[zoneID];
 end
 
-AceEvent.RegisterEvent(helper, "ZONE_CHANGED", updateListeners);
-AceEvent.RegisterEvent(helper, "ZONE_CHANGED_INDOORS", updateListeners);
-AceEvent.RegisterEvent(helper, "ZONE_CHANGED_NEW_AREA", updateListeners);
+AceEvent.RegisterEvent(helper, "ZONE_CHANGED", "_onZoneUpdated");
+AceEvent.RegisterEvent(helper, "ZONE_CHANGED_INDOORS", "_onZoneUpdated");
+AceEvent.RegisterEvent(helper, "ZONE_CHANGED_NEW_AREA", "_onZoneUpdated");
 
 zoneIDToUiMapID = {
     [1] = 1426,

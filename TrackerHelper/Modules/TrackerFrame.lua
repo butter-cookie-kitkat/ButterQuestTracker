@@ -152,6 +152,14 @@ function Frame:GetPosition()
 end
 
 function Frame:SetPosition(x, y)
+    if x == nil then
+        x = self.position.x;
+    end
+
+    if y == nil then
+        y = self.position.y;
+    end
+
     self:ClearAllPoints();
     self:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", x, y);
 

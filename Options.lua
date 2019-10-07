@@ -387,7 +387,11 @@ local options = {
                                 "QuestsNumberVisible"
                             },
 
-                            set = SetAndRefreshView,
+                            set = function(...)
+                                SetInDB(...);
+
+                                BQT:Sort();
+                            end,
 
                             disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
                         },

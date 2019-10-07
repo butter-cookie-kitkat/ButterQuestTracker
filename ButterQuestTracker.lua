@@ -183,6 +183,11 @@ end
 
 local function getWorldPlayerPosition()
     local uiMapID = C_Map.GetBestMapForUnit("player");
+
+    if not uiMapID then
+        return nil;
+    end
+
     local mapPosition = C_Map.GetPlayerMapPosition(uiMapID, "player");
     local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, mapPosition);
 
@@ -252,16 +257,19 @@ function BQT:UpdateQuestProximityTimer()
             self:LogTrace("-- Starting ByQuestProximity Checks --");
             self:LogTrace("Checking if player has moved...");
             local position = getWorldPlayerPosition();
-            local distance = self.playerPosition and getDistance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
 
-            if not initialized or not distance or distance > 0.01 then
-                initialized = true;
-                self.playerPosition = position;
-                self:RefreshView();
-            else
-                self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
+            if position then
+                local distance = self.playerPosition and getDistance(position.x, position.y, self.playerPosition.x, self.playerPosition.y);
+
+                if not initialized or not distance or distance > 0.01 then
+                    initialized = true;
+                    self.playerPosition = position;
+                    self:RefreshView();
+                else
+                    self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
+                end
+                self:LogTrace("-- Ending ByQuestProximity Checks --");
             end
-            self:LogTrace("-- Ending ByQuestProximity Checks --");
         end);
     elseif self.questProximityTimer then
         self.playerPosition = nil;

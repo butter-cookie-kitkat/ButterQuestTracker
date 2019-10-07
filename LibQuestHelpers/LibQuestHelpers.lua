@@ -23,6 +23,11 @@ end
 
 local function getWorldPlayerPosition()
     local uiMapID = C_Map.GetBestMapForUnit("player");
+
+    if not uiMapID then
+        return nil;
+    end
+
     local mapPosition = C_Map.GetPlayerMapPosition(uiMapID, "player");
     local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, mapPosition);
 
@@ -237,6 +242,11 @@ end
 
 function helper:GetDistanceToClosestObjective(questID, overrideAddon)
     local player = getWorldPlayerPosition();
+
+    if not player then
+        return nil;
+    end
+
     local coords = self:GetDestinationCoordinates(questID, overrideAddon);
 
     -- TODO: Find a way to avoid needing the quest object from the log...

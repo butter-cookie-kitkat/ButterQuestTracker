@@ -27,6 +27,7 @@ function Container:OnRelease()
     self:ClearAllPoints();
     self:SetHeight(1);
     self:SetBackgroundColor(nil);
+    self:SetMetadata(nil);
 
     self:SetScript('OnEnter', nil);
     self:SetScript('OnLeave', nil);
@@ -66,7 +67,40 @@ function Container:RefreshSize()
     end
 end
 
+function Container:Order()
+    table.sort(self.elements, function(element, otherElement)
+        if element.order == otherElement.order then
+            return false;
+        end
+
+        if element.order == nil and otherElement.order ~= nil then
+            return true;
+        end
+
+        if element.order ~= nil and otherElement.order == nil then
+            return false;
+        end
+
+        return element.order < otherElement.order;
+    end);
+
+    local previousElement;
+    for _, element in pairs(self.elements) do
+        element:SetPreviousElement(previousElement);
+        previousElement = element;
+    end
+end
+
 -- Getters & Setters
+
+function Container:GetMetadata(metadata)
+    return self.metadata;
+end
+
+function Container:SetMetadata(metadata)
+    self.metadata = metadata;
+end
+
 
 function Container:AddElement(element)
     if type(element.SetLocked) == "function" then

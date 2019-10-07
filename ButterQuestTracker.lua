@@ -125,10 +125,9 @@ function BQT:OnEnable()
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
     self:RefreshQuestWatch();
+    self:RefreshView();
     if self.db.global.Sorting == "ByQuestProximity" then
         self:UpdateQuestProximityTimer();
-    else
-        self:RefreshView();
     end
 
     -- This is a massive hack to prevent questie from ignoring us.
@@ -153,32 +152,6 @@ local function count(t)
         for _, _ in pairs(t) do _count = _count + 1 end
     end
     return _count;
-end
-
-local function spairs(t, order)
-    -- collect the keys
-    local keys = {};
-    for k in pairs(t) do keys[#keys+1] = k end
-
-    -- if order function given, sort by it by passing the table and keys a, b,
-    -- otherwise just sort the keys
-    if order then
-        table.sort(keys, function(a, b) return order(t[a], t[b]) end);
-    else
-        table.sort(keys);
-    end
-
-    -- return the iterator function
-    local i = 0
-    return function()
-        i = i + 1
-        if keys[i] then
-            -- i = fake index
-            -- t[keys[i]] = value
-            -- keys[i] = real index
-            return i, t[keys[i]], keys[i];
-        end
-    end
 end
 
 local function getWorldPlayerPosition()
@@ -240,7 +213,7 @@ local function sortQuests(quest, otherQuest)
             otherQuest.distance = 0;
         end
 
-        return sortQuestFallback(quest, otherQuest, "distance", "<")
+        return sortQuestFallback(quest, otherQuest, "distance", "<");
     else
         BQT:LogError("Unknown Sorting value. (" .. sorting .. ")")
     end
@@ -251,7 +224,7 @@ end
 function BQT:UpdateQuestProximityTimer()
     if self.db.global.Sorting == "ByQuestProximity" then
         local initialized = false;
-        self:RefreshView();
+        self:Sort();
 
         self.questProximityTimer = C_Timer.NewTicker(5.0, function()
             self:LogTrace("-- Starting ByQuestProximity Checks --");
@@ -264,7 +237,7 @@ function BQT:UpdateQuestProximityTimer()
                 if not initialized or not distance or distance > 0.01 then
                     initialized = true;
                     self.playerPosition = position;
-                    self:RefreshView();
+                    self:Sort();
                 else
                     self:LogTrace("Player movement wasn't greater then 5, ignoring... (" .. distance .. ")");
                 end
@@ -497,6 +470,43 @@ function BQT:GetQuestHeader(quest)
     return format;
 end
 
+function BQT:Sort()
+    self:LogInfo("Sort");
+
+    if not self.questContainers then return end
+
+    -- collect the keys
+    local quests = self:GetQuestInfo();
+    local keys = {};
+    for k in pairs(quests) do keys[#keys+1] = k end
+    table.sort(keys, function(a, b) return sortQuests(quests[a], quests[b]) end);
+
+    local questIDToOrderMap = {};
+    local zoneToOrderMap = {};
+    for i, questID in pairs(keys) do
+        questIDToOrderMap[questID] = i;
+        zoneToOrderMap[quests[questID].zone] = zoneToOrderMap[quests[questID].zone] or i;
+    end
+
+    for _, element in pairs(self.questContainers) do
+        element:SetOrder(questIDToOrderMap[element.metadata.quest.questID]);
+    end
+
+    if self.db.global.ZoneHeaderEnabled then
+        for _, element in ipairs(self.questsContainer.elements) do
+            local order = zoneToOrderMap[element.metadata.zone];
+
+            if not element.metadata.header then
+                order = order + 0.1;
+            end
+
+            element:SetOrder(order, false);
+        end
+
+        self.questsContainer:Order();
+    end
+end
+
 function BQT:RefreshView()
     self:LogInfo("Refresh Quests");
     self.tracker:Clear();
@@ -520,7 +530,6 @@ function BQT:RefreshView()
         }
     });
 
-    local questsContainer;
     if self.db.global.TrackerHeaderEnabled then
         self.tracker:Font({
             label = self:GetTrackerHeader(questCount, visibleQuestCount),
@@ -563,7 +572,7 @@ function BQT:RefreshView()
                     -- This fires only if OnButterDragStart doesn't fire.
                     OnButterMouseUp = function(button)
                         if button == "LeftButton" then
-                            self.hiddenContainers["QUESTS"] = questsContainer:ToggleHidden() or nil;
+                            self.hiddenContainers["QUESTS"] = self.questsContainer:ToggleHidden() or nil;
                             PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                         else
                             if InterfaceOptionsFrame:IsShown() then
@@ -579,168 +588,187 @@ function BQT:RefreshView()
         });
     end
 
-    questsContainer = self.tracker:Container({
+    self.questsContainer = self.tracker:Container({
         container = trackerContainer,
         hidden = self.hiddenContainers["QUESTS"]
     });
+    self.questContainers = {};
     local zoneContainers = {};
-    for i, quest in spairs(watchedQuests, sortQuests) do
-        if i <= self.db.global.QuestLimit then
-            if not zoneContainers[quest.zone] then
-                if self.db.global.ZoneHeaderEnabled then
-                    -- Zone Header
-                    self.tracker:Font({
-                        label = quest.zone,
-                        color = self.db.global.ZoneHeaderFontColor,
-                        size = self.db.global.ZoneHeaderFontSize,
+    local index = 1;
+    for _, quest in pairs(watchedQuests) do
+        if not zoneContainers[quest.zone] then
+            if self.db.global.ZoneHeaderEnabled then
+                -- Zone Header
+                self.tracker:Font({
+                    label = quest.zone,
+                    color = self.db.global.ZoneHeaderFontColor,
+                    size = self.db.global.ZoneHeaderFontSize,
 
-                        container = self.tracker:Container({
-                            container = questsContainer,
+                    container = self.tracker:Container({
+                        container = self.questsContainer,
 
-                            margin = {
-                                top = (i ~= 1 or self.db.global.TrackerHeaderEnabled) and 10,
-                                left = 2
-                            },
+                        margin = {
+                            top = (index ~= 1 or self.db.global.TrackerHeaderEnabled) and 10,
+                            left = 2
+                        },
 
-                            events = {
-                                OnMouseUp = function()
-                                    self.hiddenContainers["Z-" .. quest.zone] = zoneContainers[quest.zone]:ToggleHidden() or nil;
-                                    PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                                end
-                            }
-                        })
-                    });
-                end
+                        metadata = {
+                            header = true,
+                            zone = quest.zone
+                        },
+
+                        events = {
+                            OnMouseUp = function()
+                                self.hiddenContainers["Z-" .. quest.zone] = zoneContainers[quest.zone]:ToggleHidden() or nil;
+                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                            end
+                        }
+                    })
+                });
 
                 zoneContainers[quest.zone] = self.tracker:Container({
-                    container = questsContainer,
-                    hidden = self.db.global.ZoneHeaderEnabled and self.hiddenContainers["Z-" .. quest.zone],
+                    container = self.questsContainer,
+                    hidden = self.hiddenContainers["Z-" .. quest.zone],
 
                     margin = {
-                        left = self.db.global.ZoneHeaderEnabled and 8 or 5
+                        left = 8
+                    },
+
+                    metadata = {
+                        header = false,
+                        zone = quest.zone
                     }
                 });
-            end
-
-            local questContainer = self.tracker:Container({
-                container = zoneContainers[quest.zone],
-
-                backgroundColor = self.db.global.DeveloperMode and {
-                    g = 1.0,
-                    a = 0.2
-                },
-
-                margin = {
-                    top = (i ~= 1 or self.db.global.ZoneHeaderEnabled or self.db.global.TrackerHeaderEnabled) and self.db.global.QuestPadding
-                },
-
-                events = {
-                    OnMouseUp = function(button)
-                        if button == "LeftButton" then
-                            if IsShiftKeyDown() then
-                                self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] = false;
-                                RemoveQuestWatch(quest.index);
-                                PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
-                            elseif IsAltKeyDown() then
-                                self:ShowWowheadPopup(quest.questID);
-                            elseif IsControlKeyDown() then
-                                if isWoWClassic then
-                                    ChatEdit_InsertLink("[" .. quest.title .. "]");
-                                else
-                                    ChatEdit_InsertLink(GetQuestLink(quest.questID));
-                                end
-                            else
-                                QLH:ToggleQuest(quest.index);
-                            end
-                        else
-                            self:ToggleContextMenu(quest);
-                        end
-                    end,
-
-                    OnEnter = function(_, target)
-                        GameTooltip:SetOwner(target, "ANCHOR_NONE");
-                        GameTooltip:SetPoint("RIGHT", target, "LEFT");
-                        GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true);
-                        GameTooltip:AddLine(quest.summary, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, true);
-
-                        if self.db.global.DeveloperMode then
-                            GameTooltip:AddDoubleLine("\nQuest ID:", quest.questID, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-                            GameTooltip:AddDoubleLine("Quest Index:", quest.index, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-
-                            for _, addon in ipairs(QH:GetActiveAddons()) do
-                                local distance = QH:GetDistanceToClosestObjective(quest.questID, addon);
-                                if distance then
-                                    GameTooltip:AddDoubleLine(addon .. " (distance):", string.format("%.1fm", distance), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-                                else
-                                    GameTooltip:AddDoubleLine(addon .. " (distance):", "N/A", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
-                                end
-                            end
-                        end
-
-                        GameTooltip:Show();
-                    end,
-
-                    OnLeave = function()
-                        GameTooltip:ClearLines();
-                        GameTooltip:Hide();
-                    end
-                }
-            });
-
-            self.tracker:Font({
-                label = self:GetQuestHeader(quest),
-                size = self.db.global.QuestHeaderFontSize,
-                color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or self.db.global.QuestHeaderFontColor,
-                container = questContainer
-            });
-
-            local objectiveCount = count(quest.objectives);
-
-            if objectiveCount == 0 then
-                self.tracker:Font({
-                    label = ' - ' .. quest.summary,
-                    size = self.db.global.ObjectiveFontSize,
-                    color = self.db.global.ObjectiveFontColor,
-                    container = questContainer,
-                    margin = {
-                        top = 2.5
-                    }
-                });
-            elseif quest.completed then
-                self.tracker:Font({
-                    label = ' - Ready to turn in',
-                    size = self.db.global.ObjectiveFontSize,
-                    color = "00b205",
-                    container = questContainer,
-                    margin = {
-                        top = 2.5
-                    }
-                });
-            elseif quest.failed then
-                self.tracker:Font({
-                    label = ' - Quest failed, abandon to restart.',
-                    size = self.db.global.ObjectiveFontSize,
-                    color = { r = 1, g = 0.1, b = 0.1 },
-                    container = questContainer,
-                    margin = {
-                        top = 2.5
-                    }
-                });
-            else
-                for _, objective in ipairs(quest.objectives) do
-                    self.tracker:Font({
-                        label = ' - ' .. objective.text,
-                        size = self.db.global.ObjectiveFontSize,
-                        color = objective.completed and HIGHLIGHT_FONT_COLOR or self.db.global.ObjectiveFontColor,
-                        container = questContainer,
-                        margin = {
-                            top = 2.5
-                        }
-                    });
-                end
             end
         end
+
+        local questContainer = self.tracker:Container({
+            container = self.db.global.ZoneHeaderEnabled and zoneContainers[quest.zone] or self.questsContainer,
+
+            backgroundColor = self.db.global.DeveloperMode and {
+                g = 1.0,
+                a = 0.2
+            },
+
+            margin = {
+                top = (index ~= 1 or self.db.global.ZoneHeaderEnabled or self.db.global.TrackerHeaderEnabled) and self.db.global.QuestPadding,
+                left = self.db.global.ZoneHeaderEnabled and 0 or 5
+            },
+
+            metadata = {
+                quest = quest
+            },
+
+            events = {
+                OnMouseUp = function(button)
+                    if button == "LeftButton" then
+                        if IsShiftKeyDown() then
+                            self.db.char.MANUALLY_TRACKED_QUESTS[quest.questID] = false;
+                            RemoveQuestWatch(quest.index);
+                            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
+                        elseif IsAltKeyDown() then
+                            self:ShowWowheadPopup(quest.questID);
+                        elseif IsControlKeyDown() then
+                            if isWoWClassic then
+                                ChatEdit_InsertLink("[" .. quest.title .. "]");
+                            else
+                                ChatEdit_InsertLink(GetQuestLink(quest.questID));
+                            end
+                        else
+                            QLH:ToggleQuest(quest.index);
+                        end
+                    else
+                        self:ToggleContextMenu(quest);
+                    end
+                end,
+
+                OnEnter = function(_, target)
+                    GameTooltip:SetOwner(target, "ANCHOR_NONE");
+                    GameTooltip:SetPoint("RIGHT", target, "LEFT");
+                    GameTooltip:AddLine(quest.title .. "\n", NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, true);
+                    GameTooltip:AddLine(quest.summary, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, true);
+
+                    if self.db.global.DeveloperMode then
+                        GameTooltip:AddDoubleLine("\nQuest ID:", quest.questID, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                        GameTooltip:AddDoubleLine("Quest Index:", quest.index, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+
+                        for _, addon in ipairs(QH:GetActiveAddons()) do
+                            local distance = QH:GetDistanceToClosestObjective(quest.questID, addon);
+                            if distance then
+                                GameTooltip:AddDoubleLine(addon .. " (distance):", string.format("%.1fm", distance), HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                            else
+                                GameTooltip:AddDoubleLine(addon .. " (distance):", "N/A", HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b, HIGHLIGHT_FONT_COLOR.r, HIGHLIGHT_FONT_COLOR.g, HIGHLIGHT_FONT_COLOR.b);
+                            end
+                        end
+                    end
+
+                    GameTooltip:Show();
+                end,
+
+                OnLeave = function()
+                    GameTooltip:ClearLines();
+                    GameTooltip:Hide();
+                end
+            }
+        });
+        tinsert(self.questContainers, questContainer);
+
+        self.tracker:Font({
+            label = self:GetQuestHeader(quest),
+            size = self.db.global.QuestHeaderFontSize,
+            color = self.db.global.ColorHeadersByDifficultyLevel and QLH:GetDifficultyColor(quest.difficulty) or self.db.global.QuestHeaderFontColor,
+            container = questContainer
+        });
+
+        local objectiveCount = count(quest.objectives);
+
+        if objectiveCount == 0 then
+            self.tracker:Font({
+                label = ' - ' .. quest.summary,
+                size = self.db.global.ObjectiveFontSize,
+                color = self.db.global.ObjectiveFontColor,
+                container = questContainer,
+                margin = {
+                    top = 2.5
+                }
+            });
+        elseif quest.completed then
+            self.tracker:Font({
+                label = ' - Ready to turn in',
+                size = self.db.global.ObjectiveFontSize,
+                color = "00b205",
+                container = questContainer,
+                margin = {
+                    top = 2.5
+                }
+            });
+        elseif quest.failed then
+            self.tracker:Font({
+                label = ' - Quest failed, abandon to restart.',
+                size = self.db.global.ObjectiveFontSize,
+                color = { r = 1, g = 0.1, b = 0.1 },
+                container = questContainer,
+                margin = {
+                    top = 2.5
+                }
+            });
+        else
+            for _, objective in ipairs(quest.objectives) do
+                self.tracker:Font({
+                    label = ' - ' .. objective.text,
+                    size = self.db.global.ObjectiveFontSize,
+                    color = objective.completed and HIGHLIGHT_FONT_COLOR or self.db.global.ObjectiveFontColor,
+                    container = questContainer,
+                    margin = {
+                        top = 2.5
+                    }
+                });
+            end
+        end
+        index = index + 1;
     end
+
+    self:Sort();
 end
 
 function BQT:ToggleContextMenu(quest)

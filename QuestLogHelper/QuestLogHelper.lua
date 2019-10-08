@@ -143,9 +143,12 @@ function helper:GetQuestFrame()
         elseif QuestLogEx then -- https://www.wowinterface.com/downloads/info24980-QuestLogEx.html
             self._questFrame = QuestLogExFrame;
             self._questFrame.addon = 'QuestLogEx';
-        else
+        elseif QuestLogFrame then -- This is the built-in frame for classic, however sometimes it isn't initialized...
             self._questFrame = QuestLogFrame;
-            self._questFrame.addon = 'Default';
+            self._questFrame.addon = 'Classic';
+        elseif WorldMapFrame then
+            self._questFrame = WorldMapFrame;
+            self._questFrame.addon = 'Retail';
         end
     end
 
@@ -153,7 +156,7 @@ function helper:GetQuestFrame()
 end
 
 function helper:IsShown()
-    return self:GetQuestFrame():IsShown();
+    return self:GetQuestFrame() and self:GetQuestFrame():IsShown();
 end
 
 function helper:IsQuestSelected(index)
@@ -168,9 +171,13 @@ function helper:GetWowheadURL(questID)
     return "https://wowhead.com/quest=" .. questID;
 end
 
-function helper:ToggleQuest(index)
+function helper:ToggleQuest(index, forceShow)
     local isQuestAlreadyOpen = self:IsShown() and self:IsQuestSelected(index);
     local questFrame = self:GetQuestFrame();
+
+    if not questFrame then
+        return false;
+    end
 
     if isQuestAlreadyOpen then
         HideUIPanel(questFrame);
@@ -180,9 +187,11 @@ function helper:ToggleQuest(index)
 
         if questFrame.addon == 'QuestLogEx' then
             QuestLogEx:Maximize();
-        elseif questFrame.addon == 'Default' then
+        elseif questFrame.addon == 'Classic' then
             local valueStep = QuestLogListScrollFrame.ScrollBar:GetValueStep();
             QuestLogListScrollFrame.ScrollBar:SetValue(index * valueStep - valueStep * 3);
+        elseif questFrame.addon == 'Retail' then
+            QuestMapFrame_ShowQuestDetails(self:GetQuestIDFromIndex(index));
         end
     end
 end
@@ -376,37 +385,35 @@ function helper:GetObjectives(questID)
 end
 
 function helper:IsQuestSharable(index)
-    self:Select(index);
+    self:SetFocusByQuestIndex(index);
     local sharable = GetQuestLogPushable();
-    self:RevertSelection();
+    self:RevertFocus();
 
     return sharable;
 end
 
 function helper:AbandonQuest(index)
-    self:Select(index);
+    self:SetFocusByQuestIndex(index);
     SetAbandonQuest();
     AbandonQuest();
-    self:RevertSelection();
+    self:RevertFocus();
 end
 
 function helper:ShareQuest(index)
-    self:Select(index);
+    self:SetFocusByQuestIndex(index);
     QuestLogPushQuest();
-    self:RevertSelection();
+    self:RevertFocus();
 end
 
 function helper:GetQuestSummary(index)
-    self:Select(index);
+    self:SetFocusByQuestIndex(index);
     local _, desc = GetQuestLogQuestText();
-    self:RevertSelection();
+    self:RevertFocus();
 
     return desc;
 end
 
-local previousIndex;
 function helper:Select(index)
-    previousIndex = GetQuestLogSelection();
     if isWoWClassic then
         QuestLog_SetSelection(index);
     else
@@ -414,11 +421,43 @@ function helper:Select(index)
     end
 end
 
-function helper:RevertSelection()
-    if not previousIndex then return end
+function helper:SetFocusByQuestIndex(index)
+    local questID = self:GetQuestIDFromIndex(index);
 
-    self:Select(previousIndex);
-    previousIndex = nil;
+    local options = {
+        questLog = index
+    };
+
+    if isWoWClassic then
+        -- Do wow classic specific focus logic
+    else
+        options.worldMap = questID;
+        options.superTracked = questID;
+    end
+
+    self:SetFocus(options);
+end
+
+local previousValues;
+function helper:SetFocus(options)
+    previousValues = {};
+
+    if options.questLog then
+        previousValues.questLog = GetQuestLogSelection();
+        self:Select(options.questLog);
+    end
+
+    if options.superTracked and not isWoWClassic then
+        previousValues.superTracked = GetSuperTrackedQuestID();
+        SetSuperTrackedQuestID(options.superTracked);
+    end
+end
+
+function helper:RevertFocus()
+    if not previousValues then return end
+
+    self:SetFocus(previousValues);
+    previousValues = nil;
 end
 
 AceEvent.RegisterEvent(helper, "QUEST_LOG_UPDATE", "Refresh");

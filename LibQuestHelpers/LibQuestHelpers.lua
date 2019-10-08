@@ -107,32 +107,42 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
 end
 
 function helper:SetIconsVisibility(updatedQuest)
-    if CodexQuest then
+    local addons = self:GetAddons();
+
+    if addons.ClassicCodex then
         if updatedQuest.visible then
             CodexQuest.updateQuestLog = true
             CodexQuest.updateQuestGivers = true
         else
-            QLH:Select(updatedQuest.index);
+            QLH:SetFocusByQuestIndex(updatedQuest.index);
             CodexQuest:HideCurrentQuest();
-            QLH:RevertSelection();
+            QLH:RevertFocus();
         end
     end
 
 
-    if Questie then
+    if addons.Questie then
         local quest = QuestieDB:GetQuest(updatedQuest.questID);
 
         quest.HideIcons = not updatedQuest.visible;
     end
 
-    if not isWoWClassic then
+    if addons["Built-In"] then
         -- TODO: Not sure if this is even supported
+        -- Resources
+        -- - https://github.com/tomrus88/BlizzardInterfaceCode/blob/master/Interface/FrameXML/QuestPOI.lua
     end
 
     refresh();
 end
 
-function helper:GetDestinationCoordinates(questID, overrideAddon)
+function helper:GetDistanceToClosestObjective(questID, overrideAddon)
+    local player = getWorldPlayerPosition();
+
+    if not player then
+        return nil;
+    end
+
     local addons = self:GetAddons();
 
     local coordinates = {};
@@ -216,45 +226,17 @@ function helper:GetDestinationCoordinates(questID, overrideAddon)
             end
         end
     elseif addons["Built-In"] and (not overrideAddon or overrideAddon == "Built-In") then
-        local uiMapID = C_Map.GetBestMapForUnit("player");
+        local quest = QLH:GetQuest(questID);
 
-        -- TODO: This function will only return POIs for the current map. :(
-        -- Is there any way to workaround this limitation.. ?
-        local pois = C_QuestLog.GetQuestsOnMap(uiMapID);
-
-        for _, poi in pairs(pois) do
-            if poi.questID == questID then
-                local _, worldPosition = C_Map.GetWorldPosFromMapPos(uiMapID, {
-                    x = poi.x,
-                    y = poi.y
-                });
-
-                tinsert(coordinates, {
-                    x = worldPosition.x,
-                    y = worldPosition.y
-                });
-            end
-        end
+        return math.sqrt(GetDistanceSqToQuest(quest.index));
     end
-
-    return coordinates;
-end
-
-function helper:GetDistanceToClosestObjective(questID, overrideAddon)
-    local player = getWorldPlayerPosition();
-
-    if not player then
-        return nil;
-    end
-
-    local coords = self:GetDestinationCoordinates(questID, overrideAddon);
 
     -- TODO: Find a way to avoid needing the quest object from the log...
-    if not coords then return end
+    if not coordinates then return end
 
     local closestDistance;
-    for _, coordinates in pairs(coords) do
-        local distance = getDistance(player.x, player.y, coordinates.x, coordinates.y);
+    for _, coords in pairs(coordinates) do
+        local distance = getDistance(player.x, player.y, coords.x, coords.y);
         if closestDistance == nil or distance < closestDistance then
             closestDistance = distance;
         end

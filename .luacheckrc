@@ -118,6 +118,9 @@ read_globals = {
     -- Retail WoW APIs
     "C_TaskQuest",
     "GetQuestLink",
+    "GetSuperTrackedQuestID",
+    "SetSuperTrackedQuestID",
+    "GetDistanceSqToQuest",
 
     -- FrameXML Frames
     "UIParent",

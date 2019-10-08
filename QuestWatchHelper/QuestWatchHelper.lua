@@ -55,85 +55,78 @@ function helper:SetAutomaticQuestWatch(autoQuestWatch)
 end
 
 function helper:BypassWatchLimit(initialTrackedQuests)
-    if not isWoWClassic then return end
-
     local trackedQuests = {};
-    for questID, tracked in pairs(initialTrackedQuests) do
-        if tracked then
-            trackedQuests[questID] = true;
+
+    if isWoWClassic then
+        local function _addWatch(index, isQuestie)
+            -- This is a hack to ignore watch requests from Questie's Tracker...
+            if isQuestie then return end
+
+            local questID = QLH:GetQuestIDFromIndex(index);
+
+            -- Ignore duplicates
+            if questID and not trackedQuests[questID] then
+                trackedQuests[questID] = true;
+
+                updateListeners({
+                    index = index,
+                    questID = questID,
+                    watched = true
+                });
+            end
         end
-    end
 
-    local function _addWatch(index, isQuestie)
-        -- This is a hack to ignore watch requests from Questie's Tracker...
-        if isQuestie then return end
+        hooksecurefunc("AutoQuestWatch_Insert", _addWatch);
+        hooksecurefunc("AddQuestWatch", _addWatch);
+        hooksecurefunc("RemoveQuestWatch", function(index, isQuestie)
+            -- This is a hack to ignore watch requests from Questie's Tracker...
+            if isQuestie then return end
 
-        local questID = QLH:GetQuestIDFromIndex(index);
+            local questID = QLH:GetQuestIDFromIndex(index);
 
-        -- Ignore duplicates
-        if questID and not trackedQuests[questID] then
-            trackedQuests[questID] = true;
+            -- Ignore duplicates
+            if questID and trackedQuests[questID] then
+                trackedQuests[questID] = nil;
 
-            updateListeners({
-                index = index,
-                questID = questID,
-                watched = true
-            });
+                updateListeners({
+                    index = index,
+                    questID = questID,
+                    watched = false
+                });
+            end
+        end);
+
+        IsQuestWatched = function(index)
+            return trackedQuests[QLH:GetQuestIDFromIndex(index)] or false;
         end
-    end
 
-    hooksecurefunc("AutoQuestWatch_Insert", _addWatch);
-    hooksecurefunc("AddQuestWatch", _addWatch);
-    hooksecurefunc("RemoveQuestWatch", function(index, isQuestie)
-        -- This is a hack to ignore watch requests from Questie's Tracker...
-        if isQuestie then return end
-
-        local questID = QLH:GetQuestIDFromIndex(index);
-
-        -- Ignore duplicates
-        if questID and trackedQuests[questID] then
-            trackedQuests[questID] = nil;
-
-            updateListeners({
-                index = index,
-                questID = questID,
-                watched = false
-            });
+        GetNumQuestWatches = function()
+            return 0;
         end
-    end);
 
-    IsQuestWatched = function(index)
-        return trackedQuests[QLH:GetQuestIDFromIndex(index)];
-    end
+        -- This bypasses a limitation that would prevent users from tracking quests without objectives
+        GetNumQuestLeaderBoards = function(index)
+            index = index or GetQuestLogSelection();
+            local questID = QLH:GetQuestIDFromIndex(index);
 
-    GetNumQuestWatches = function()
-        return 0;
-    end
+            if not questID then return 0 end
 
-    -- This bypasses a limitation that would prevent users from tracking quests without objectives
-    GetNumQuestLeaderBoards = function(index)
-        index = index or GetQuestLogSelection();
-        local questID = QLH:GetQuestIDFromIndex(index);
+            local quest = QLH:GetQuest(questID);
 
-        if not questID then return 0 end
+            if not quest then return 0 end
 
-        local quest = QLH:GetQuest(questID);
+            local objectiveCount = count(quest.objectives);
 
-        if not quest then return 0 end
+            if objectiveCount == 0 then return 1 end
 
-        local objectiveCount = count(quest.objectives);
+            return objectiveCount;
+        end
 
-        if objectiveCount == 0 then return 1 end
+        MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
 
-        return objectiveCount;
-    end
-
-    MAX_WATCHABLE_QUESTS = C_QuestLog.GetMaxNumQuests();
-
-    QLH:OnQuestUpdated(function(quests)
-        for questID, quest in pairs(quests) do
-            if quest.abandoned then
-                if trackedQuests[questID] then
+        QLH:OnQuestUpdated(function(quests)
+            for questID, quest in pairs(quests) do
+                if quest.abandoned and trackedQuests[questID] then
                     trackedQuests[questID] = nil;
 
                     updateListeners({
@@ -143,8 +136,16 @@ function helper:BypassWatchLimit(initialTrackedQuests)
                     });
                 end
             end
+        end);
+    end
+
+    for _, quest in pairs(QLH:GetQuests()) do
+        if initialTrackedQuests[quest.questID] then
+            AddQuestWatch(quest.index);
+        else
+            RemoveQuestWatch(quest.index);
         end
-    end);
+    end
 end
 
 function helper:OnQuestWatchUpdated(listener)
@@ -176,7 +177,7 @@ if not isWoWClassic then
                     updateListeners({
                         index = index,
                         questID = questID,
-                        watched = added
+                        watched = added == true
                     });
                 end);
             else
@@ -185,7 +186,7 @@ if not isWoWClassic then
                 updateListeners({
                     index = index,
                     questID = questID,
-                    watched = added
+                    watched = added == true
                 });
             end
         end

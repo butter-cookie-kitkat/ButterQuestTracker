@@ -4,7 +4,7 @@ TrackerHelperFont = CreateClass("Frame", "TrackerHelperFont", nil, nil, TrackerH
 local Font = TrackerHelperFont;
 
 function Font:OnAcquire()
-    self.__super.OnAcquire(self);
+    TrackerHelperBaseElement.OnAcquire(self);
 
     self.type = "font";
 

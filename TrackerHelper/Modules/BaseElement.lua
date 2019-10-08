@@ -26,12 +26,13 @@ function BaseElement:OnAcquire()
 end
 
 function BaseElement:OnRelease()
+    TrackerHelperBase.OnRelease(self);
     self.previousElement = nil;
     self:Hide();
 end
 
-function BaseElement:SetMargin(padding)
-    self.margin = padding or {};
+function BaseElement:SetMargin(margin)
+    self.margin = margin or {};
     self.margin.top = self.margin.top or self.margin.y or 0;
     self.margin.bottom = self.margin.bottom or self.margin.y or 0;
     self.margin.left = self.margin.left or self.margin.x or 0;
@@ -86,8 +87,8 @@ end
 
 function BaseElement:UpdateParentsHeight(delta)
     local parent = self:GetParent();
-    while parent ~= UIParent do
-        parent:SetHeight(parent:GetHeight() + delta);
+    while parent ~= UIParent and not parent.hidden do
+        parent:SetHeight(parent:GetRealHeight() + delta);
         parent = parent:GetParent();
     end
 end
@@ -102,7 +103,7 @@ end
 
 -- Height + Vertical Margin
 function BaseElement:GetFullHeight()
-    return self:GetHeight() + self:GetVerticalMargin();
+    return self:GetRealHeight() + self:GetVerticalMargin();
 end
 
 -- Width + Horizontal Margin

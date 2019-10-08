@@ -3,6 +3,39 @@ local CreateClass = LibStub("Poncho-1.0");
 TrackerHelperFrame = CreateClass("Frame", "TrackerHelperFrame", nil, nil, TrackerHelperBase);
 local Frame = TrackerHelperFrame;
 
+function Frame:OnCreate()
+    TrackerHelperBase.OnCreate(self);
+
+    local setWidth = self.SetWidth;
+    function self:SetWidth(width)
+        setWidth(self, width);
+        self.content:RefreshSize();
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
+    end
+
+    local setHeight = self.SetHeight;
+    function self:SetHeight(height)
+        if not self.maxHeight then
+            setHeight(self, self.content:GetFullHeight());
+        else
+            setHeight(self, math.min(self.content:GetFullHeight(), self.maxHeight));
+        end
+
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
+        self:_clampScroll();
+    end
+
+    local stopMovingOrSizing = self.StopMovingOrSizing;
+    function self:StopMovingOrSizing()
+        stopMovingOrSizing(self);
+        self:SetUserPlaced(false);
+        -- Re-anchor the frame to prevent sizing issues
+        self:SetPosition(self:GetPosition());
+    end
+end
+
 function Frame:OnAcquire()
     self.locked = false;
     self.background = TrackerHelperBackgroundFrame(self);
@@ -25,34 +58,6 @@ function Frame:OnAcquire()
     self:SetLocked(false);
 
     self:SetScript("OnMouseWheel", self.OnMouseWheel);
-
-    local setWidth = self.SetWidth;
-    function self:SetWidth(width)
-        setWidth(self, width);
-        self.content:RefreshSize();
-        -- Re-anchor the frame to prevent sizing issues
-        self:SetPosition(self:GetPosition());
-    end
-
-    local setHeight = self.SetHeight;
-    function self:SetHeight(height)
-        if not self.maxHeight then
-            setHeight(self, self.content:GetFullHeight());
-        else
-            setHeight(self, math.min(self.content:GetFullHeight(), self.maxHeight));
-        end
-
-        -- Re-anchor the frame to prevent sizing issues
-        self:SetPosition(self:GetPosition());
-    end
-
-    local stopMovingOrSizing = self.StopMovingOrSizing;
-    function self:StopMovingOrSizing()
-        stopMovingOrSizing(self);
-        self:SetUserPlaced(false);
-        -- Re-anchor the frame to prevent sizing issues
-        self:SetPosition(self:GetPosition());
-    end
 
     self:Clear();
     self:SetWidth(200);

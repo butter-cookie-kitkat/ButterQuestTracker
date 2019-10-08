@@ -56,3 +56,19 @@ function Base:_normalizeColor(value)
         a = value.a or 1.0,
     };
 end
+
+function Base:OnCreate()
+    local setHeight = self.SetHeight;
+    function self:SetHeight(height)
+        self.height = height;
+        setHeight(self, math.max(1, height));
+    end
+end
+
+function Base:OnRelease()
+    self.height = nil;
+end
+
+function Base:GetRealHeight()
+    return self.height or self:GetHeight();
+end

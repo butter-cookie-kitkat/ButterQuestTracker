@@ -496,11 +496,13 @@ function BQT:Sort()
         for _, element in ipairs(self.questsContainer.elements) do
             local order = zoneToOrderMap[element.metadata.zone];
 
-            if not element.metadata.header then
-                order = order + 0.1;
-            end
+            if order then
+                if not element.metadata.header then
+                    order = order + 0.1;
+                end
 
-            element:SetOrder(order, false);
+                element:SetOrder(order, false);
+            end
         end
 
         self.questsContainer:Order();

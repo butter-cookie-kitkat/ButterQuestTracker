@@ -292,7 +292,7 @@ function BQT:ShouldWatchQuest(currentZone, minimapZone, quest)
 end
 
 function BQT:GetQuestInfo()
-    if self.db.global.DisplayDummyData and InterfaceOptionsFrame:IsShown() then
+    if self.db.global.DisplayDummyData and ButterQuestTrackerSettings:IsVisible() then
         -- TODO: Move this into QuestLogHelper
         local quests = {
             -- Partially Completed
@@ -581,12 +581,7 @@ function BQT:RefreshView()
                             self.hiddenContainers["QUESTS"] = self.questsContainer:ToggleHidden() or nil;
                             PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
                         else
-                            if InterfaceOptionsFrame:IsShown() then
-                                InterfaceOptionsFrame:Hide();
-                            else
-                                InterfaceOptionsFrame:Show();
-                                InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
-                            end
+                            ButterQuestTrackerSettings:Toggle();
                         end
                     end
                 }

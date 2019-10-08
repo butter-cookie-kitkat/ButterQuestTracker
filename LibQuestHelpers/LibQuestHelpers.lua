@@ -228,7 +228,7 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
     elseif addons["Built-In"] and (not overrideAddon or overrideAddon == "Built-In") then
         local quest = QLH:GetQuest(questID);
 
-        return math.sqrt(GetDistanceSqToQuest(quest.index));
+        return quest and math.sqrt(GetDistanceSqToQuest(quest.index));
     end
 
     -- TODO: Find a way to avoid needing the quest object from the log...

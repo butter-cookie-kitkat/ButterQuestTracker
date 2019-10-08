@@ -1,968 +1,338 @@
 local _, ns = ...
 
-local ACD = LibStub("AceConfigDialog-3.0");
 local QH = LibStub("LibQuestHelpers-1.0");
+
+local BQT = ButterQuestTracker;
 local BQTL = ButterQuestTrackerLocale;
 
-local BQT = ButterQuestTracker
+ButterQuestTrackerSettings = LibStub("ButterSettings-1.0"):New({
+    name = "ButterQuestTracker"
+});
 
-local _order = 0;
-local function order()
-    _order = _order + 1;
-    return _order;
-end
+local settings = ButterQuestTrackerSettings;
 
-local function Spacer(options)
-    options = options or {};
-    options.size = options.size or "small";
-    options.width = options.width or "full";
+settings:On("Render", function(self)
+    print("Event(Render)");
 
-    return {
-        type = "description",
-        order = order(),
-        name = " ",
-        fontSize = options.size,
-        width = options.width
-    };
-end
+    self:SetGlobalDB(BQT.db.global);
+    self:SetCharacterDB(BQT.db.char);
 
-local function GetFromDB(info)
-    return BQT.db.global[info.arg];
-end
-
-local function SetInDB(info, value)
-    BQT.db.global[info.arg] = value;
-end
-
-local function SetAndRefreshQuestWatch(info, value)
-    SetInDB(info, value);
-    BQT:RefreshQuestWatch();
-end
-
-local function SetAndRefreshView(info, value)
-    SetInDB(info, value);
-    BQT:RefreshView();
-end
-
-local function hex2rgb(hex)
-    hex = hex:gsub("#","")
-    if #hex == 8 then
-        return {
-            r = tonumber("0x" .. hex:sub(3,4)) / 255,
-            g = tonumber("0x" .. hex:sub(5,6)) / 255,
-            b = tonumber("0x" .. hex:sub(7,8)) / 255,
-            a = tonumber("0x" .. hex:sub(1,2)) / 255
-        };
-    end
-
-    return {
-        r = tonumber("0x" .. hex:sub(1,2)) / 255,
-        g = tonumber("0x" .. hex:sub(3,4)) / 255,
-        b = tonumber("0x" .. hex:sub(5,6)) / 255
-    };
-end
-
-local function rgb2hex(rgba)
-    local hex = "";
-
-    local index = 1;
-    for _, color in pairs(rgba) do
-        local segment = ('%02X'):format(tonumber(color * 255));
-
-        if index == 4 then
-            hex = segment .. hex;
-        else
-            hex = hex .. segment;
-        end
-
-        index = index + 1;
-	end
-
-	return hex;
-end
-
-local function GetColor(info)
-    local color = hex2rgb(BQT.db.global[info.arg]);
-
-    return color.r, color.g, color.b, color.a;
-end
-
-local function SetColor(info, r, g, b, a)
-    BQT.db.global[info.arg] = rgb2hex({
-        r,
-        g,
-        b,
-        a
-    });
-end
-
-local options = {
-    name = function() return BQTL:GetString('SETTINGS_NAME', ns.CONSTANTS.VERSION) end,
-    type = "group",
-    childGroups = "tab",
-
-    get = GetFromDB,
-    set = SetInDB,
-
-    args = {
-        displayDummyData = {
-            name = BQTL:GetStringWrap('SETTINGS_DISPLAY_DUMMY_DATA_NAME'),
-            desc = BQTL:GetStringWrap('SETTINGS_DISPLAY_DUMMY_DATA_DESC'),
-            arg = "DisplayDummyData",
-            type = "toggle",
-            order = order(),
-
-            set = SetAndRefreshView
+    self:Group({
+        margin = {
+            y = 10,
+            x = 10
         },
 
-        filtersAndSorting = {
-            name = BQTL:GetStringWrap('SETTINGS_FILTERS_AND_SORTING_TAB'),
-            type = "group",
-            order = order(),
+        backgroundColor = {
+            r = 1.0,
+            b = 1.0,
+            a = 0.2
+        }
+    }):On("Render", function(self)
+        print("Container:Event(Render)");
 
-            args = {
-                autoTrackUpdatedQuests = {
-                    name = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
-                    arg = "AutoTrackUpdatedQuests",
-                    type = "toggle",
-                    width = 1.6,
-                    order = order(),
+        self:Text({
+            label = BQTL:GetString('SETTINGS_NAME', ns.CONSTANTS.VERSION),
+            size = 16,
 
-                    set = function(info, value)
-                        SetInDB(info, value);
-
-                        if not value then
-                            BQT:ResetOverrides();
-                        end
-                    end
-                },
-
-                spacer0 = Spacer({
-                    width = 0.8
-                }),
-
-                sorting = {
-                    name = BQTL:GetStringWrap('SETTINGS_SORTING_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_SORTING_DESC'),
-                    arg = "Sorting",
-                    type = "select",
-                    order = order(),
-
-                    values = function()
-                        local options = {
-                            Disabled = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION'),
-                            ByLevel = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION'),
-                            ByLevelReversed = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'),
-                            ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'),
-                            ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
-                        };
-
-                        if QH:IsSupported() then
-                            options['ByQuestProximity'] = BQTL:GetString('SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION');
-                        end
-
-                        return options;
-                    end,
-
-                    sorting = function()
-                        local options = {
-                            "Disabled",
-                            "ByLevel",
-                            "ByLevelReversed",
-                            "ByPercentCompleted",
-                            "ByRecentlyUpdated"
-                        };
-
-                        if QH:IsSupported() then
-                            tinsert(options, "ByQuestProximity");
-                        end
-
-                        return options;
-                    end,
-
-                    set = function(info, value)
-                        SetInDB(info, value);
-
-                        BQT:UpdateQuestProximityTimer();
-                        if value ~= "ByQuestProximity" then
-                            BQT:RefreshView();
-                        end
-                    end
-                },
-
-                spacer1 = Spacer(),
-
-                autoHideQuestHelperIcons = {
-                    name = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_NAME'),
-                    desc = function() return BQTL:GetString('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC', table.concat(QH:GetActiveAddons(), ", ")) end,
-                    arg = "AutoHideQuestHelperIcons",
-                    type = "toggle",
-                    width = 1.6,
-                    order = order(),
-
-                    disabled = function() return not QH:IsSupported() end,
-
-                    set = function(info, value)
-                        SetInDB(info, value);
-
-                        QH:SetAutoHideQuestHelperIcons(value);
-                    end
-                },
-
-                spacer2 = Spacer({
-                    width = 0.8
-                }),
-
-                questLimit = {
-                    name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
-                    arg = "QuestLimit",
-                    type = "range",
-                    width = 1.0,
-                    min = 1,
-                    max = 20,
-                    step = 1,
-                    order = order(),
-
-                    set = SetAndRefreshView
-                },
-
-                filtersHeader = {
-                    name = "Filters",
-                    type = "header",
-                    order = order()
-                },
-
-                spacer3 = Spacer(),
-
-                disableFilters = {
-                    name = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_DESC'),
-                    arg = "DisableFilters",
-                    type = "toggle",
-                    width = 1.6,
-                    order = order(),
-
-                    set = function(info, value)
-                        if value == false then
-                            BQT:ResetOverrides();
-                        end
-                        SetAndRefreshQuestWatch(info, value);
-                    end
-                },
-
-                spacer4 = Spacer(),
-
-                currentZoneOnly = {
-                    name = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
-                    arg = "CurrentZoneOnly",
-                    type = "toggle",
-                    width = 1.6,
-                    order = order(),
-
-                    disabled = function() return BQT.db.global.DisableFilters end,
-
-                    set = SetAndRefreshQuestWatch
-                },
-
-                spacer5 = Spacer(),
-
-                hideCompletedQuests = {
-                    name = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
-                    arg = "HideCompletedQuests",
-                    type = "toggle",
-                    width = 1.6,
-                    order = order(),
-
-                    disabled = function() return BQT.db.global.DisableFilters end,
-
-                    set = SetAndRefreshQuestWatch
-                },
-
-                spacer6 = Spacer(),
-
-                reset = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_DESC'),
-                    type = "execute",
-                    width = 1.3,
-                    order = order(),
-
-                    func = function()
-                        BQT:ResetOverrides();
-                    end
-                },
-
-                spacerEnd = Spacer({
-                    size = "large"
-                }),
+            backgroundColor = {
+                r = 1.0,
+                a = 0.2
             }
-        },
+        });
 
-        visuals = {
-            name = "Visual Settings",
-            type = "group",
-            order = order(),
+        self:Checkbox({
+            label = BQTL:GetString('SETTINGS_DISPLAY_DUMMY_DATA_NAME'),
+            desc = BQTL:GetString('SETTINGS_DISPLAY_DUMMY_DATA_DESC'),
+            global = "DisplayDummyData",
 
-            args = {
-                spacerStart = Spacer(),
+            margin = {
+                top = 10
+            },
 
-                backgroundAlwaysVisible = {
-                    name = BQTL:GetStringWrap('SETTINGS_BACKGROUND_ALWAYS_VISIBLE_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_BACKGROUND_ALWAYS_VISIBLE_DESC'),
-                    arg = "BackgroundAlwaysVisible",
-                    type = "toggle",
-                    width = 2.3,
-                    order = order(),
+            small = true,
 
-                    set = function(info, value)
-                        SetInDB(info, value);
-
-                        BQT.tracker:UpdateSettings({
-                            backgroundVisible = BQT.db.global.DeveloperMode or value
-                        });
-                    end
-                },
-
-                backgroundColor = {
-                    name = BQTL:GetStringWrap('SETTINGS_BACKGROUND_COLOR_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_BACKGROUND_COLOR_DESC'),
-                    arg = "BackgroundColor",
-                    type = "color",
-                    order = order(),
-                    hasAlpha = true,
-
-                    get = GetColor,
-                    set = function(info, r, g, b, a)
-                        SetColor(info, r, g, b, a);
-
-                        BQT.tracker:UpdateSettings({
-                            backgroundColor = BQT.db.global.BackgroundColor
-                        });
-                    end
-                },
-
-                spacer1 = Spacer(),
-
-                trackerHeaderSettings = {
-                    name = "Tracker Header Settings",
-                    type = "group",
-                    inline = true,
-                    order = order(),
-
-                    args = {
-                        enabled = {
-                            name = BQTL:GetStringWrap('SETTINGS_ENABLED_NAME'),
-                            desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_ENABLED_DESC'),
-                            arg = "TrackerHeaderEnabled",
-                            type = "toggle",
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer1 = Spacer({
-                            width = 1.1
-                        }),
-
-                        format = {
-                            name = BQTL:GetStringWrap('SETTINGS_FORMAT_NAME'),
-                            desc = BQTL:GetStringWrap('SETTINGS_TRACKER_HEADER_FORMAT_DESC'),
-                            arg = "TrackerHeaderFormat",
-                            type = "select",
-                            order = order(),
-
-                            values = function()
-                                return {
-                                    Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
-                                    QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
-                                };
-                            end,
-
-                            sorting = {
-                                "Quests",
-                                "QuestsNumberVisible"
-                            },
-
-                            set = function(...)
-                                SetInDB(...);
-
-                                BQT:Sort();
-                            end,
-
-                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
-                        },
-
-                        spacer2 = Spacer(),
-
-                        fontSize = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
-                            arg = "TrackerHeaderFontSize",
-                            type = "range",
-                            min = 4,
-                            max = 20,
-                            step = 1,
-                            order = order(),
-
-                            set = SetAndRefreshView,
-
-                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
-                        },
-
-                        spacer3 = Spacer({
-                            width = 1.1
-                        }),
-
-                        fontColor = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
-                            arg = "TrackerHeaderFontColor",
-                            type = "color",
-                            order = order(),
-                            hasAlpha = false,
-
-                            get = GetColor,
-                            set = function(info, r, g, b)
-                                SetColor(info, r, g, b);
-
-                                BQT:RefreshView();
-                            end,
-
-                            disabled = function() return not BQT.db.global.TrackerHeaderEnabled end
-                        },
-                    }
-                },
-
-                zoneHeaderSettings = {
-                    name = "Zone Header Settings",
-                    type = "group",
-                    inline = true,
-                    order = order(),
-
-                    args = {
-                        enabled = {
-                            name = BQTL:GetStringWrap('SETTINGS_ENABLED_NAME'),
-                            desc = BQTL:GetStringWrap('SETTINGS_ZONE_HEADER_ENABLED_DESC'),
-                            arg = "ZoneHeaderEnabled",
-                            type = "toggle",
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer2 = Spacer(),
-
-                        fontSize = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
-                            arg = "ZoneHeaderFontSize",
-                            type = "range",
-                            min = 4,
-                            max = 20,
-                            step = 1,
-                            order = order(),
-
-                            set = SetAndRefreshView,
-
-                            disabled = function() return not BQT.db.global.ZoneHeaderEnabled end
-                        },
-
-                        spacer3 = Spacer({
-                            width = 1.1
-                        }),
-
-                        fontColor = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
-                            arg = "ZoneHeaderFontColor",
-                            type = "color",
-                            order = order(),
-                            hasAlpha = false,
-
-                            get = GetColor,
-                            set = function(info, r, g, b)
-                                SetColor(info, r, g, b);
-
-                                BQT:RefreshView();
-                            end,
-
-                            disabled = function() return not BQT.db.global.ZoneHeaderEnabled end
-                        },
-                    }
-                },
-
-                questHeaderSettings = {
-                    name = "Quest Header Settings",
-                    type = "group",
-                    inline = true,
-                    order = order(),
-
-                    args = {
-                        questPadding = {
-                            name = BQTL:GetStringWrap('SETTINGS_QUEST_PADDING_NAME'),
-                            arg = "QuestPadding",
-                            type = "range",
-                            min = 0,
-                            max = 20,
-                            step = 1,
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer1 = Spacer({
-                            width = 1.1
-                        }),
-
-                        format = {
-                            name = BQTL:GetStringWrap('SETTINGS_FORMAT_NAME'),
-                            desc = BQTL:GetStringWrap('SETTINGS_QUEST_HEADER_FORMAT_DESC'),
-                            arg = "QuestHeaderFormat",
-                            type = "input",
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer2 = Spacer(),
-
-                        colorHeadersByDifficultyLevel = {
-                            name = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'),
-                            desc = BQTL:GetStringWrap('SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'),
-                            arg = "ColorHeadersByDifficultyLevel",
-                            type = "toggle",
-                            width = 1.4,
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer3 = Spacer({
-                            width = 0.7
-                        }),
-
-                        fontColor = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
-                            arg = "QuestHeaderFontColor",
-                            type = "color",
-                            order = order(),
-                            hasAlpha = false,
-
-                            get = GetColor,
-                            set = function(info, r, g, b)
-                                SetColor(info, r, g, b);
-
-                                BQT:RefreshView();
-                            end,
-
-                            disabled = function() return BQT.db.global.ColorHeadersByDifficultyLevel end
-                        },
-
-                        spacer4 = Spacer(),
-
-                        fontSize = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
-                            arg = "QuestHeaderFontSize",
-                            type = "range",
-                            min = 4,
-                            max = 20,
-                            step = 1,
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-                    }
-                },
-
-                objectiveSettings = {
-                    name = "Objective Settings",
-                    type = "group",
-                    inline = true,
-                    order = order(),
-
-                    args = {
-                        fontSize = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_SIZE_NAME'),
-                            arg = "ObjectiveFontSize",
-                            type = "range",
-                            min = 4,
-                            max = 20,
-                            step = 1,
-                            order = order(),
-
-                            set = SetAndRefreshView
-                        },
-
-                        spacer3 = Spacer({
-                            width = 1.1
-                        }),
-
-                        fontColor = {
-                            name = BQTL:GetStringWrap('SETTINGS_FONT_COLOR_NAME'),
-                            arg = "ObjectiveFontColor",
-                            type = "color",
-                            order = order(),
-                            hasAlpha = false,
-
-                            get = GetColor,
-                            set = function(info, r, g, b)
-                                SetColor(info, r, g, b);
-
-                                BQT:RefreshView();
-                            end
-                        },
-                    }
-                },
-
-                spacerEnd = Spacer({
-                    size = "large"
-                }),
+            backgroundColor = {
+                r = 1.0,
+                a = 0.2
             }
-        },
+        }):On("Change", function()
+            BQT:RefreshView();
+        end);
 
-        frameSettings = {
-            name = BQTL:GetStringWrap('SETTINGS_FRAME_TAB'),
-            type = "group",
-            order = order(),
+        self:Dropdown({
+            label = BQTL:GetString('SETTINGS_SORTING_NAME'),
+            desc = BQTL:GetString('SETTINGS_SORTING_DESC'),
+            global = "Sorting",
 
-            args = {
-                lockFrame = {
-                    name = BQTL:GetStringWrap('SETTINGS_LOCK_FRAME_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_LOCK_FRAME_DESC'),
-                    arg = "LockFrame",
-                    type = "toggle",
-                    order = order(),
+            margin = {
+                top = 10
+            },
 
-                    set = function(info, value)
-                        SetInDB(info, value);
+            options = function()
+                local options = {};
 
-                        BQT.tracker:UpdateSettings({
-                            locked = value
-                        });
-                    end
-                },
+                tinsert(options, {
+                    value = "Disabled",
+                    label = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION')
+                });
 
-                spacer0 = Spacer(),
+                tinsert(options, {
+                    value = "ByLevel",
+                    label = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION')
+                });
 
-                positionX = {
-                    name = BQTL:GetStringWrap('SETTINGS_POSITIONX_NAME'),
-                    arg = "PositionX",
-                    type = "range",
-                    width = 1.6,
-                    min = 0,
-                    max = math.ceil(GetScreenWidth()),
-                    step = 0.01,
-                    bigStep = 10,
-                    order = order(),
+                tinsert(options, {
+                    value = "ByLevelReversed",
+                    label = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION')
+                });
 
-                    get = function(info)
-                        return -GetFromDB(info);
-                    end,
+                tinsert(options, {
+                    value = "ByPercentCompleted",
+                    label = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION')
+                });
 
-                    set = function(info, value)
-                        SetInDB(info, -value);
+                tinsert(options, {
+                    value = "ByRecentlyUpdated",
+                    label = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
+                });
 
-                        BQT.tracker:UpdateSettings({
-                            position = {
-                                x = -value
-                            }
-                        });
-                    end
-                },
+                if QH:IsSupported() then
+                    tinsert(options, {
+                        value = "ByQuestProximity",
+                        label = BQTL:GetString('SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION')
+                    });
+                end
 
-                positionY = {
-                    name = BQTL:GetStringWrap('SETTINGS_POSITIONY_NAME'),
-                    arg = "PositionY",
-                    type = "range",
-                    width = 1.6,
-                    min = 0,
-                    max = math.ceil(GetScreenHeight());
-                    step = 0.01,
-                    bigStep = 10,
-                    order = order(),
+                return options;
+            end
+        }):On("Change", function(value)
+            BQT:UpdateQuestProximityTimer();
 
-                    get = function(info)
-                        return -GetFromDB(info);
-                    end,
+            if value ~= "ByQuestProximity" then
+                BQT:RefreshView();
+            end
+        end);
+    end);
 
-                    set = function(info, value)
-                        SetInDB(info, -value);
+    -- local tabs = self:Tabs();
 
-                        BQT.tracker:UpdateSettings({
-                            position = {
-                                y = -value
-                            }
-                        });
-                    end
-                },
+    -- tabs:Tab({
+    --     label = "Filters & Sorting",
+    --     value = "filters-and-sorting"
+    -- }):On("Render", function(self)
+    --     self:Group({
+    --         orientation = "horizontal"
+    --     }):On("Render", function(self)
+    --         self:Checkbox({
+    --             label = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'),
+    --             desc = BQTL:GetStringWrap('SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'),
+    --             global = "AutoTrackUpdatedQuests"
+    --         }):On("Change", function(value)
+    --             if value then return end
 
-                spacer1 = Spacer(),
+    --             BQT:ResetOverrides();
+    --         end);
 
-                width = {
-                    name = BQTL:GetStringWrap('SETTINGS_WIDTH_NAME'),
-                    arg = "Width",
-                    type = "range",
-                    width = 1.6,
-                    min = 100,
-                    max = 400,
-                    step = 1,
-                    bigStep = 10,
-                    order = order(),
+    --         self:Dropdown({
+    --             label = "Automatically Track Updated Quests",
+    --             global = "Sorting",
 
-                    set = function(info, value)
-                        SetInDB(info, value);
+    --             options = function()
+    --                 local options = {
+    --                     Disabled = BQTL:GetString('SETTINGS_SORTING_DISABLED_OPTION'),
+    --                     ByLevel = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_OPTION'),
+    --                     ByLevelReversed = BQTL:GetString('SETTINGS_SORTING_BY_LEVEL_REVERSED_OPTION'),
+    --                     ByPercentCompleted = BQTL:GetString('SETTINGS_SORTING_BY_PERCENT_COMPLETED_OPTION'),
+    --                     ByRecentlyUpdated = BQTL:GetString('SETTINGS_SORTING_BY_RECENTLY_UPDATED_OPTION')
+    --                 };
 
-                        BQT.tracker:UpdateSettings({
-                            width = value
-                        });
-                    end
-                },
+    --                 if QH:IsSupported() then
+    --                     options['ByQuestProximity'] = BQTL:GetString('SETTINGS_SORTING_BY_QUEST_PROXIMITY_OPTION');
+    --                 end
 
-                maxHeight = {
-                    name = BQTL:GetStringWrap('SETTINGS_MAX_HEIGHT_NAME'),
-                    arg = "MaxHeight",
-                    type = "range",
-                    width = 1.6,
-                    min = 100,
-                    max = math.ceil(GetScreenHeight() * UIParent:GetEffectiveScale()),
-                    step = 1,
-                    bigStep = 10,
-                    order = order(),
+    --                 return options;
+    --             end
+    --         }):On("Change", function(value)
+    --             BQT:UpdateQuestProximityTimer();
 
-                    set = function(info, value)
-                        SetInDB(info, value);
+    --             if value ~= "ByQuestProximity" then
+    --                 BQT:RefreshView();
+    --             end
+    --         end);
+    --     end);
 
-                        BQT.tracker:UpdateSettings({
-                            maxHeight = value
-                        });
-                    end
-                },
+    --     self:Group({
+    --         orientation = "horizontal"
+    --     }):On("Render", function(self)
+    --         self:Checkbox({
+    --             label = BQTL:GetStringWrap('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_NAME'),
+    --             desc = function() return BQTL:GetString('SETTINGS_AUTO_HIDE_QUEST_HELPER_ICONS_DESC', table.concat(QH:GetActiveAddons(), ", ")) end,
+    --             global = "AutoHideQuestHelperIcons",
 
-                spacer2 = Spacer(),
+    --             disabled = not QH:IsSupported()
+    --         }):On("Change", function(value)
+    --             QH:SetAutoHideQuestHelperIcons(value);
+    --         end);
 
-                resetPosition = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_POSITION_NAME'),
-                    type = "execute",
-                    width = 0.8,
-                    order = order(),
+    --         self:Slider({
+    --             label = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
+    --             desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
+    --             global = "QuestLimit",
 
-                    func = function()
-                        BQT.db.global.PositionX = ns.CONSTANTS.DB_DEFAULTS.global.PositionX;
-                        BQT.db.global.PositionY = ns.CONSTANTS.DB_DEFAULTS.global.PositionY;
+    --             min = 1,
+    --             max = 20,
+    --             step = 1
+    --         }):On("Change", function()
+    --             BQT:RefreshView();
+    --         end);
+    --     end);
 
-                        BQT.tracker:UpdateSettings({
-                            position = {
-                                x = BQT.db.global.PositionX,
-                                y = BQT.db.global.PositionY
-                            }
-                        });
-                    end
-                },
+    --     self:Header({
+    --         label = "Filters"
+    --     });
 
-                resetSize = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_SIZE_NAME'),
-                    type = "execute",
-                    width = 0.7,
-                    order = order(),
+    --     self:Checkbox({
+    --         label = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_NAME'),
+    --         desc = BQTL:GetStringWrap('SETTINGS_DISABLE_FILTERS_DESC'),
+    --         global = "DisableFilters"
+    --     }):On("Change", function(value)
+    --         if value == false then
+    --             BQT:ResetOverrides();
+    --         end
 
-                    func = function()
-                        BQT.db.global.Width = ns.CONSTANTS.DB_DEFAULTS.global.Width;
-                        BQT.db.global.MaxHeight = ns.CONSTANTS.DB_DEFAULTS.global.MaxHeight;
+    --         BQT:RefreshQuestWatch();
+    --     end);
 
-                        BQT.tracker:UpdateSettings({
-                            width = BQT.db.global.Width,
-                            maxHeight = BQT.db.global.MaxHeight
-                        });
-                    end
-                },
+    --     self:Checkbox({
+    --         label = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_NAME'),
+    --         desc = BQTL:GetStringWrap('SETTINGS_CURRENT_ZONE_ONLY_DESC'),
+    --         global = "CurrentZoneOnly",
 
-                spacerEnd = Spacer({
-                    size = "large"
-                }),
-            }
-        },
+    --         disabled = function() return BQT.db.global.DisableFilters end
+    --     }):On("Change", function()
+    --         BQT:RefreshQuestWatch();
+    --     end);
 
-        advanced = {
-            name = BQTL:GetStringWrap('SETTINGS_ADVANCED_TAB'),
-            type = "group",
-            order = order(),
+    --     self:Checkbox({
+    --         label = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_NAME'),
+    --         desc = BQTL:GetStringWrap('SETTINGS_HIDE_COMPLETED_QUESTS_DESC'),
+    --         global = "HideCompletedQuests",
 
-            args = {
-                developerOptionsHeader = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_HEADER'),
-                    type = "header",
-                    order = order(),
-                },
+    --         disabled = function() return BQT.db.global.DisableFilters end
+    --     }):On("Change", function()
+    --         BQT:RefreshQuestWatch();
+    --     end);
 
-                spacer1 = Spacer(),
+    --     self:Button({
+    --         label = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_NAME'),
+    --         desc = BQTL:GetStringWrap('SETTINGS_RESET_TRACKING_OVERRIDES_DESC'),
+    --     }):On("Click", function()
+    --         BQT:ResetOverrides();
+    --     end);
+    -- end);
 
-                developerMode = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_DEVELOPER_MODE_DESC'),
-                    arg = "DeveloperMode",
-                    type = "toggle",
-                    order = order(),
+    -- tabs:Tab({
+    --     label = "Visual Settings",
+    --     value = "visual-settings"
+    -- });
 
-                    set = function(info, value)
-                        SetAndRefreshView(info, value);
+    -- tabs:Tab({
+    --     label = "Frame Settings",
+    --     value = "frame-settings"
+    -- });
 
-                        BQT.tracker:UpdateSettings({
-                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible or value
-                        });
-                    end
-                },
+    -- tabs:Tab({
+    --     label = "Advanced",
+    --     value = "advanced"
+    -- });
 
-                spacer2 = Spacer(),
+    -- local container = self:AddContainer({
+    --     margin = {
+    --         x = 10,
+    --         y = 10
+    --     },
 
-                debugLevel = {
-                    name = BQTL:GetStringWrap('SETTINGS_DEBUG_LEVEL_NAME'),
-                    desc = "ERROR = 1\nWARN = 2\nINFO = 3\nTRACE = 4",
-                    arg = "DebugLevel",
-                    type = "range",
-                    min = 1,
-                    max = 4,
-                    step = 1,
-                    order = order(),
+    --     backgroundColor = {
+    --         r = 1.0,
+    --         g = 1.0,
+    --         b = 1.0,
+    --         a = 0.1
+    --     }
+    -- });
 
-                    disabled = function()
-                        return not BQT.db.global.DeveloperMode;
-                    end
-                },
+    -- container:AddCheckbox({
+    --     label = "Display Dummy Data",
+    --     value = BQT.db.global.DisplayDummyData
+    -- });
 
-                spacer3 = Spacer(),
+    -- local tabs = container:AddTabGroup({
+    --     margin = {
+    --         x = 10
+    --     },
 
-                localeHeader = {
-                    name = BQTL:GetStringWrap('SETTINGS_LOCALE_HEADER'),
-                    type = "header",
-                    order = order(),
-                },
+    --     value = 1,
+    --     style = "Dialog",
 
-                spacer4 = Spacer(),
+    --     tabs = {
+    --         "Filters & Sorting",
+    --         "Visual Settings",
+    --         "Frame Settings",
+    --         "Advanced"
+    --     }
+    -- });
 
-                locale = {
-                    name = BQTL:GetStringWrap('SETTINGS_LOCALE_NAME'),
-                    type = "select",
-                    style = 'dropdown',
-                    order = order(),
+    -- local filtersAndSorting = container:AddContainer({
+    --     margin = {
+    --         x = 10,
+    --         y = 10
+    --     },
 
-                    values = {
-                        ['enUS'] = 'English',
-                        -- ['esES'] = 'Español',
-                        -- ['ptBR'] = 'Português',
-                        -- ['frFR'] = 'Français',
-                        -- ['deDE'] = 'Deutsch',
-                        -- ['ruRU'] = 'русский',
-                        -- ['zhCN'] = '简体中文',
-                        -- ['zhTW'] = '正體中文',
-                        -- ['koKR'] = '한국어'
-                    },
+    --     backgroundColor = {
+    --         r = 1.0,
+    --         g = 1.0,
+    --         b = 1.0,
+    --         a = 0.1
+    --     }
+    -- });
 
-                    get = function() return BQTL:GetLocale() end,
-                    set = function(input, locale)
-                        BQT.db.global.Locale = locale;
-                        BQTL:SetLocale(locale);
-                    end,
-                },
+    -- filtersAndSorting:AddCheckbox({
+    --     label = "Automatically Track Updated Quests",
+    --     value = BQT.db.global.AutoTrackUpdatedQuests,
 
-                spacer5 = Spacer(),
+    --     margin = {
+    --         top = 10
+    --     }
+    -- });
 
-                resetHeader = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_HEADER'),
-                    type = "header",
-                    order = order(),
-                },
+    -- if BQT.db.global.DisplayDummyData then
+    --     BQT:RefreshView();
+    -- end
+end);
 
-                spacer6 = Spacer(),
-
-                resetDescription = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_TEXT'),
-                    type = "description",
-                    fontSize = "medium",
-                    order = order(),
-                },
-
-                spacer7 = Spacer(),
-
-                reset = {
-                    name = BQTL:GetStringWrap('SETTINGS_RESET_NAME'),
-                    desc = BQTL:GetStringWrap('SETTINGS_RESET_DESC'),
-                    type = "execute",
-                    width = 1.0,
-                    order = order(),
-
-                    func = function()
-                        for k, v in pairs(ns.CONSTANTS.DB_DEFAULTS.global) do
-                           BQT.db.global[k] = v
-                        end
-
-                        for k, v in pairs(ns.CONSTANTS.DB_DEFAULTS.char) do
-                           BQT.db.char[k] = v
-                        end
-
-                        BQT.tracker:UpdateSettings({
-                            position = {
-                                x = BQT.db.global.PositionX,
-                                y = BQT.db.global.PositionY
-                            },
-
-                            width = BQT.db.global.Width,
-                            maxHeight = BQT.db.global.MaxHeight,
-
-                            backgroundColor = BQT.db.global.BackgroundColor,
-
-                            backgroundVisible = BQT.db.global.BackgroundAlwaysVisible,
-
-                            locked = BQT.db.global.LockFrame
-                        });
-
-                        BQT:RefreshQuestWatch();
-                        BQT:RefreshView();
-                    end
-                },
-
-                spacer8 = Spacer(),
-
-                advert = {
-                    name = BQTL:GetStringWrap('SETTINGS_ADVERT_TEXT'),
-                    type = "description",
-                    fontSize = "medium",
-                    order = order(),
-                },
-
-                spacerEnd = Spacer({
-                    size = "large"
-                }),
-            }
-        },
-    },
-}
-
-LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", options);
-ACD:AddToBlizOptions("ButterQuestTracker");
-
-InterfaceOptionsFrame:HookScript("OnShow", function()
+settings:On("Show", function()
     if BQT.db.global.DisplayDummyData then
         BQT:RefreshView();
     end
 end);
 
-InterfaceOptionsFrame:HookScript("OnHide", function()
+settings:On("Hide", function()
     if BQT.db.global.DisplayDummyData then
         BQT:RefreshView();
     end
 end);
 
 -- Handling ButterQuestTracker's options.
-SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
-SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
-    if command == "" then
-        if InterfaceOptionsFrame:IsShown() then
-            InterfaceOptionsFrame:Hide();
-        else
-            InterfaceOptionsFrame:Show();
-            InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
-        end
-    elseif command == "reset" then
-        print('command', command);
-    end
-end
+-- SLASH_BUTTER_QUEST_TRACKER_COMMAND1 = '/bqt'
+-- SlashCmdList['BUTTER_QUEST_TRACKER_COMMAND'] = function(command)
+--     if command == "" then
+--         if InterfaceOptionsFrame:IsShown() then
+--             InterfaceOptionsFrame:Hide();
+--         else
+--             InterfaceOptionsFrame:Show();
+--             InterfaceOptionsFrame_OpenToCategory("ButterQuestTracker");
+--         end
+--     elseif command == "reset" then
+--         print('command', command);
+--     end
+-- end

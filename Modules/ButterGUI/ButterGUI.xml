@@ -1,0 +1,16 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
+..\FrameXML\UI.xsd">
+    <Script file="Modules/BaseElement.lua"/>
+    <Script file="Modules/BaseInputElement.lua"/>
+    <Script file="Modules/BaseFactoryElement.lua"/>
+    <Script file="Modules/Group.lua"/>
+
+    <Script file="Modules/Button.lua"/>
+    <Script file="Modules/ToggleButton.lua"/>
+    <Script file="Modules/Checkbox.lua"/>
+    <Script file="Modules/Text.lua"/>
+    <Script file="Modules/DropdownMenu.lua"/>
+    <Script file="Modules/Dropdown.lua"/>
+
+    <Script file="ButterGUI.lua"/>
+</Ui>

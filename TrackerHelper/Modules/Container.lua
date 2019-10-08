@@ -4,7 +4,8 @@ TrackerHelperContainer = CreateClass("Frame", "TrackerHelperContainer", nil, nil
 local Container = TrackerHelperContainer;
 
 function Container:OnAcquire()
-    self.__super.OnAcquire(self);
+    TrackerHelperBaseElement.OnAcquire(self);
+
     self.type = "container";
     self.elements = {};
     self.listeners = {};
@@ -16,16 +17,16 @@ function Container:OnAcquire()
     self:SetScript('OnMouseUp', self.OnMouseUp);
     self:SetScript('OnMouseDown', self.OnMouseDown);
 
-    self:SetHeight(1);
+    self:SetHeight(0);
     self:SetHidden(false);
 end
 
 function Container:OnRelease()
-    self.__super.OnRelease(self);
+    TrackerHelperBaseElement.OnRelease(self);
 
     self:EnableMouse(false);
     self:ClearAllPoints();
-    self:SetHeight(1);
+    self:SetHeight(0);
     self:SetBackgroundColor(nil);
     self:SetMetadata(nil);
 
@@ -51,13 +52,13 @@ end
 
 function Container:RefreshSize()
     if self.hidden then
-        local current = self:GetFullHeight();
+        local original = self:GetFullHeight();
 
-        self:SetHeight(1);
+        self:SetHeight(0);
 
-        self:UpdateParentsHeight(self:GetHeight() - 1 - current);
+        self:UpdateParentsHeight(self:GetFullHeight() - original);
     else
-        self:SetHeight(1);
+        self:SetHeight(0);
 
         self:UpdateParentsHeight(self:GetFullHeight());
 
@@ -111,11 +112,11 @@ function Container:AddElement(element)
 end
 
 function Container:SetHidden(hidden)
-    local previousHidden = self.hidden;
+    local previouslyHidden = self.hidden;
     self.hidden = hidden;
 
     if hidden then -- If we're hiding this element and it's not already hidden
-        if not previousHidden then
+        if not previouslyHidden then
             self:RefreshSize();
         end
 
@@ -123,7 +124,7 @@ function Container:SetHidden(hidden)
     elseif not hidden then -- If we're showing this element and it's not already shown
         self:Show();
 
-        if previousHidden then
+        if previouslyHidden then
             self:RefreshSize();
         end
     end

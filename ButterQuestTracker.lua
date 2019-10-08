@@ -539,6 +539,10 @@ function BQT:RefreshView()
             container = self.tracker:Container({
                 container = trackerContainer,
 
+                margin = {
+                    bottom = 10
+                },
+
                 events = {
                     OnMouseDown = function(button)
                         if button ~= "LeftButton" or self.db.global.LockFrame then return end
@@ -608,7 +612,7 @@ function BQT:RefreshView()
                         container = self.questsContainer,
 
                         margin = {
-                            top = (index ~= 1 or self.db.global.TrackerHeaderEnabled) and 10,
+                            bottom = 10,
                             left = 2
                         },
 
@@ -651,8 +655,8 @@ function BQT:RefreshView()
             },
 
             margin = {
-                top = (index ~= 1 or self.db.global.ZoneHeaderEnabled or self.db.global.TrackerHeaderEnabled) and self.db.global.QuestPadding,
-                left = self.db.global.ZoneHeaderEnabled and 0 or 5
+                bottom = self.db.global.QuestPadding,
+                left = (self.db.global.ZoneHeaderEnabled or not self.db.global.TrackerHeaderEnabled) and 0 or 5
             },
 
             metadata = {
@@ -729,7 +733,7 @@ function BQT:RefreshView()
                 color = self.db.global.ObjectiveFontColor,
                 container = questContainer,
                 margin = {
-                    top = 2.5
+                    bottom = 2.5
                 }
             });
         elseif quest.completed then
@@ -739,7 +743,7 @@ function BQT:RefreshView()
                 color = "00b205",
                 container = questContainer,
                 margin = {
-                    top = 2.5
+                    bottom = 2.5
                 }
             });
         elseif quest.failed then
@@ -749,7 +753,7 @@ function BQT:RefreshView()
                 color = { r = 1, g = 0.1, b = 0.1 },
                 container = questContainer,
                 margin = {
-                    top = 2.5
+                    bottom = 2.5
                 }
             });
         else
@@ -760,7 +764,7 @@ function BQT:RefreshView()
                     color = objective.completed and HIGHLIGHT_FONT_COLOR or self.db.global.ObjectiveFontColor,
                     container = questContainer,
                     margin = {
-                        top = 2.5
+                        bottom = 2.5
                     }
                 });
             end

@@ -7,7 +7,7 @@ local QLH = LibStub("QuestLogHelper-1.0");
 local ZH = LibStub("ZoneHelper-1.0");
 local QH = LibStub("LibQuestHelpers-1.0");
 
-ButterQuestTracker = LibStub("AceAddon-3.0"):NewAddon("ButterQuestTracker");
+ButterQuestTracker = LibStub("AceAddon-3.0"):NewAddon("ButterQuestTracker", "AceEvent-3.0");
 local BQT = ButterQuestTracker;
 
 StaticPopupDialogs[NAME .. "_WowheadURL"] = {
@@ -39,7 +39,7 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     hideOnEscape = true
 }
 
-function BQT:OnInitialize()
+function BQT:OnPlayerEnteringWorld()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
     self.hiddenContainers = {}
 
@@ -118,10 +118,6 @@ function BQT:OnInitialize()
         locked = self.db.global.LockFrame
     });
 
-    self:LogInfo("Initialized");
-end
-
-function BQT:OnEnable()
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
     self:RefreshQuestWatch();
@@ -136,7 +132,10 @@ function BQT:OnEnable()
     end);
 
     self:LogInfo("Enabled");
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD");
 end
+
+BQT:RegisterEvent("PLAYER_ENTERING_WORLD", "OnPlayerEnteringWorld")
 
 function BQT:ShowWowheadPopup(id)
     StaticPopup_Show(NAME .. "_WowheadURL", id)

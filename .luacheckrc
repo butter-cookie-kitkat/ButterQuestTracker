@@ -121,6 +121,8 @@ read_globals = {
     "GetSuperTrackedQuestID",
     "SetSuperTrackedQuestID",
     "GetDistanceSqToQuest",
+    "WorldMapFrame",
+    "QuestMapFrame_ShowQuestDetails",
 
     -- FrameXML Frames
     "UIParent",

@@ -39,7 +39,7 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     hideOnEscape = true
 }
 
-function BQT:OnPlayerEnteringWorld()
+function BQT:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
     self.hiddenContainers = {}
 
@@ -55,6 +55,10 @@ function BQT:OnPlayerEnteringWorld()
 
     QWH:BypassWatchLimit(self.db.char.MANUALLY_TRACKED_QUESTS);
     QWH:KeepHidden();
+end
+
+function BQT:OnPlayerEnteringWorld()
+    self:UnregisterEvent("PLAYER_ENTERING_WORLD");
 
     QWH:OnQuestWatchUpdated(function(questWatchUpdates)
         for _, updateInfo in pairs(questWatchUpdates) do
@@ -132,7 +136,6 @@ function BQT:OnPlayerEnteringWorld()
     end);
 
     self:LogInfo("Enabled");
-    self:UnregisterEvent("PLAYER_ENTERING_WORLD");
 end
 
 BQT:RegisterEvent("PLAYER_ENTERING_WORLD", "OnPlayerEnteringWorld")
@@ -485,7 +488,7 @@ function BQT:Sort()
         zoneToOrderMap[quests[questID].zone] = zoneToOrderMap[quests[questID].zone] or i;
     end
 
-    for i, element in pairs(self.questContainers) do
+    for _, element in pairs(self.questContainers) do
         element:SetOrder(questIDToOrderMap[element.metadata.quest.questID]);
     end
 
@@ -511,7 +514,6 @@ function BQT:RefreshView()
     self.tracker:Clear();
 
     local watchedQuests, questCount = self:GetQuestInfo();
-    local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
 
     self:LogTrace("Quest Count:", questCount);
 

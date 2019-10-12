@@ -443,11 +443,9 @@ function BQT:GetQuestInfo()
     return QLH:GetWatchedQuests(), QLH:GetQuestCount(), false;
 end
 
-function BQT:GetTrackerHeader(questCount, visibleQuestCount)
+function BQT:GetTrackerHeader(questCount)
     if self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
-        if visibleQuestCount < questCount then
-            return "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
-        end
+        return "Quests (" .. questCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
     end
 
     return "Quests";
@@ -487,7 +485,7 @@ function BQT:Sort()
         zoneToOrderMap[quests[questID].zone] = zoneToOrderMap[quests[questID].zone] or i;
     end
 
-    for _, element in pairs(self.questContainers) do
+    for i, element in pairs(self.questContainers) do
         element:SetOrder(questIDToOrderMap[element.metadata.quest.questID]);
     end
 
@@ -516,7 +514,6 @@ function BQT:RefreshView()
     local visibleQuestCount = math.min(self.db.global.QuestLimit, count(watchedQuests));
 
     self:LogTrace("Quest Count:", questCount);
-    self:LogTrace("Visible Quest Count:", visibleQuestCount);
 
     local trackerContainer = self.tracker:Container({
         margin = {
@@ -533,7 +530,7 @@ function BQT:RefreshView()
 
     if self.db.global.TrackerHeaderEnabled then
         self.tracker:Font({
-            label = self:GetTrackerHeader(questCount, visibleQuestCount),
+            label = self:GetTrackerHeader(questCount),
             color = self.db.global.TrackerHeaderFontColor,
             size = self.db.global.TrackerHeaderFontSize,
 

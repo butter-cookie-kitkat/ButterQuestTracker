@@ -215,20 +215,6 @@ LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", function()
                         width = 0.8
                     }),
 
-                    questLimit = {
-                        name = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_NAME'),
-                        desc = BQTL:GetStringWrap('SETTINGS_QUEST_LIMIT_DESC'),
-                        arg = "QuestLimit",
-                        type = "range",
-                        width = 1.0,
-                        min = 1,
-                        max = 20,
-                        step = 1,
-                        order = order(),
-
-                        set = SetAndRefreshView
-                    },
-
                     filtersHeader = {
                         name = "Filters",
                         type = "header",

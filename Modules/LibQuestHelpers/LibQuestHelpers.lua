@@ -1,7 +1,10 @@
+local helper = LibStub:NewLibrary("LibQuestHelpers-1.0", 1);
+
+if not helper then return end
+
 local ZH = LibStub("ZoneHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local QWH = LibStub("QuestWatchHelper-1.0");
-local helper = LibStub:NewLibrary("LibQuestHelpers-1.0", 1);
 local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
 local timers = {};

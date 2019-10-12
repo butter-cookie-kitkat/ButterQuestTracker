@@ -1,6 +1,9 @@
+local helper = LibStub:NewLibrary("QuestWatchHelper-1.0", 1);
+
+if not helper then return end
+
 local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local QLH = LibStub("QuestLogHelper-1.0");
-local helper = LibStub:NewLibrary("QuestWatchHelper-1.0", 1);
 local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
 local BlizzardTrackerFrame = isWoWClassic and QuestWatchFrame or ObjectiveTrackerFrame;

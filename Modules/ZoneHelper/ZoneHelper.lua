@@ -1,5 +1,8 @@
-local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local helper = LibStub:NewLibrary("ZoneHelper-1.0", 1);
+
+if not helper then return end
+
+local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 
 local zoneIDToUiMapID = {};
 

@@ -10,9 +10,9 @@
     <Include file="Libs\AceDB-3.0\AceDB-3.0.xml"/>
     <Include file="Libs\Poncho-1.0\Poncho-1.0.xml"/>
 
-    <Include file="QuestLogHelper\QuestLogHelper.xml"/>
-    <Include file="QuestWatchHelper\QuestWatchHelper.xml"/>
-    <Include file="ZoneHelper\ZoneHelper.xml"/>
-    <Include file="LibQuestHelpers\LibQuestHelpers.xml"/>
-    <Include file="TrackerHelper\TrackerHelper.xml"/>
+    <Include file="ButterGUI-1.0\ButterGUI-1.0.xml"/>
+
+    <Include file="Modules\LibQuestHelpers\LibQuestHelpers.xml"/>
+    <Include file="Modules\QuestWatchHelper\QuestWatchHelper.xml"/>
+    <Include file="Modules\Tracker\Tracker.xml"/>
 </Ui>

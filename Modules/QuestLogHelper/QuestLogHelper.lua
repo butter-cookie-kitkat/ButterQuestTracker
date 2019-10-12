@@ -1,5 +1,8 @@
-local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local helper = LibStub:NewLibrary("QuestLogHelper-1.0", 1);
+
+if not helper then return end
+
+local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 -- /dump LibStub("QuestLogHelper-1.0"):GetQuests();
 -- /dump LibStub("QuestLogHelper-1.0"):GetWatchedQuests();
@@ -460,4 +463,8 @@ function helper:RevertFocus()
     previousValues = nil;
 end
 
-AceEvent.RegisterEvent(helper, "QUEST_LOG_UPDATE", "Refresh");
+AceEvent.RegisterEvent(helper, "PLAYER_ENTERING_WORLD", function()
+    helper:Refresh();
+    AceEvent.RegisterEvent(helper, "QUEST_LOG_UPDATE", "Refresh");
+    AceEvent.UnregisterEvent(helper, "PLAYER_ENTERING_WORLD");
+end);

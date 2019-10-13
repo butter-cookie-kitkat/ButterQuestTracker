@@ -352,9 +352,9 @@ function helper:GetWatchedQuests()
     local quests = self:GetQuests();
     local watchedQuests = {};
 
-    for questID, quest in pairs(quests) do
+    for _, quest in pairs(quests) do
         if IsQuestWatched(quest.index) then
-            watchedQuests[questID] = quest;
+            tinsert(watchedQuests, quest);
         end
     end
 

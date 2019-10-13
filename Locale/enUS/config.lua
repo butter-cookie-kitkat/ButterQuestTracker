@@ -66,7 +66,8 @@ ButterQuestTrackerLocale.locale['enUS'] = {
 
     ['SETTINGS_TRACKER_HEADER_FORMAT_DESC'] = "How should we format the tracker header?",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'] = "Quests",
-    ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'] = "Quests (10/20)",
+    ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'] = "Quests (10/17)",
+    ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_TOTAL_OPTION'] = "Quests (10/20)",
 
     -- Settings > Visual Settings > Zone Header Settings
 

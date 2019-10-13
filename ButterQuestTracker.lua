@@ -39,9 +39,9 @@ StaticPopupDialogs[NAME .. "_WowheadURL"] = {
     hideOnEscape = true
 }
 
-function BQT:OnInitialize()
+function BQT:OnEnable()
     self.db = LibStub("AceDB-3.0"):New("ButterQuestTrackerConfig", ns.CONSTANTS.DB_DEFAULTS, true);
-    self.hiddenContainers = {}
+    self.hiddenContainers = {};
 
     -- TODO: This is for backwards compatible support of the SavedVariables
     -- Remove this in v2.0.0
@@ -446,9 +446,9 @@ function BQT:GetQuestInfo()
     return QLH:GetWatchedQuests(), QLH:GetQuestCount(), false;
 end
 
-function BQT:GetTrackerHeader(questCount)
+function BQT:GetTrackerHeader(visibleQuestCount, questCount)
     if self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
-        return "Quests (" .. questCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
+        return "Quests (" .. visibleQuestCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
     end
 
     return "Quests";
@@ -532,7 +532,7 @@ function BQT:RefreshView()
 
     if self.db.global.TrackerHeaderEnabled then
         self.tracker:Font({
-            label = self:GetTrackerHeader(questCount),
+            label = self:GetTrackerHeader(#watchedQuests, questCount),
             color = self.db.global.TrackerHeaderFontColor,
             size = self.db.global.TrackerHeaderFontSize,
 

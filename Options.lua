@@ -187,7 +187,7 @@ LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", function()
 
                             BQT:UpdateQuestProximityTimer();
                             if value ~= "ByQuestProximity" then
-                                BQT:RefreshView();
+                                BQT:Sort();
                             end
                         end
                     },
@@ -365,19 +365,21 @@ LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", function()
                                 values = function()
                                     return {
                                         Quests = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'),
-                                        QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION')
+                                        QuestsNumberVisible = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'),
+                                        QuestsNumberVisibleTotal = BQTL:GetString('SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_TOTAL_OPTION')
                                     };
                                 end,
 
                                 sorting = {
                                     "Quests",
-                                    "QuestsNumberVisible"
+                                    "QuestsNumberVisible",
+                                    "QuestsNumberVisibleTotal"
                                 },
 
                                 set = function(...)
                                     SetInDB(...);
 
-                                    BQT:Sort();
+                                    BQT:RefreshView();
                                 end,
 
                                 disabled = function() return not BQT.db.global.TrackerHeaderEnabled end

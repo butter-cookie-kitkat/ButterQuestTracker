@@ -448,6 +448,8 @@ end
 
 function BQT:GetTrackerHeader(visibleQuestCount, questCount)
     if self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
+        return "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
+    elseif self.db.global.TrackerHeaderFormat == "QuestsNumberVisibleTotal" then
         return "Quests (" .. visibleQuestCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
     end
 
@@ -532,7 +534,7 @@ function BQT:RefreshView()
 
     if self.db.global.TrackerHeaderEnabled then
         self.tracker:Font({
-            label = self:GetTrackerHeader(#watchedQuests, questCount),
+            label = self:GetTrackerHeader(count(watchedQuests), questCount),
             color = self.db.global.TrackerHeaderFontColor,
             size = self.db.global.TrackerHeaderFontSize,
 

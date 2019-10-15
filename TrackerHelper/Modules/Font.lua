@@ -37,6 +37,7 @@ function Font:SetSize(size)
     if not size then return end
 
     self.font:SetFont(self.font:GetFont(), size);
+    self:SetHeight(self.font:GetHeight());
 end
 
 function Font:SetColor(color)

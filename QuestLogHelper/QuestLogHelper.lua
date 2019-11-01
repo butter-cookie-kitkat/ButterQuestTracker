@@ -294,7 +294,7 @@ function helper:Refresh()
 
             local updated = quest.completionPercent and quest.completionPercent ~= completionPercent;
             if updated then
-                quest.lastUpdated = GetTime();
+                quest.lastUpdated = time();
 
                 updateListeners(questID, {
                     index = quest.index,
@@ -306,7 +306,7 @@ function helper:Refresh()
                     updated = updated
                 });
             elseif accepted then
-                quest.lastUpdated = GetTime();
+                quest.lastUpdated = time();
 
                 updateListeners(questID, {
                     index = quest.index,

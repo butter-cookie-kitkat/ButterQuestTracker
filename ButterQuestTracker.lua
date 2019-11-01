@@ -122,6 +122,15 @@ function BQT:OnPlayerEnteringWorld()
         locked = self.db.global.LockFrame
     });
 
+    -- TODO: This automatically updates invalid last updated values to the current time
+    -- Remove this in v2.0.0
+    for questID, lastUpdated in pairs(self.db.char.QUESTS_LAST_UPDATED) do
+        if lastUpdated < 1000000 then
+            self.db.char.QUESTS_LAST_UPDATED[questID] = time();
+        end
+    end
+    -- END TODO
+
     self.db.char.QUESTS_LAST_UPDATED = QLH:SetQuestsLastUpdated(self.db.char.QUESTS_LAST_UPDATED);
 
     self:RefreshQuestWatch();

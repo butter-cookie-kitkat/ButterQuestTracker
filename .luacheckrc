@@ -101,7 +101,7 @@ read_globals = {
     "AbandonQuest",
     "QuestLogPushQuest",
     "GetQuestLogQuestText",
-    "GetTime",
+    "time",
     "HideUIPanel",
     "ShowUIPanel",
     "UnitLevel",

@@ -1,3 +1,4 @@
+local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
 local ZH = LibStub("ZoneHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local QWH = LibStub("QuestWatchHelper-1.0");
@@ -15,8 +16,10 @@ end
 
 local function refresh()
     debounce("refresh", function()
-        if Questie then
-            QuestieQuest:UpdateHiddenNotes();
+        local questie = helper:GetQuestie();
+
+        if questie then
+            questie.Quest:UpdateHiddenNotes();
         end
     end);
 end
@@ -42,8 +45,29 @@ function helper:GetAddons()
     return {
         ["Built-In"] = not isWoWClassic,
         ClassicCodex = CodexQuest,
-        Questie = Questie
+        Questie = self:GetQuestie()
     };
+end
+
+local questie;
+function helper:GetQuestie()
+    -- Verify the Questie Addon is installed and that questie isn't already cached.
+    if not questie and Questie then
+        -- TODO: Remove in v2.0.0
+        if QuestieLoader then
+            questie = {
+                DB = QuestieLoader:ImportModule("QuestieDB"),
+                Quest = QuestieLoader:ImportModule("QuestieQuest")
+            };
+        elseif QuestieDB and QuestieQuest then
+            questie = {
+                DB = QuestieDB,
+                Quest = QuestieQuest
+            };
+        end
+    end
+
+    return questie;
 end
 
 function helper:GetAddonNames()
@@ -87,6 +111,15 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
 
     if self.autoHideIcons then
         QWH:OnQuestWatchUpdated(OnQuestWatchUpdated);
+    else
+        QWH:OffQuestWatchUpdated(OnQuestWatchUpdated);
+    end
+
+    self:RefreshIconsVisibilityForQuests(QLH:GetQuests());
+end
+
+function helper:RefreshIconsVisibilityForQuests(quests)
+    if self.autoHideIcons then
         for questID, quest in pairs(QLH:GetQuests()) do
             self:SetIconsVisibility({
                 index = quest.index,
@@ -95,7 +128,6 @@ function helper:SetAutoHideQuestHelperIcons(autoHideIcons)
             });
         end
     else
-        QWH:OffQuestWatchUpdated(OnQuestWatchUpdated);
         for questID, quest in pairs(QLH:GetQuests()) do
             self:SetIconsVisibility({
                 index = quest.index,
@@ -122,7 +154,7 @@ function helper:SetIconsVisibility(updatedQuest)
 
 
     if addons.Questie then
-        local quest = QuestieDB:GetQuest(updatedQuest.questID);
+        local quest = addons.Questie.DB:GetQuest(updatedQuest.questID);
 
         quest.HideIcons = not updatedQuest.visible;
     end
@@ -181,7 +213,7 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
 
         if not quest then return end;
 
-        if QuestieQuest:IsComplete(quest) then
+        if addons.Questie.Quest:IsComplete(quest) then
             local finisher;
             if quest.Finisher.Type == "monster" then
                 finisher = QuestieDB:GetNPC(quest.Finisher.Id)
@@ -244,3 +276,9 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
 
     return closestDistance;
 end
+
+AceEvent.RegisterEvent(helper, "ADDON_LOADED", function(_, addon)
+    if addon == "Questie" then
+        helper:RefreshIconsVisibilityForQuests(QLH:GetQuests());
+    end
+end);

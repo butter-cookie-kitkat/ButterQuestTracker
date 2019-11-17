@@ -328,8 +328,12 @@ function helper:Refresh()
     return cache.quests;
 end
 
+function helper:AreQuestsLoaded()
+    return cache.quests ~= nil;
+end
+
 function helper:GetQuests()
-    if not cache.quests then
+    if not self:AreQuestsLoaded() then
         self:Refresh();
     end
 

@@ -278,7 +278,7 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
 end
 
 AceEvent.RegisterEvent(helper, "ADDON_LOADED", function(_, addon)
-    if addon == "Questie" then
+    if addon == "Questie" and QLH:AreQuestsLoaded() then
         helper:RefreshIconsVisibilityForQuests(QLH:GetQuests());
     end
 end);

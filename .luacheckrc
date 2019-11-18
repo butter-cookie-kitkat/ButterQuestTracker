@@ -56,10 +56,6 @@ read_globals = {
 
     -- Questie Addon Frame / Functions
     "Questie",
-    "QuestieDB",
-    "QuestieQuest",
-    -- Questie's new Module System
-    "QuestieLoader",
 
     -- Classic Codex Addon Frame / Functions
     "CodexDatabase",

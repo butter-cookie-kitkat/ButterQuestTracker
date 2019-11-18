@@ -50,6 +50,7 @@ function helper:GetAddons()
 end
 
 local questie;
+-- luacheck: push globals QuestieLoader QuestieDB QuestieQuest
 function helper:GetQuestie()
     -- Verify the Questie Addon is installed and that questie isn't already cached.
     if not questie and Questie then
@@ -69,6 +70,7 @@ function helper:GetQuestie()
 
     return questie;
 end
+-- luacheck: pop
 
 function helper:GetAddonNames()
     local names = {};
@@ -209,16 +211,16 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
             end
         end
     elseif addons.Questie and (not overrideAddon or overrideAddon == "Questie") then
-        local quest = QuestieDB:GetQuest(questID);
+        local quest = addons.Questie.DB:GetQuest(questID);
 
         if not quest then return end;
 
         if addons.Questie.Quest:IsComplete(quest) then
             local finisher;
             if quest.Finisher.Type == "monster" then
-                finisher = QuestieDB:GetNPC(quest.Finisher.Id)
+                finisher = addons.Questie.DB:GetNPC(quest.Finisher.Id)
             elseif quest.Finisher.Type == "object" then
-                finisher = QuestieDB:GetObject(quest.Finisher.Id)
+                finisher = addons.Questie.DB:GetObject(quest.Finisher.Id)
             end
 
             if not finisher then return end;

@@ -1,4 +1,16 @@
 ButterQuestTrackerLocale.locale['enUS'] = {
+    -- Quest Tracker
+
+    ['QT_QUESTS'] = "Quests",
+    ['QT_READY_TO_TURN_IN'] = "Ready to turn in",
+    ['QT_FAILED'] = "Quest failed, abandon to restart.",
+    ['QT_UNTRACK_QUEST'] = "Untrack Quest",
+    ['QT_VIEW_QUEST'] = "View Quest",
+    ['QT_WOWHEAD_URL'] = "|cff33ff99Wowhead|r URL",
+    ['QT_SHARE_QUEST'] = "Share Quest",
+    ['QT_CANCEL_QUEST'] = "Cancel Quest",
+    ['QT_ABANDON_QUEST'] = "Abandon Quest",
+
     -- Settings
 
     ['SETTINGS_NAME'] = "Butter Quest Tracker |cFFFFFFFFv%s|r",

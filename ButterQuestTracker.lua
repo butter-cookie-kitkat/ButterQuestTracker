@@ -7,6 +7,7 @@ local QLH = LibStub("QuestLogHelper-1.0");
 local ZH = LibStub("ZoneHelper-1.0");
 local QH = LibStub("LibQuestHelpers-1.0");
 
+local BQTL = ButterQuestTrackerLocale;
 ButterQuestTracker = LibStub("AceAddon-3.0"):NewAddon("ButterQuestTracker", "AceEvent-3.0");
 local BQT = ButterQuestTracker;
 
@@ -457,12 +458,12 @@ end
 
 function BQT:GetTrackerHeader(visibleQuestCount, questCount)
     if self.db.global.TrackerHeaderFormat == "QuestsNumberVisible" then
-        return "Quests (" .. visibleQuestCount .. "/" .. questCount .. ")";
+        return BQTL:GetString('QT_QUESTS') .. " (" .. visibleQuestCount .. "/" .. questCount .. ")";
     elseif self.db.global.TrackerHeaderFormat == "QuestsNumberVisibleTotal" then
-        return "Quests (" .. visibleQuestCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
+        return BQTL:GetString('QT_QUESTS') .. " (" .. visibleQuestCount .. "/" .. C_QuestLog.GetMaxNumQuests() .. ")";
     end
 
-    return "Quests";
+    return BQTL:GetString('QT_QUESTS');
 end
 
 function BQT:GetQuestHeader(quest)
@@ -749,7 +750,7 @@ function BQT:RefreshView()
             });
         elseif quest.completed then
             self.tracker:Font({
-                label = ' - Ready to turn in',
+                label = ' - ' .. BQTL:GetString('QT_READY_TO_TURN_IN'),
                 size = self.db.global.ObjectiveFontSize,
                 color = "00b205",
                 container = questContainer,
@@ -759,7 +760,7 @@ function BQT:RefreshView()
             });
         elseif quest.failed then
             self.tracker:Font({
-                label = ' - Quest failed, abandon to restart.',
+                label = ' - ' .. BQTL:GetString('QT_FAILED'),
                 size = self.db.global.ObjectiveFontSize,
                 color = { r = 1, g = 0.1, b = 0.1 },
                 container = questContainer,
@@ -804,7 +805,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "Untrack Quest",
+            text = BQTL:GetString('QT_UNTRACK_QUEST'),
             notCheckable = true,
             func = function()
                 self.db.char.MANUALLY_TRACKED_QUESTS[self.contextMenu.quest.questID] = false;
@@ -813,7 +814,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "View Quest",
+            text = BQTL:GetString('QT_VIEW_QUEST'),
             notCheckable = true,
             func = function()
                 QLH:ToggleQuest(self.contextMenu.quest.index);
@@ -821,7 +822,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "|cff33ff99Wowhead|r URL",
+            text = BQTL:GetString('QT_WOWHEAD_URL'),
             notCheckable = true,
             func = function()
                 BQT:ShowWowheadPopup(self.contextMenu.quest.questID);
@@ -829,7 +830,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "Share Quest",
+            text = BQTL:GetString('QT_SHARE_QUEST'),
             notCheckable = true,
             disabled = not UnitInParty("player") or not self.contextMenu.quest.sharable,
             func = function()
@@ -838,7 +839,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "Cancel",
+            text = BQTL:GetString('QT_CANCEL_QUEST'),
             notCheckable = true,
             func = function()
                 PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON);
@@ -850,7 +851,7 @@ function BQT:ToggleContextMenu(quest)
         });
 
         UIDropDownMenu_AddButton({
-            text = "Abandon Quest",
+            text = BQTL:GetString('QT_ABANDON_QUEST'),
             notCheckable = true,
             colorCode = "|cffff0000",
             func = function()

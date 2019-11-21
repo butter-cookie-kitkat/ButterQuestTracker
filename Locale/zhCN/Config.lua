@@ -90,7 +90,7 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "按任务难度级别着色",
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "按照难度级别来着色任务标题",
 
-    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "对任务标题精确控制\n\n|c00FF9696{{title}}|r\n任务名称\n\n|c00FF9696{{level}}|r\n任务等级\n\n|c00FF9696{{zone}}|r\n任务所属区域",
+    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "任务标题格式\n\n|c00FF9696{{title}}|r\n任务名称\n\n|c00FF9696{{level}}|r\n任务等级\n\n|c00FF9696{{zone}}|r\n任务所属区域",
     ['SETTINGS_QUEST_HEADER_FORMAT_CLASSIC_OPTION'] = "经典",
     ['SETTINGS_QUEST_HEADER_FORMAT_LEVELS_OPTION'] = "等级",
 

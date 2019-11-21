@@ -15,6 +15,7 @@ embeds.xml
 # Localization
 Locale\ButterQuestTrackerLocale.lua
 Locale\enUS\locale.xml
+Locale\zhCN\locale.xml
 
 utilities\constants.lua
 

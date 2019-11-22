@@ -6,9 +6,9 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
     ['QT_FAILED'] = "任务失败, 放弃任务重新接受.",
     ['QT_UNTRACK_QUEST'] = "不追踪任务",
     ['QT_VIEW_QUEST'] = "查看任务",
-    ['QT_WOWHEAD_URL'] = "|cff33ff99Wowhead|r URL",
+    ['QT_WOWHEAD_URL'] = "|cff33ff99Wowhead|r网站链接",
     ['QT_SHARE_QUEST'] = "共享任务",
-    ['QT_CANCEL_QUEST'] = "取消任务",
+    ['QT_CANCEL_QUEST'] = "取消",
     ['QT_ABANDON_QUEST'] = "放弃任务",
 
     -- Settings
@@ -25,7 +25,7 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
     ['SETTINGS_FILTERS_AND_SORTING_TAB'] = "过滤和排序",
 
     ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_NAME'] = "自动追踪新任务",
-    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'] = "如果一个任务被接受/更新，它将绕过过滤器并被自动跟踪。\n\n|c00FF9696此功能利用追踪覆盖来绕过过滤器。因此，禁用此选项也将清除您的覆盖。|r",
+    ['SETTINGS_AUTO_TRACK_UPDATED_QUESTS_DESC'] = "如果一个任务被接受/更新，它将绕过过滤器并被自动追踪。\n\n|c00FF9696此功能利用自动追踪来绕过过滤器。因此，禁用此选项也将清除您的自动追踪。|r",
 
     ['SETTINGS_SORTING_NAME'] = "排序",
     ['SETTINGS_SORTING_DESC'] = "说明任务如何在追踪器中排序。",
@@ -43,7 +43,7 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
     -- Settings > Filters & Sorting > Filters
 
     ['SETTINGS_DISABLE_FILTERS_NAME'] = "禁用过滤器 / 手动追踪任务",
-    ['SETTINGS_DISABLE_FILTERS_DESC'] = "禁用自动过滤功能,需要手动跟踪任务。\n\n|c00FF9696取消此选项将清除您的覆盖。|r",
+    ['SETTINGS_DISABLE_FILTERS_DESC'] = "禁用自动过滤功能,需要手动跟踪任务。\n\n|c00FF9696取消此选项将清除您的过滤。|r",
 
     ['SETTINGS_CURRENT_ZONE_ONLY_NAME'] = "仅当前区域",
     ['SETTINGS_CURRENT_ZONE_ONLY_DESC'] = "显示与当前区域/子区域相关的任务。",
@@ -54,8 +54,8 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
     ['SETTINGS_HIDE_COMPLETED_QUESTS_NAME'] = "隐藏完成的任务",
     ['SETTINGS_HIDE_COMPLETED_QUESTS_DESC'] = "显示任务已完成。",
 
-    ['SETTINGS_RESET_TRACKING_OVERRIDES_NAME'] = "重置追踪覆盖",
-    ['SETTINGS_RESET_TRACKING_OVERRIDES_DESC'] = "重置所有的手动追踪任务覆盖。",
+    ['SETTINGS_RESET_TRACKING_OVERRIDES_NAME'] = "重置追踪",
+    ['SETTINGS_RESET_TRACKING_OVERRIDES_DESC'] = "重置所有的手动追踪任务。",
 
     -- Settings > Visual Settings
 
@@ -74,23 +74,23 @@ ButterQuestTrackerLocale.locale['zhCN'] = {
 
     -- Settings > Visual Settings > Tracker Header Settings
 
-    ['SETTINGS_TRACKER_HEADER_ENABLED_DESC'] = "追踪器标题是否可见",
+    ['SETTINGS_TRACKER_HEADER_ENABLED_DESC'] = "追踪器任务标题是否可见",
 
-    ['SETTINGS_TRACKER_HEADER_FORMAT_DESC'] = "我们将使用哪种追踪器标题的格式?",
+    ['SETTINGS_TRACKER_HEADER_FORMAT_DESC'] = "我们在追踪器中的任务标题将使用哪种格式?",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_OPTION'] = "任务",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_OPTION'] = "任务 (10/17) -当前追踪/现有",
     ['SETTINGS_TRACKER_HEADER_FORMAT_QUESTS_NUMBER_VISIBLE_TOTAL_OPTION'] = "任务 (10/20) -当前追踪/最大",
 
     -- Settings > Visual Settings > Zone Header Settings
 
-    ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "在任务上方添加可折叠区域标题。",
+    ['SETTINGS_ZONE_HEADER_ENABLED_DESC'] = "在任务上方添加可折叠的地区标题。",
 
     -- Settings > Visual Settings > Quest Header Settings
 
     ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_NAME'] = "按任务难度级别着色",
-    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "按照难度级别来着色任务标题",
+    ['SETTINGS_COLOR_HEADERS_BY_DIFFICULTY_DESC'] = "按照难度级别来着色任务名",
 
-    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "任务标题格式\n\n|c00FF9696{{title}}|r\n任务名称\n\n|c00FF9696{{level}}|r\n任务等级\n\n|c00FF9696{{zone}}|r\n任务所属区域",
+    ['SETTINGS_QUEST_HEADER_FORMAT_DESC'] = "任务名格式\n\n|c00FF9696{{title}}|r\n任务名称\n\n|c00FF9696{{level}}|r\n任务等级\n\n|c00FF9696{{zone}}|r\n任务所属区域",
     ['SETTINGS_QUEST_HEADER_FORMAT_CLASSIC_OPTION'] = "经典",
     ['SETTINGS_QUEST_HEADER_FORMAT_LEVELS_OPTION'] = "等级",
 

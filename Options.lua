@@ -840,8 +840,8 @@ LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", function()
                             -- ['ptBR'] = 'Português',
                             -- ['frFR'] = 'Français',
                             -- ['deDE'] = 'Deutsch',
-                            -- ['ruRU'] = 'русский',
-                            -- ['zhCN'] = '简体中文',
+                            ['ruRU'] = 'русский',
+                            ['zhCN'] = '简体中文',
                             -- ['zhTW'] = '正體中文',
                             -- ['koKR'] = '한국어'
                         },
@@ -850,6 +850,7 @@ LibStub("AceConfig-3.0"):RegisterOptionsTable("ButterQuestTracker", function()
                         set = function(input, locale)
                             BQT.db.global.Locale = locale;
                             BQTL:SetLocale(locale);
+                            BQT:RefreshView();
                         end,
                     },
 

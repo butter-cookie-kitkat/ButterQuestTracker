@@ -61,6 +61,7 @@ end
 function BQT:OnPlayerEnteringWorld()
     self:UnregisterEvent("PLAYER_ENTERING_WORLD");
 
+    BQTL:SetLocale(BQT.db.global.Locale);
     QWH:OnQuestWatchUpdated(function(questWatchUpdates)
         for _, updateInfo in pairs(questWatchUpdates) do
             if updateInfo.byUser then

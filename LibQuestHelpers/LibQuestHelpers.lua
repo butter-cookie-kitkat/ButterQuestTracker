@@ -1,5 +1,5 @@
 local AceEvent = LibStub:GetLibrary("AceEvent-3.0");
-local ZH = LibStub("ZoneHelper-1.0");
+local ZH = LibStub("BQTZoneHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
 local QWH = LibStub("QuestWatchHelper-1.0");
 local helper = LibStub:NewLibrary("LibQuestHelpers-1.0", 1);

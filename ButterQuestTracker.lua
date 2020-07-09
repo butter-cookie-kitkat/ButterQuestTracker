@@ -4,7 +4,7 @@ local isWoWClassic = select(4, GetBuildInfo()) < 20000;
 
 local QWH = LibStub("QuestWatchHelper-1.0");
 local QLH = LibStub("QuestLogHelper-1.0");
-local ZH = LibStub("ZoneHelper-1.0");
+local ZH = LibStub("BQTZoneHelper-1.0");
 local QH = LibStub("LibQuestHelpers-1.0");
 
 local BQTL = ButterQuestTrackerLocale;

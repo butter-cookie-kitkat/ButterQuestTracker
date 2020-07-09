@@ -15,7 +15,7 @@ jobs:
       script:
         - curl -s https://raw.githubusercontent.com/BigWigsMods/packager/master/release.sh >> release.sh
         - chmod +x ./release.sh
-        - ./release.sh -g 1.13.3
+        - ./release.sh -g 1.13.5
       if: (tag IS present)
 
 notifications:

@@ -64,7 +64,15 @@ function helper:GetQuestie()
                         questie.Quest:UpdateHiddenNotes();
                     else
                         -- TODO: Figure out how this should be implemented with v6+ of Questie.
+
                     end
+                end,
+                IsQuestComplete = function(self, quest)
+                    if quest.IsComplete then
+                        return quest:IsComplete()
+                    end
+
+                    return questie.Quest:IsComplete(quest)
                 end
             };
         elseif QuestieDB and QuestieQuest then
@@ -73,7 +81,8 @@ function helper:GetQuestie()
                 Quest = QuestieQuest,
                 RefreshIcons = function()
                     QuestieQuest:UpdateHiddenNotes();
-                end
+                end,
+                IsQuestComplete = QuestieQuest.IsComplete
             };
         end
     end
@@ -225,7 +234,7 @@ function helper:GetDistanceToClosestObjective(questID, overrideAddon)
 
         if not quest then return end;
 
-        if addons.Questie.Quest:IsComplete(quest) then
+        if addons.Questie:IsQuestComplete(quest) then
             local finisher;
             if quest.Finisher.Type == "monster" then
                 finisher = addons.Questie.DB:GetNPC(quest.Finisher.Id)

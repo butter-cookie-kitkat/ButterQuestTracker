@@ -19,7 +19,7 @@ local function refresh()
         local questie = helper:GetQuestie();
 
         if questie then
-            questie.Quest:UpdateHiddenNotes();
+            questie:RefreshIcons();
         end
     end);
 end
@@ -58,12 +58,18 @@ function helper:GetQuestie()
         if QuestieLoader then
             questie = {
                 DB = QuestieLoader:ImportModule("QuestieDB"),
-                Quest = QuestieLoader:ImportModule("QuestieQuest")
+                Quest = QuestieLoader:ImportModule("QuestieQuest"),
+                RefreshIcons = function()
+                    -- TODO: Figure out how this should be implemented with v6.0.0 of Questie.
+                end
             };
         elseif QuestieDB and QuestieQuest then
             questie = {
                 DB = QuestieDB,
-                Quest = QuestieQuest
+                Quest = QuestieQuest,
+                RefreshIcons = function()
+                    QuestieQuest:UpdateHiddenNotes();
+                end
             };
         end
     end

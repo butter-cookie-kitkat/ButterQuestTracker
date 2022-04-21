@@ -1,3 +1,5 @@
+**NOTE: I'm sorry, but BQT is no longer maintained. The code is under the MIT license so feel free to do whatever you want with it~ :heart:**
+
 ![Game Version](https://img.shields.io/badge/Game%20Version-1.13.5-informational)
 [![CurseForge](https://img.shields.io/badge/CurseForge-Published-success)](https://www.curseforge.com/wow/addons/butter-quest-tracker)
 
